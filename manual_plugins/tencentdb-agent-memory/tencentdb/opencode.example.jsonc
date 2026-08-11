@@ -1,0 +1,113 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "plugins": [
+    {
+      "package": "./manual_plugins/tencentdb-agent-memory/tencentdb/index.ts",
+
+      "options": {
+        "gateway": {
+          "url": "http://127.0.0.1:8420",
+          "apiKey": "{file:~/.config/opencode/secrets/tdai-gateway-key}"
+        },
+
+        "memory": {
+          "instanceId": "default",
+          "teamId": "TEAM_ID_FROM_HUB",
+          "userId": "USER_ID_FROM_HUB",
+
+          "defaultAgentId": "TENCENT_AGENT_ID_DEFAULT",
+
+          "agents": {
+            "build": "TENCENT_AGENT_ID_BUILD",
+            "plan": "TENCENT_AGENT_ID_PLAN",
+            "toto": "TENCENT_AGENT_ID_TOTO"
+          }
+        },
+
+        "knowledge": {
+          "url": "http://127.0.0.1:8424/v3",
+
+          "discovery": {
+            "enabled": true,
+            "cacheSeconds": 60,
+            "maxAssetsPerKind": 4
+          },
+
+          /*
+           * Optional. Leave empty to auto-discover ready assets for the Team.
+           */
+          "defaultWikiIds": [],
+          "defaultCodeGraphIds": [],
+
+          /*
+           * Optional per-OpenCode-agent restrictions/overrides.
+           */
+          "agents": {
+            "build": {
+              "wikiIds": [],
+              "codeGraphIds": []
+            }
+          }
+        },
+
+        "retrieval": {
+          "budgetPerTurn": 3,
+          "memoryLimit": 5,
+          "knowledgeLimit": 10,
+          "scenarioIndexLimit": 20
+        },
+
+        "dream": {
+          "enabled": true,
+          "pathPrefix": "Dreams",
+          "maxCommitChars": 8000,
+
+          "sample": {
+            "atomicPool": 12,
+            "conversationPool": 8,
+            "atoms": 3,
+            "conversations": 2,
+            "scenarios": 1,
+            "includeCore": true,
+            "sourceMaxChars": 1400,
+            "scenarioMaxChars": 2200,
+            "coreMaxChars": 2200
+          }
+        },
+
+        "guardrails": {
+          "enabled": true,
+          "blockPublicWebOnPersonalMemory": true,
+
+          /*
+           * Force user-visible answers that use TencentDB evidence to English.
+           * Raw Wiki/Memory/CodeGraph evidence is NOT destructively translated.
+           */
+          "outputLanguage": "English",
+
+          /*
+           * Every tdai_* result gets a compact language-safety envelope.
+           * When Chinese/CJK evidence is detected, the model is explicitly
+           * told to translate only supported meaning and never invent details.
+           */
+          "annotateTencentEvidence": true
+        },
+
+        "exposeAdminTools": false,
+        "traceFile": "/tmp/tencentdb-opencode-v3.log",
+
+        "timeouts": {
+          "gatewayMs": 5000,
+          "captureMs": 10000,
+          "knowledgeMs": 10000
+        },
+
+        "circuit": {
+          "failureThreshold": 5,
+          "openSeconds": 60
+        }
+      }
+    }
+  ]
+}

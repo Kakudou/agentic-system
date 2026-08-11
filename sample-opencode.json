@@ -1,9 +1,27 @@
 {
   "$schema": "https://opencode.ai/config.json",
-
-  "plugins": [
+  "providers": {
+    "llamacpp": {
+      "name": "llamacpp",
+      "package": "@opencode-ai/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "http://llamacpp/v1",
+        "apiKey": "apiKey"
+      },
+      "models": {
+        "modelname": {
+          "name": "modelname",
+          "limits": {
+            "context": 100000
+          }
+        }
+      }
+    }
+  },
+  "model": "llamacpp/modelname",
+  "plugins":  [
     {
-      "package": "./manual_plugins/tencentdb/index.ts",
+      "package": "./manual_plugins/tencentdb-agent-memory/tencentdb/index.ts",
 
       "options": {
         "gateway": {
@@ -13,15 +31,20 @@
 
         "memory": {
           "instanceId": "default",
-          "teamId": "TEAM_ID_FROM_HUB",
-          "userId": "USER_ID_FROM_HUB",
+          "teamId": "team-",
+          "userId": "usr-",
 
-          "defaultAgentId": "TENCENT_AGENT_ID_DEFAULT",
+          "defaultAgentId": "agt-",
 
           "agents": {
-            "build": "TENCENT_AGENT_ID_BUILD",
-            "plan": "TENCENT_AGENT_ID_PLAN",
-            "toto": "TENCENT_AGENT_ID_TOTO"
+            "osho": "",
+            "kyosha": "",
+            "kinsho": "",
+            "keima": "",
+            "kakugyo": "",
+            "hisha": "",
+            "ginsho": "",
+            "fuhyo": ""
           }
         },
 
@@ -34,15 +57,9 @@
             "maxAssetsPerKind": 4
           },
 
-          /*
-           * Optional. Leave empty to auto-discover ready assets for the Team.
-           */
           "defaultWikiIds": [],
           "defaultCodeGraphIds": [],
 
-          /*
-           * Optional per-OpenCode-agent restrictions/overrides.
-           */
           "agents": {
             "build": {
               "wikiIds": [],
@@ -80,22 +97,13 @@
           "enabled": true,
           "blockPublicWebOnPersonalMemory": true,
 
-          /*
-           * Force user-visible answers that use TencentDB evidence to English.
-           * Raw Wiki/Memory/CodeGraph evidence is NOT destructively translated.
-           */
           "outputLanguage": "English",
 
-          /*
-           * Every tdai_* result gets a compact language-safety envelope.
-           * When Chinese/CJK evidence is detected, the model is explicitly
-           * told to translate only supported meaning and never invent details.
-           */
           "annotateTencentEvidence": true
         },
 
         "exposeAdminTools": false,
-        "traceFile": "/tmp/tencentdb-opencode-v3.log",
+        "traceFile": "/tmp/tencentdb-opencode.log",
 
         "timeouts": {
           "gatewayMs": 5000,

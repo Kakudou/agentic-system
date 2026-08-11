@@ -1,0 +1,50 @@
+services:
+  tdai-memory-core:
+    image: docker.io/agentmemory/memory-core:latest
+    container_name: tdai-memory-core
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:8420:8420"
+
+    environment:
+      TDAI_GATEWAY_HOST: "0.0.0.0"
+      TDAI_GATEWAY_PORT: "8420"
+
+      TDAI_GATEWAY_API_KEY: "${TDAI_GATEWAY_API_KEY}"
+
+      TDAI_LLM_BASE_URL: "${TDAI_LLM_BASE_URL}"
+      TDAI_LLM_API_KEY: "${TDAI_LLM_API_KEY}"
+      TDAI_LLM_MODEL: "${TDAI_LLM_MODEL}"
+
+      TDAI_DATA_DIR: "/data"
+
+    volumes:
+      - ./data/data-v3:/data
+
+
+  tdai-memory-hub:
+    image: docker.io/agentmemory/memory-hub:latest
+    container_name: tdai-memory-hub
+    restart: unless-stopped
+
+    depends_on:
+      - tdai-memory-core
+
+    ports:
+      - "127.0.0.1:8125:8125"
+      - "127.0.0.1:8424:8424"
+
+    environment:
+      REMOTE_INSTANCE_URL: "http://tdai-memory-core:8420"
+      REMOTE_INSTANCE_KEY: "${TDAI_GATEWAY_API_KEY}"
+
+      KNOWLEDGE_PUBLIC_BASE_URL: "http://127.0.0.1:8424/v3"
+
+      LLM_MODE: "custom"
+      LLM_BASE_URL: "${TDAI_LLM_BASE_URL}"
+      LLM_API_KEY: "${TDAI_LLM_API_KEY}"
+      LLM_MODEL: "${TDAI_LLM_MODEL}"
+
+    volumes:
+      - ./data/panel-data:/data/knowledge
