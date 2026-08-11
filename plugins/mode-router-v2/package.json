@@ -1,0 +1,7 @@
+{
+  "name": "opencode2-mode-router-v2-local",
+  "version": "2.0.2-v2-command-fix",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js"
+}

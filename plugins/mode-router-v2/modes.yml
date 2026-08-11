@@ -1,0 +1,53 @@
+# OpenCode2 V2 mode-router configuration.
+#
+# Edit this file to add/remove modes. No JavaScript changes are required.
+# Changes are hot-reloaded automatically on the next model request or tool call.
+#
+# Matching:
+#   *  = any number of characters
+#   ?  = one character
+#
+# A skill is MODE-MANAGED only if it matches at least one pattern appearing
+# anywhere in managed_prefixes, prefixes_allowed, or prefixes_denied.
+# Everything else is PASS-THROUGH and remains governed only by OpenCode's
+# normal agent permissions.
+#
+# Within a managed mode:
+#   DENY wins over ALLOW.
+#   If no allow rule matches, the managed skill is denied.
+#
+# "extends" is optional and can be a string or list. Parent rules are inherited.
+
+version: 1
+default_mode: dev
+
+mode:
+  - name: dev
+    description: General development workflow
+    prefixes_allowed:
+      - "dev-*"
+
+  - name: dev-python
+    description: Python-focused development; keeps generic dev skills but excludes Java
+    extends: dev
+    prefixes_allowed:
+      - "dev-python-*"
+    prefixes_denied:
+      - "dev-java-*"
+
+  - name: video-edit
+    description: Video editing workflow
+    prefixes_allowed:
+      - "video-edit-*"
+
+  - name: chatbot
+    description: Chatbot, persona, and role-play workflow
+    prefixes_allowed:
+      - "chat-*"
+      - "persona-*"
+      - "rp-*"
+
+# Optional: patterns you want the router to own even if no mode currently
+# allows/denies them. Usually you can leave this empty because the managed
+# universe is derived automatically from the mode rules.
+managed_prefixes: []

@@ -1,0 +1,7 @@
+{
+  "name": "@local/opencode-tencentdb-memory",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts"
+}
