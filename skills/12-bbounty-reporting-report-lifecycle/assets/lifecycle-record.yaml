@@ -1,0 +1,40 @@
+# Static template. All values are documented observations or explicitly unknown.
+record_kind: vulnerability-report-lifecycle/v1
+record_id: unknown
+report_admission:
+  report_reference: unknown
+  admission_reference: unknown
+  program: unknown
+  scope_reference: unknown
+current_status:
+  label: unknown
+  original_text: unknown
+  confidence: unknown
+  basis_evidence_ids: []
+observations:
+  - observation_id: obs-001
+    observed_at: unknown
+    captured_at: unknown
+    original_status_text: unknown
+    neutral_label: unknown
+    mapping_confidence: unknown
+    source_locator: unknown
+    evidence_id: unknown
+    redaction_note: none
+evidence:
+  - evidence_id: unknown
+    class: reporter-request # reporter-request | program-response | platform-status | review-note
+    source_locator: unknown
+    captured_at: unknown
+    custodian: unknown
+    excerpt_or_digest: unknown
+    redaction_note: unknown
+privacy_and_uncertainty:
+  checklist_result: pending
+  uncertainty_notes: []
+  stop_reason: none
+review_handoff:
+  required: true
+  decision_owner: unknown
+  review_question: unknown
+  unresolved_items: []

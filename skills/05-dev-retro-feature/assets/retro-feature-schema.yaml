@@ -1,0 +1,51 @@
+kind: "RetroFeature/v1"
+scope: "<bounded source scope>"
+
+vocabulary_map:
+  - implementation: "<source term>"
+    domain: "<domain term>"
+    evidence:
+      - "path:line"
+
+feature_candidates:
+  - id: "RF-001"
+    title: "<domain feature>"
+    type: "cluster | invariant"
+    confidence: "high | medium | low"
+    evidence:
+      - "path:line"
+    entry_points:
+      - "<entry point>"
+    observable_behavior:
+      - "<source-supported behavior>"
+
+constraints:
+  - id: "RC-001"
+    feature_id: "RF-001"
+    type: "invalid_input | boundary | security | concurrency | performance | implicit_rule | data_validation | sequencing | state_transition | side_effect"
+    status: "observed"
+    description: "<constraint>"
+    evidence:
+      - "path:line"
+    confidence: "high | medium | low"
+
+gaps:
+  - feature_id: "RF-001"
+    type: "undefined_failure | partial_implementation | implicit_precondition | missing_boundary | entangled_behavior | side_effect_unspecified | unreachable_code | contradictory_behavior"
+    description: "<undefined behavior>"
+    evidence:
+      - "path:line"
+    recommendation: "address_now | defer_to_trap_analysis | accept_undefined"
+
+draft_features:
+  - feature_id: "RF-001"
+    status: "draft-recovered"
+    gherkin: |
+      Feature: ...
+
+      Scenario: ...
+
+      # ---- Constraints identified ----
+
+coverage_limits:
+  - "<uninspected or indeterminate surface>"

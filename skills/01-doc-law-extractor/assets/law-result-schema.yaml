@@ -1,0 +1,12 @@
+law_required: true | false
+classification: "LAW_REQUIRED | LAW_UPDATE_REQUIRED | LAW_SUPERSESSION_REQUIRED | NO_LAW | BLOCKED"
+laws_written:
+  - id: "003.XXX.<law-name>.law"
+    path: "docs/laws/003.XXX.<law-name>.law.md"
+    trigger: "<durable governing rule that required the law>"
+laws_updated:
+  - id: "003.XXX.<law-name>.law"
+    path: "docs/laws/003.XXX.<law-name>.law.md"
+    change: "<what changed, including lifecycle or supersession metadata>"
+no_law_reasoning: "<required non-empty string when law_required is false>"
+blocked_reasoning: "<required non-empty string only when classification is BLOCKED>"

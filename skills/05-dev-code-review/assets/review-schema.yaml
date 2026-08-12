@@ -1,0 +1,33 @@
+kind: "CodeReview/v1"
+scope: "<bounded reviewed scope>"
+verdict: "APPROVE | APPROVE_WITH_NOTES | CHANGES_REQUIRED | BLOCK"
+
+executive_summary: "<short evidence-grounded summary>"
+
+findings:
+  - id: "CR-001"
+    severity: "critical | major | minor | note"
+    confidence: "high | medium | low"
+    category: "correctness | architecture | maintainability | security | reliability | performance | observability | tests"
+    locations:
+      - "path/to/file:line"
+    issue: "<specific problem>"
+    evidence:
+      - "<specific observation>"
+    impact: "<failure mode or engineering cost>"
+    remediation: "<bounded repair>"
+
+strengths:
+  - locations:
+      - "path/to/file:line"
+    strength: "<specific property worth preserving>"
+    evidence: "<why>"
+
+coverage:
+  inspected:
+    - "<path/surface>"
+  not_inspected:
+    - "<material limit if any>"
+
+residual_risks:
+  - "<uncertainty or unverified condition>"

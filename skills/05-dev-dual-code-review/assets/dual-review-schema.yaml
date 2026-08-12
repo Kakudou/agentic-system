@@ -1,0 +1,32 @@
+kind: "DualCodeReview/v1"
+scope: "<bounded reviewed scope>"
+verdict: "APPROVE | APPROVE_WITH_NOTES | CHANGES_REQUIRED | BLOCK"
+
+executive_summary: "<merged summary>"
+
+findings:
+  - id: "DCR-001"
+    provenance: "both | arm_a | arm_b | disputed_resolved"
+    severity: "critical | major | minor | note"
+    confidence: "high | medium | low"
+    category: "<review category>"
+    locations: []
+    issue: "<merged issue>"
+    evidence: []
+    impact: "<failure mode>"
+    remediation: "<bounded repair>"
+
+disagreements:
+  - topic: "<review disagreement>"
+    arm_a: "<position>"
+    arm_b: "<position>"
+    resolution: "<evidence-grounded resolution or unresolved>"
+    status: "resolved | unresolved"
+
+strengths: []
+residual_risks: []
+
+review_provenance:
+  arm_a: "05-dev-code-review"
+  arm_b: "kakugyo-independent-review"
+  independence_preserved: true

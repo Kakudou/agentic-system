@@ -23,7 +23,7 @@ Hard rules:
 - Never build, modify, or overwrite an Excalidraw artifact before explicit user approval.
 - Always create exactly three materially different design directions.
 - Always load and apply the installed frontend design skill before presenting those directions.
-- Resolve the design skill from available skills: prefer `design-frontend`; otherwise load the official name `frontend-design`.
+- Resolve the design skill from available skills: prefer `98-external-frontend-design`.
 - If neither design skill is available, stop before proposal delivery and report the missing dependency. Never simulate its critique.
 - Never invent source facts, relationships, quotations, components, chronology, or scientific precision.
 - Never force one input into one uniform layout. Mix local layout grammars when the content requires it, while preserving one global navigation grammar.

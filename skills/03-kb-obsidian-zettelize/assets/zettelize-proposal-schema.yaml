@@ -1,0 +1,49 @@
+status: "PROPOSED | BLOCKED"
+
+vault:
+  overview_kind: "ObsidianVaultOverview/v1"
+  vault_id: "<resolved vault id>"
+  zettel_root: "<resolved>"
+  resources_root: "<resolved or null>"
+  zettel_template: "<resolved literal template>"
+
+source:
+  id: "<immutable source snapshot id>"
+  provenance: "<source identity>"
+  language: "<resolved language>"
+
+candidates:
+  generic: []
+  derived: []
+  domain_bound: []
+
+dedup_summary:
+  reuse: []
+  update: []
+  create: []
+  conflicts: []
+
+reconstruction:
+  target: "<proposed path or proposal-only>"
+  transclusion_first: true
+  preview: "<source-shaped reconstruction>"
+  coverage_result: "PASS | FAIL"
+  substantive_coverage: 0.0
+
+coverage_ledger: "<CoverageLedger instance>"
+
+mutations:
+  new_files: []
+  updates: []
+
+execution_plan:
+  dry_run: false
+  formal_batches: []
+
+safety:
+  source_immutable: true
+  memory_isolation_preserved: true
+  submodule_disclosures: []
+  git_operations: false
+
+blocked_reason: null

@@ -29,19 +29,19 @@ The source may be anything:
 
 Do not convert the source into a sequence of text-heavy pages.
 
-Extract the most important ideas, relationships, vocabulary, evidence, diagrams, tensions, examples, and memorable formulations. Build a deliberate narrative, then use `excalidraw-design` to turn every approved slide into a clean visual composition.
+Extract the most important ideas, relationships, vocabulary, evidence, diagrams, tensions, examples, and memorable formulations. Build a deliberate narrative, then use `02-excalidraw-design` to turn every approved slide into a clean visual composition.
 
 ## Dependency
 
 This skill requires the installed skill:
 
-`excalidraw-design`
+`02-excalidraw-design`
 
 Always load it during the design phase.
 
-Do not call `frontend-design` or `design-frontend` independently. `excalidraw-design` owns that mandatory critique dependency.
+Do not call `98-external-frontend-design` independently. `02-excalidraw-design` owns that mandatory critique dependency.
 
-If `excalidraw-design` cannot be loaded, stop before presenting final visual directions and report the missing dependency. Never simulate its work.
+If `02-excalidraw-design` cannot be loaded, stop before presenting final visual directions and report the missing dependency. Never simulate its work.
 
 ## Non-negotiable execution
 
@@ -54,11 +54,11 @@ Hard rules:
 - Never build or modify the Excalidraw presentation before explicit user approval.
 - Always identify the target audience and calibrate the content to it.
 - Always draft the complete presentation storyboard before implementation.
-- Always load `excalidraw-design` and apply it to the complete deck.
-- Always present exactly three refined visual directions through `excalidraw-design`.
-- Never invoke `excalidraw-design` independently for each slide.
+- Always load `02-excalidraw-design` and apply it to the complete deck.
+- Always present exactly three refined visual directions through `02-excalidraw-design`.
+- Never invoke `02-excalidraw-design` independently for each slide.
 - Treat the complete deck as one coordinated multi-board artifact.
-- Apply the composition and verification discipline of `excalidraw-design` individually to every slide.
+- Apply the composition and verification discipline of `02-excalidraw-design` individually to every slide.
 - Never invent facts, quotations, evidence, terminology, chronology, statistics, or technical relationships.
 - Never fill slides merely to reach a slide count.
 - Never place speaker notes inside the projected slide frame.
@@ -80,7 +80,7 @@ Paths are relative to this `SKILL.md`.
 
 Do not load every reference at startup.
 
-The references belonging to `excalidraw-design` remain governed by that skill and should be loaded only when it requires them.
+The references belonging to `02-excalidraw-design` remain governed by that skill and should be loaded only when it requires them.
 
 ## 1. Ground the request
 
@@ -306,7 +306,7 @@ The storyboard must be detailed enough that implementation requires composition,
 
 ## 7. Load excalidraw-design
 
-After the storyboard exists, load `excalidraw-design`.
+After the storyboard exists, load `02-excalidraw-design`.
 
 Treat the storyboard and verified source inventory as the material to visualize.
 
@@ -319,7 +319,7 @@ The entire deck is one coordinated multi-board artifact:
 - repeated concepts retain stable visual semantics
 - slide-to-slide variation must feel intentional, not random
 
-Use the full proposal and critique process from `excalidraw-design`.
+Use the full proposal and critique process from `02-excalidraw-design`.
 
 It must produce exactly three materially different visual directions for the complete presentation.
 
@@ -347,7 +347,7 @@ Present one complete approval package containing:
 3. deck narrative
 4. complete slide storyboard
 5. estimated duration
-6. exactly three refined visual directions from `excalidraw-design`
+6. exactly three refined visual directions from `02-excalidraw-design`
 7. one recommended direction
 8. assumptions or uncertainty
 9. explicit request for approval or revisions
@@ -368,7 +368,7 @@ A material change to audience, objective, source scope, narrative, slide count, 
 
 ## 9. Build the Excalidraw presentation
 
-After approval, apply `excalidraw-design` to every slide while preserving deck-wide coherence.
+After approval, apply `02-excalidraw-design` to every slide while preserving deck-wide coherence.
 
 Write one editable `.excalidraw` scene unless the user requests another structure.
 
@@ -527,7 +527,7 @@ Do not make every slide visually unrelated.
 
 If the user provides a style or composition, follow it.
 
-If visual direction remains unspecified, use the complete Black-Ice visual system defined by `excalidraw-design`.
+If visual direction remains unspecified, use the complete Black-Ice visual system defined by `02-excalidraw-design`.
 
 The default presentation mood is:
 
@@ -600,7 +600,7 @@ Do not reduce notes to a verbatim speech unless the user explicitly asks for a s
 
 ## 15. Ōtsumi filigrane
 
-Every projected slide frame must contain the subtle signature required by `excalidraw-design`:
+Every projected slide frame must contain the subtle signature required by `02-excalidraw-design`:
 
 `<slide-specific punchline> — Ōtsumi`
 
@@ -619,7 +619,7 @@ It must remain:
 
 Read `references/verification.md`.
 
-Apply the full scene, geometry, source-grounding, connector, visual, and filigrane verification from `excalidraw-design`.
+Apply the full scene, geometry, source-grounding, connector, visual, and filigrane verification from `02-excalidraw-design`.
 
 Additionally verify the presentation as a deck.
 
@@ -698,7 +698,7 @@ The task is complete only when all applicable conditions pass:
 - the presentation has one clear objective
 - the storyboard was drafted before implementation
 - every slide has a unique narrative job
-- `excalidraw-design` was loaded and applied
+- `02-excalidraw-design` was loaded and applied
 - exactly three visual directions were produced and critiqued
 - the user explicitly approved the storyboard and visual direction
 - the editable scene parses correctly

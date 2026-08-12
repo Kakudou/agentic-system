@@ -1,0 +1,31 @@
+candidate_id: "<stable proposal-local id>"
+source_units: ["<source-unit-id>"]
+kind: "GENERIC | DERIVED | DOMAIN_BOUND"
+atomic_claim: "<one source-supported claim>"
+
+genericization:
+  status: "LOSSLESS_GENERIC | INTRINSICALLY_DOMAIN_BOUND | NOT_APPLICABLE"
+  removed_business_context: []
+  semantic_fidelity: "PASS | FAIL"
+
+parent:
+  generic_candidate_id: null
+  generic_zettel: null
+
+business_binding:
+  context: null
+  delta: null
+
+dedup:
+  disposition: "REUSE | UPDATE | CREATE | CONFLICT | REUSE_DERIVED | UPDATE_DERIVED | CREATE_DERIVED | CONFLICT_DERIVED"
+  matched_zettel: null
+  reasoning: "<why>"
+  proposed_diff: null
+
+provenance:
+  source_id: "<source snapshot id>"
+  locators: []
+
+output:
+  path: null
+  template: "<resolved zettel template>"

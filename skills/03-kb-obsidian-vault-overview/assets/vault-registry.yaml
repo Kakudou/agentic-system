@@ -1,0 +1,113 @@
+registry_kind: "OtsumiObsidianVaultRegistry/v1"
+registry_version: "v1"
+default_vault: "volgna-gath"
+
+vaults:
+  volgna-gath:
+    type: "Obsidian vault: Markdown, YAML frontmatter, wikilinks, and Dataview indexes."
+    vault_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath"
+    config_root: ".obsidian/"
+
+    top_level:
+      "000-Meta/": "settings, plugins, and 003-Templates/"
+      "010-Planners/": "011-Yearly, 012-Monthly, 013-Weekly, 014-Daily"
+      "020-Feedbacks/": "021-Yearly, 022-Monthly, 023-Weekly, 024-Daily"
+      "030-Funnel/": "031-Notes, 032-Attachments"
+      "100-Personal/": "101-Funnel, 200-Projects, 300-Areas_of_Responsabilities, 400-Resources, 500-Archived"
+      "600-Workspace/": "601-Funnel, 700-Projects, 800-Areas_of_Responsabilities, 900-Resources, 999-Archived"
+      "4242-Otsumi/": "raw, resources, zettel"
+
+    named_roots:
+      raw_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/raw/"
+      zettel_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/zettel/"
+      resources_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/resources/"
+      memory_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/"
+      wiki_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/"
+      active_registry_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/active/"
+      common_knowledge_registry_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/active/common-knowledge/"
+      project_registry_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/active/projects/"
+      legacy_memory_wiki_shared_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/shared/"
+      legacy_memory_wiki_agents_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/agents/"
+      legacy_memory_wiki_projects_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/memory/wiki/projects/"
+      funnel_inbox: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/031-Notes/"
+      funnel_attachments: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/032-Attachments/"
+      funnel_zettels_global: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/033-Zettels/"
+      funnel_zettels_personal: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/100-Personal/101-Funnel/105-Zettels/"
+      funnel_zettels_workspace: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/600-Workspace/601-Funnel/605-Zettels/"
+      planner_yearly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/010-Planners/011-Yearly/"
+      planner_monthly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/010-Planners/012-Monthly/"
+      planner_weekly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/010-Planners/013-Weekly/"
+      planner_daily_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/010-Planners/014-Daily/"
+      feedback_yearly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/020-Feedbacks/021-Yearly/"
+      feedback_monthly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/020-Feedbacks/022-Monthly/"
+      feedback_weekly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/020-Feedbacks/023-Weekly/"
+      feedback_daily_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/020-Feedbacks/024-Daily/"
+      event_root: null
+      recurring_event_root: null
+
+    root_groups:
+      all_zettel_roots:
+        - zettel_root
+        - funnel_zettels_global
+        - funnel_zettels_personal
+        - funnel_zettels_workspace
+      legacy_memory_wiki_roots:
+        - legacy_memory_wiki_shared_root
+        - legacy_memory_wiki_agents_root
+        - legacy_memory_wiki_projects_root
+
+    templates:
+      index_template: "000-Meta/003-Templates/003.000.index.md"
+      zettel_template: "000-Meta/003-Templates/003.001.zettel.md"
+      definition_template: "000-Meta/003-Templates/003.002.definition.md"
+      daily_planner_template: "000-Meta/003-Templates/003.003.dailyplanner.md"
+      weekly_planner_template: "000-Meta/003-Templates/003.004.weeklyplanner.md"
+      kanban_board_template: "000-Meta/003-Templates/003.005.kanbanboard.md"
+      kanban_card_template: "000-Meta/003-Templates/003.006.kanbancard.md"
+      gherkin_template: "000-Meta/003-Templates/003.007.gherkin.md"
+      swot_template: "000-Meta/003-Templates/003.008.swot.md"
+      snippets_template: "000-Meta/003-Templates/003.009.snippets.md"
+      retrofeedback_template: "000-Meta/003-Templates/003.010.retrofeedback.md"
+      resource_template: null
+      memory_template: "000-Meta/003-Templates/003.011.memory.md"
+      law_template: "000-Meta/003-Templates/003.012.law.md"
+      lab_template: "000-Meta/003-Templates/003.013.lab.md"
+      postmortem_template: "000-Meta/003-Templates/003.014.postmortem.md"
+      techtime_template: "000-Meta/003-Templates/003.015.techtime.md"
+      event_template: "000-Meta/003-Templates/003.016.event.md"
+      yearly_planner_template: "000-Meta/003-Templates/003.017.yearlyplanner.md"
+      monthly_planner_template: "000-Meta/003-Templates/003.018.monthlyplanner.md"
+      weekly_retro_template: "000-Meta/003-Templates/003.019.weeklyretro.md"
+      monthly_retro_template: "000-Meta/003-Templates/003.020.monthlyretro.md"
+      yearly_retro_template: "000-Meta/003-Templates/003.021.yearlyretro.md"
+      srscard_template: "000-Meta/003-Templates/003.022.srscard.md"
+      srslog_template: "000-Meta/003-Templates/003.023.srslog.md"
+      chunk_template: "000-Meta/003-Templates/003.024.chunk.md"
+      memory_log_template: "000-Meta/003-Templates/003.025.memorylog.md"
+      brainstorm_template: null
+
+    conventions:
+      raw_is_immutable_evidence: true
+      zettels_are_atomic: true
+      resources_curate_zettels: true
+      template_registry_is_authoritative: true
+      zettel_and_definition_tag_key: "tags"
+      index_tag_key: "Tags"
+      default_author: "カクドウ ~ Kakudou"
+      default_lang: "EN"
+      datetime_format: "YYYY/MM/DD HH:mm:ss"
+      encrypted_git:
+        mechanism: "OpenSSL clean/smudge filters with PBKDF2"
+        iterations: 100000
+        working_tree: "plaintext"
+
+    safety:
+      never_invent_unconfigured_root: true
+      never_write_outside_vault_root: true
+      no_git_push_of_decrypted_content: true
+      no_git_commit_of_decrypted_content_without_explicit_authorization: true
+      configured_submodules:
+        - "100-Personal/"
+        - "600-Workspace/"
+        - "4242-Otsumi/"
+      disclose_submodule_mutation: true

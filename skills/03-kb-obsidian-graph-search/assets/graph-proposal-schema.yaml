@@ -1,0 +1,53 @@
+status: "PROPOSED | BLOCKED"
+workflow_id: "03-kb-obsidian-graph-search"
+
+vault_overview:
+  kind: "ObsidianVaultOverview/v1"
+  vault_id: "<resolved vault id>"
+
+target:
+  vault_root: "<from overview>"
+  config_root: "<from overview>"
+  path: "<resolved vault_root>/<resolved config_root>/graph.json"
+
+graph_view_closed: true
+
+resolved_selectors: {}
+
+requested_changes:
+  search:
+    changed: false
+    old: null
+    proposed: null
+  colorGroups:
+    changed: false
+    old: null
+    proposed: null
+  forces:
+    changed_fields: {}
+  display:
+    changed_fields: {}
+  ui_state:
+    changed_fields: {}
+
+preservation:
+  untouched_values_preserved: true
+  current_json_valid: true
+  final_json_valid: true
+
+inventory:
+  closed: true
+  candidates:
+    - path: "<literal regular file>"
+      role: "input | output-precondition | evidence"
+
+diff:
+  exact_changed_fields:
+    - "<field>"
+  summary: "<concise exact description>"
+
+execution:
+  performed: false
+  activation_required: true
+
+blocked_reason: "<required only when status is BLOCKED>"

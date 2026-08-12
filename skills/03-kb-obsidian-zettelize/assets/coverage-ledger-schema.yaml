@@ -1,0 +1,28 @@
+source_id: "<immutable source snapshot id>"
+
+units:
+  - unit_id: "U001"
+    locator: "<source locator>"
+    classification: "ZETTEL_GRADE | DECORATION | STRUCTURE"
+    importance: "critical | normative | technical | exception | normal"
+    summary: "<source-grounded summary>"
+    mapped_candidates: []
+    reconstruction_locator: "<where represented>"
+    status: "COVERED_GENERIC_DERIVED | COVERED_DOMAIN_BOUND | DECORATION_JUSTIFIED | STRUCTURE_PRESERVED | UNMAPPED | CONFLICT"
+    justification: null
+
+metrics:
+  substantive_units: 0
+  mapped_substantive_units: 0
+  substantive_coverage: 0.0
+  critical_units_total: 0
+  critical_units_covered: 0
+  unexplained_omissions: 0
+  invented_claims: 0
+
+gate:
+  minimum_substantive_coverage: 0.95
+  require_full_critical_coverage: true
+  require_zero_unexplained_omissions: true
+  require_zero_invented_claims: true
+  result: "PASS | FAIL"

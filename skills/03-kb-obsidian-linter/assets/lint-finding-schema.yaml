@@ -1,0 +1,19 @@
+rule_id: "ZL001"
+rule: "<stable rule name>"
+severity: "HIGH | MEDIUM | LOW"
+confidence: "HIGH | MEDIUM | LOW"
+
+affected:
+  - zettel: "<title or vault-relative identity>"
+
+evidence:
+  - "<compact evidence item>"
+
+reasoning: "<why this satisfies the rule>"
+impact: "<why it matters>"
+
+recommendation:
+  owner: "<skill name or manual-review>"
+  action: "<smallest useful repair>"
+
+status: "OPEN"

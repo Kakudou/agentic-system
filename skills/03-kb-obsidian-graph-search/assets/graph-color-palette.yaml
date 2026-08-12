@@ -1,0 +1,12 @@
+encoding: "(r << 16) | (g << 8) | b"
+colors:
+  red: { rgb: 16065571 }
+  orange: { rgb: 15962679 }
+  gold: { rgb: 16104769 }
+  green: { rgb: 4769678 }
+  teal: { rgb: 4243643 }
+  cyan: { rgb: 6607590 }
+  blue: { rgb: 7042559 }
+  purple: { rgb: 10711254 }
+  pink: { rgb: 15494055 }
+  gray: { rgb: 10395294 }

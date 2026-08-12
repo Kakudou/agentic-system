@@ -1,0 +1,36 @@
+status: "CLEAN | FINDINGS | BLOCKED"
+
+vault:
+  overview_kind: "ObsidianVaultOverview/v1"
+  vault_id: "<resolved vault id>"
+
+corpus:
+  eligible_zettels: 0
+  memory_isolation_preserved: true
+  template_checked: true
+
+summary:
+  high: 0
+  medium: 0
+  low: 0
+
+findings:
+  - "<LintFinding instance>"
+
+checks_performed:
+  - "duplicate-claim"
+  - "overloaded-zettel"
+  - "generic-contamination"
+  - "derived-parent-missing"
+  - "derived-duplicates-parent"
+  - "missing-generic-abstraction"
+  - "template-drift"
+  - "weak-linkage"
+  - "broken-zettel-link"
+
+safety:
+  vault_mutated: false
+  counters_mutated: false
+  git_operations: false
+
+blocked_reason: "<required only when status is BLOCKED>"

@@ -1,0 +1,17 @@
+# Neutral labels describe documentation, not authoritative platform state.
+labels:
+  admitted: Approved report evidence exists; no submission is implied.
+  submitted-observed: Submission is directly evidenced by an authorized source.
+  triage-observed: A platform or program source explicitly shows triage or review.
+  resolution-observed: A platform or program source explicitly shows a disposition or remediation-related outcome.
+  closed-observed: A platform or program source explicitly shows closure.
+  unknown: Evidence is absent, ambiguous, conflicting, or unauthorized.
+confidence:
+  confirmed: Direct, attributable evidence supports the exact statement.
+  supported: Evidence supports the statement, but wording or timing requires a documented interpretation.
+  uncertain: Evidence is incomplete, ambiguous, or conflicting.
+  unknown: No admissible evidence supports the statement.
+rules:
+  - Preserve original platform wording.
+  - Never map a label without an evidence reference.
+  - Never infer payout, acceptance, remediation, or a deadline from status alone.
