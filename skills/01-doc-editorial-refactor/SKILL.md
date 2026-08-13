@@ -1,8 +1,8 @@
 ---
-name: 00-doc-editorial-refactor
-description: "Refactor technically correct Markdown into sharp, direct editorial prose while preserving structural and technical regions. Use for Markdown documents that need a TL;DR, cleaner typography, stronger verdicts, and more natural human writing. Delegates prose humanization to the humaniser skill in embedded mode."
+name: 01-doc-editorial-refactor
+description: "Refactor technically correct Markdown into sharp, direct editorial prose while preserving structural and technical regions. Use for Markdown documents that need a TL;DR, cleaner typography, stronger verdicts, and more natural human writing."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 
@@ -10,20 +10,19 @@ metadata:
 
 Turn technically correct Markdown that reads like committee sludge into sharp, direct editorial prose without damaging its technical structure.
 
-This skill owns **document structure and editorial intent**. The `99-tool-humaniser` skill owns the final natural-language cleanup of editable prose.
+This skill owns **document structure, editorial intent, and the final natural-language quality of editable prose**.
 
 ## Usage
 
-- `/00-doc-editorial-refactor {file}`
-- `/00-doc-editorial-refactor {file} --output {target}`
+- `/01-doc-editorial-refactor {file}`
+- `/01-doc-editorial-refactor {file} --output {target}`
 
-## Dependencies
+## Optional Humaniser Integration
 
-- `99-tool-humaniser` MUST be available.
-- Invoke `99-tool-humaniser` in **embedded mode** only.
-- Never hand the full Markdown file to Humaniser. Pass only prose that this skill has classified as editable.
+- If `99-tool-humaniser` or an equivalent prose-humanisation capability is available, it may be used as an **embedded prose pass**.
+- Never hand the full Markdown file to an optional humaniser. Pass only prose that this skill has classified as editable.
 
-If `99-tool-humaniser` is unavailable, stop and report the missing dependency rather than silently substituting a weaker local imitation.
+The skill remains complete without that integration. When no humaniser is available, perform the local naturalness pass below.
 
 ## Protected Regions
 
@@ -67,15 +66,15 @@ Treat protected regions as immutable bytes where the runtime allows exact preser
    - simplify bloated constructions;
    - keep technical precision;
    - use short punchy closers only when they genuinely help.
-5. Run `99-tool-humaniser` in **embedded mode** on the drafted TL;DR bullet text and every rewritten editable prose span. Tell Humaniser to preserve source claims and this skill's editorial constraints. Do not include protected Markdown regions in the Humaniser input.
+5. Perform a naturalness pass on the drafted TL;DR and rewritten editable prose. When an optional humaniser is available, it may perform this pass under the boundary below. Otherwise do it locally: remove repetitive sentence shapes, canned transitions, artificial contrast, redundant restatement, and choppy paragraphing without changing claims or tone.
 6. Reassemble the document with the exact original title, `## TL;DR` immediately after it, finalized TL;DR bullets, and protected regions unchanged.
 7. Write in place unless `--output {target}` was supplied.
 
-## Humaniser Boundary
+## Naturalness Boundary
 
-Humaniser may improve rhythm, diction, sentence shape, and AI-pattern cleanup.
+The naturalness pass may improve rhythm, diction, sentence shape, and obvious machine-writing patterns.
 
-Humaniser MUST NOT:
+It MUST NOT:
 
 - add or remove claims;
 - rewrite protected regions;
@@ -85,7 +84,7 @@ Humaniser MUST NOT:
 - weaken a supported editorial verdict;
 - expand scope.
 
-If Humaniser output violates those constraints, reject that change and keep or repair the editorial draft instead.
+If an optional humaniser violates those constraints, reject that change and keep or repair the editorial draft instead.
 
 ## Verification
 

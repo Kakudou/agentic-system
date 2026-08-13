@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-auth-surface-mapping
 description: Observe and document authorized authentication surfaces, boundaries, and handoff evidence without attempting account access or bypass.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

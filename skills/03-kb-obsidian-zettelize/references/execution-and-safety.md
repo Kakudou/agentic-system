@@ -1,75 +1,84 @@
 # Execution and Safety
 
-All semantic work is proposal work.
-
-Fuhyō never atomizes, genericizes, deduplicates, chooses links, renders templates, computes coverage,
-or decides whether a note exists.
+Semantic decomposition, deduplication, reconstruction, and coverage decisions must be complete before mutation begins.
 
 ## Source Immutability
 
-Never rewrite, archive, move, delete, or clean the source as a side effect.
+Never rewrite, move, delete, clean, or archive the source as a side effect.
 
-## Memory Isolation
+## Corpus Isolation
 
-Memory-scoped canonical zettels never enter generic discovery, comparison, merge/update decisions,
-parent selection, derived linking, or reconstruction.
+Deduplication and parent selection use only the configured zettel roots explicitly resolved through the vault overview.
 
-`kb-obsidian-search` owns that isolation boundary.
+Do not use unrelated vault roots as hidden candidate sources.
 
-Do not feed `kb-memory-query` results back into generic dedup.
+## Approval Boundary
 
-## Formal Workflow
+Before mutation, the preview must identify:
 
-This skill is a `formal-bounded-workflow` in dev.
+- every new file path;
+- every existing file to update;
+- exact update diffs;
+- the approved final note content/template rendering;
+- reconstruction target when persisted;
+- submodule implications when configured.
 
-The central formal protocol is authoritative.
+Apply only after explicit approval.
 
-A closed batch binds exact inputs, outputs, preconditions, final bytes, hashes, manifest, and success
-evidence.
-
-Allowed execution primitives are only:
-
-- `read_exact_bytes`
-- `write_exact_bytes`
-- `move_exact_bytes`
+If an existing file differs from the state used to prepare its approved diff, stop that mutation and rebuild the proposal from current state.
 
 ## Batching
 
-A large source may produce more zettels than one activation can mutate.
+Large sources may require several bounded write batches.
 
-1. Finish the full semantic proposal and coverage plan.
-2. Freeze stable note identities and relationships.
-3. Partition mutations into bounded formal batches.
-4. Approve/execute each batch independently.
-5. Stop on failure.
+1. Finish the full semantic plan and coverage gate first.
+2. Freeze note identities and relationships for the approved plan.
+3. Partition writes into bounded batches without changing meaning.
+4. Verify each batch by read-back before continuing.
+5. Stop on a failed or stale mutation.
 6. Finalize reconstruction only from verified successful note states.
 
-Never reduce coverage to fit one batch.
+Never reduce knowledge coverage simply to fit one batch.
 
-## Updates
+## Existing Note Updates
 
-Every existing-zettel update requires current snapshot, exact diff, approval, exact final bytes,
-precondition, and post-write verification.
+Each update requires:
+
+- current note read;
+- exact proposed diff;
+- approval;
+- recheck against stale state before write;
+- post-write read-back.
+
+Preserve unrelated supported content and stable note identity.
 
 ## New Files
 
-Require literal final path, configured parent root, absent-file precondition, exact final bytes, and
-post-write verification. Never create directories.
+Each new file requires:
+
+- exact configured parent root;
+- collision-free final path;
+- authoritative template rendering;
+- post-write read-back.
+
+Do not invent or create unconfigured roots.
 
 ## Generic Parent Stability
 
-New derived notes do not mutate generic parents. Backlinks supply reverse discovery.
+Creating a derived note does not require mutating its generic parent. Ordinary backlinks provide reverse discovery.
 
 ## Git
 
-Never run `git add`, `git commit`, or `git push`. Never transmit decrypted vault content.
+Never run `git add`, `git commit`, or `git push` as part of zettelization. Never transmit decrypted vault content.
 
-## Terminal States
+## Completion
 
-- `PROPOSED`
-- `BLOCKED`
-- `PARTIALLY_APPLIED`
-- `COMPLETED`
-- `ABORTED`
+Report actual state:
 
-`COMPLETED` requires final reconstruction coverage to pass against verified final states.
+- preview only;
+- partially applied with exact successful/failed paths;
+- completed and verified;
+- blocked;
+- aborted.
+
+Do not imply all-or-nothing rollback when only some files were written.

@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-role-object-mapping
 description: Build an authorized, observation-only map of roles, objects, actions, ownership, and tenant boundaries for later access-control review.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

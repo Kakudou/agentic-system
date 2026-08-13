@@ -20,4 +20,4 @@
 
 | Note ID | Source ID | Source literal | Presentation-normalized value | Rationale | Status |
 | --- | --- | --- | --- | --- | --- |
-| | | | | | resolved/pending-owner/stop |
+| | | | | | resolved/pending-clarification/stop |

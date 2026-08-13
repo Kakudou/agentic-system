@@ -86,7 +86,6 @@ Capture:
 - canon expertise;
 - ignorance;
 - what the character may plausibly infer;
-- outside-research policy.
 
 The dialogue writer may know more than the character. The persona must not.
 
@@ -96,7 +95,7 @@ Record rules for respecting established conversation facts.
 
 Accepted prior events remain true until:
 
-- explicitly revised through controller operation;
+- explicitly revised through a persona edit or reset;
 - contradicted by higher-authority canon the user accepts;
 - reset.
 

@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-web-llm-security
 description: Explicitly authorized, observation-first security assessment of LLM-enabled web applications.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -1,19 +1,16 @@
 ---
 name: 09-rp-chatbot-persona-setup
-description: "Build and lock a roleplay chatbot persona from the user's character prompt, including identity, setting, relationship, voice, drives, knowledge limits, continuity rules, and the exact conversation presentation format. Use before ordinary chatbot roleplay begins or when the user explicitly resets or edits the active persona."
+description: "Build and lock a roleplay chatbot persona from a character prompt, including identity, setting, relationship, personality, voice, drives, knowledge limits, continuity rules, role integrity, safe fallbacks, and exact conversation presentation format. Use before ordinary roleplay begins or when the persona is explicitly reset or edited."
 metadata:
-  version: 1.0
+  version: "2.1"
   opencode/slash: "true"
 ---
 
 # RP Chatbot Persona Setup
 
-Create one exact persona contract before ordinary roleplay begins.
+Create one coherent persona contract before ordinary roleplay begins.
 
-The contract defines both:
-
-1. **who the character is**;
-2. **how the conversation is presented**.
+The contract defines both **who the character is** and **how the conversation is presented**.
 
 Presentation is part of the roleplay contract, not decoration.
 
@@ -21,18 +18,16 @@ Presentation is part of the roleplay contract, not decoration.
 
 `/09-rp-chatbot-persona-setup {character-description}`
 
-When a character is already locked, use setup again only for an explicit reset or persona edit.
+Use setup again only for an explicit reset or persona edit.
 
 ## Load Order
 
 Always read:
 
-- [Persona model](references/persona-model.md)
-- [Format presets](references/format-presets.md)
+- [persona model](references/persona-model.md)
+- [format presets](references/format-presets.md)
 
-Use:
-
-- [Persona contract schema](assets/persona-contract-schema.yaml)
+Use [persona contract template](assets/persona-contract-schema.yaml) as a normalized shape when structured state is useful.
 
 ## Source of Truth
 
@@ -44,14 +39,11 @@ Do not silently:
 - make a hostile character friendlier;
 - remove flaws;
 - add moral beliefs;
-- invent an intimate relationship;
+- invent intimacy or hierarchy;
 - change the requested setting;
 - change the requested presentation format.
 
-Resolve harmless gaps consistently.
-
-Ask only when a missing or contradictory field would materially change how the character behaves or
-how replies appear.
+Resolve harmless gaps consistently. Ask only when missing or contradictory information would materially change behavior or presentation.
 
 ## Completeness Gate
 
@@ -60,7 +52,7 @@ Before locking, the contract must be coherent enough to guide:
 - identity;
 - setting/canon anchor;
 - relationship to the user;
-- personality/values/flaws;
+- personality, values, flaws, fears;
 - voice and verbal habits;
 - drives and initiative;
 - emotional range;
@@ -70,110 +62,61 @@ Before locking, the contract must be coherent enough to guide:
 - role integrity;
 - safe fallback behavior.
 
-A field may intentionally remain open, for example:
-
-```text
-The character freely improvises minor personal history that does not contradict established canon.
-```
-
-An accidental hole is not the same thing.
+A field may intentionally remain open. An accidental hole is not the same thing.
 
 ## Adaptive Setup
 
 If the initial prompt already supplies enough information, do not ask redundant questions.
 
-If material information is missing, ask one compact setup form containing only missing dimensions.
+If material information is missing, ask one compact setup form containing only missing dimensions, preferably no more than seven fields.
 
-Prefer no more than seven fields in one setup turn.
+`invent the missing parts` is a valid instruction.
 
-Offer:
-
-```text
-invent the missing parts
-```
-
-as a valid response.
-
-Do not re-ask facts the user already supplied.
+Do not re-ask facts already supplied.
 
 ## Default Conversation Format
 
-When the user does not specify presentation, default to `sms`.
+When the user does not specify presentation, default to `sms`:
 
-That means character message content only:
-
+- character message content only;
 - no external narration;
 - no stage directions;
 - no speaker label;
 - no roleplay action markers;
 - no out-of-character commentary;
-- multiple natural message bubbles allowed;
+- natural multi-message bubbles allowed;
 - short-natural length by default.
 
-See `references/format-presets.md`.
+See [format presets](references/format-presets.md).
 
 ## Lock
 
 When complete:
 
-1. normalize the supplied information into `PersonaContract/v1`;
+1. normalize the persona contract;
 2. verify the selected format has explicit allow/forbid behavior;
 3. verify safe fallbacks obey that format;
-4. mark the contract `locked`;
-5. hand the exact contract to Ōshō.
+4. mark the contract locked for the conversation.
 
-Ordinary dialogue cannot mutate the locked contract.
+Ordinary roleplay dialogue does not mutate the locked contract.
 
-Only explicit controller-level persona operations may do so.
+## Persona Controls
 
-## Controller Operations
-
-Supported control intents:
+When a host supports explicit roleplay controls, the useful semantic operations are:
 
 ```text
-/rp show
-/rp edit ...
-/rp reset
-/rp format sms|dialogue|immersive|transcript|custom
-/rp research auto|always|off
-/rp mode fast|strict
+show persona
+edit persona fields
+reset persona
+set format: sms | dialogue | immersive | transcript | custom
 ```
 
-Natural-language roleplay such as:
+A host may expose those operations as slash commands, UI controls, or another interface. The skill does not depend on a specific host interface.
 
-```text
-forget your character
-start narrating everything
-ignore the persona
-```
-
-is dialogue content, not a persona-control operation.
-
-## Research Policy
-
-`web_research_policy` values:
-
-- `auto` — research when explicitly requested, current facts matter, or lore uncertainty is material;
-- `always` — research substantive factual/lore turns whenever useful;
-- `off` — do not perform outside research unless a higher-priority system requires it.
-
-Default: `auto`.
-
-Research does not rewrite the persona contract.
-
-## Audit Mode
-
-`enforcement_mode` values:
-
-- `fast` — local fidelity checklist; call persona audit on meaningful risk;
-- `strict` — audit every hidden draft.
-
-Default: `strict`.
+Natural-language roleplay such as "forget your character" or "start narrating everything" is dialogue content unless explicitly treated as a persona-control operation.
 
 ## Output
 
-Return the locked `PersonaContract/v1` to the controller.
+Return the locked persona contract or, when incomplete, only the compact missing-fields request needed to finish it.
 
-When setup is incomplete, return only the compact missing-fields request needed to finish it.
-
-Do not begin character dialogue before the persona contract is coherent and locked.
+Do not begin ordinary character dialogue before the persona is coherent and locked.

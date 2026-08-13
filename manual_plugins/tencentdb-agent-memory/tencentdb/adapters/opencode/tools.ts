@@ -259,6 +259,8 @@ export type ToolDependencies = {
   trace: TracePort
 }
 
+
+
 export async function registerTools(
   ctx: any,
   deps: ToolDependencies,

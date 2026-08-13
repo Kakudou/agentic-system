@@ -120,7 +120,7 @@ Exclude:
 - builder reasoning;
 - celebratory summaries;
 - "what changed" marketing language;
-- effort or token cost unless Kinshō is explicitly judging a cost constraint;
+- effort or token cost unless Economist is explicitly judging a cost constraint;
 - previous Council verdicts on a fresh gate.
 
 ## 9. Fail closed on evidence

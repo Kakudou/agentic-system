@@ -46,37 +46,6 @@ function eventSessionID(
   )
 }
 
-function shellCommand(
-  event: any,
-): string {
-  const input =
-    event?.input
-
-  if (
-    input &&
-    typeof input === "object"
-  ) {
-    for (
-      const key of [
-        "command",
-        "cmd",
-        "script",
-      ]
-    ) {
-      const value =
-        (input as any)[key]
-
-      if (
-        typeof value === "string"
-      ) {
-        return value
-      }
-    }
-  }
-
-  return ""
-}
-
 function isDreamTool(
   name: string,
 ): boolean {
@@ -193,25 +162,6 @@ export async function installDreamExecutionGuard(
         }
 
         if (
-          name === "shell"
-        ) {
-          const command =
-            shellCommand(event)
-
-          if (
-            command.includes(
-              "/dev/urandom",
-            )
-          ) {
-            return
-          }
-
-          throw new Error(
-            "TDAI_DREAM_SHELL_BLOCK: dream workers may use shell only for the /dev/urandom RNG command defined by the dream skill.",
-          )
-        }
-
-        if (
           name.includes(
             "subagent",
           ) ||
@@ -246,7 +196,7 @@ export async function installDreamExecutionGuard(
         )
 
         throw new Error(
-          "TDAI_DREAM_TOOL_BLOCK: this dream worker may use only the explicit dream skill, the fixed /dev/urandom shell RNG, and tdai_dream_* tools. Stop alternate retrieval, filesystem, project, web, or mutation attempts.",
+          "TDAI_DREAM_TOOL_BLOCK: this dream worker may use only the explicit dream skill and tdai_dream_* tools. Stop alternate retrieval, shell, filesystem, project, web, or mutation attempts.",
         )
       },
     )
@@ -255,7 +205,7 @@ export async function installDreamExecutionGuard(
       "DREAM_EXECUTION_GUARD_INSTALLED",
       {
         worker:
-          "dream tools + /dev/urandom only",
+          "dream tools only",
         orchestrator:
           "subagent orchestration only",
       },

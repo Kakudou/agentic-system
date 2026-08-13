@@ -19,4 +19,4 @@ recon_handoff:
   sensitive_data_handling: ""
 ```
 
-The receiving owner must independently confirm scope and authorization. This template conveys observations, not a technology guarantee, finding, or permission for active testing.
+The receiving reviewer must independently confirm scope and authorization. This template conveys observations, not a technology guarantee, finding, or permission for active testing.

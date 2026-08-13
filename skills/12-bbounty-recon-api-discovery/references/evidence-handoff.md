@@ -29,7 +29,7 @@ Retain authorization reference, source locator, timestamp, redacted observation,
 
 ## Handoff
 
-Name the receiving owner, required approval for any follow-up, and the smallest unresolved question. Use the static handoff template.
+Name the authorized review recipient or channel, required approval for any follow-up, and the smallest unresolved question. Use the static handoff template.
 
 ## Sources
 

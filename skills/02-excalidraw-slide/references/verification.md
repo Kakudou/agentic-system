@@ -2,7 +2,7 @@
 
 Use after each build batch and before final delivery.
 
-This verification supplements, not replaces, the full checks required by `excalidraw-design`.
+This is the complete deck-level verification contract. An optional Excalidraw design capability may add independent scene-level evidence, but this checklist does not depend on it.
 
 Every check ends as:
 
@@ -13,13 +13,12 @@ Every check ends as:
 
 Any `FAIL` blocks delivery.
 
-## 1. Dependency and approval
+## 1. Direction and approval
 
 Check:
 
-- `excalidraw-design` was loaded
 - exactly three complete-deck visual directions were produced
-- its frontend-design critique was applied
+- the directions received an adversarial design critique
 - the user explicitly approved the storyboard and direction
 - no unapproved material change was implemented
 
@@ -50,7 +49,6 @@ For every projected slide:
 - frame name begins with the correct zero-padded number
 - essential content remains inside safe bounds
 - title remains inside its title band
-- filigrane remains contained
 - no notes element belongs to the slide frame
 
 ## 4. Notes geometry
@@ -65,7 +63,6 @@ For every notes panel:
 - notes content fits
 - notes remain readable
 - panel corresponds to the correct slide number
-- no filigrane appears
 
 ## 5. Row layout
 
@@ -85,7 +82,7 @@ For approved nondefault geometry, verify against the explicitly approved contrac
 For every slide:
 
 1. compute the visible union of primary content
-2. exclude title, slide number, and filigrane
+2. exclude title, slide number, and any explicitly requested maker mark
 3. identify available content region
 4. compare composition center with region center
 5. allow optical correction only when visually justified
@@ -155,20 +152,13 @@ Across the deck:
 - slide variation follows narrative purpose
 - repeated concepts retain visual identity
 - no slide looks like an unrelated template
-- default Neuromancer styling remains restrained when applicable
+- no private brand or unrelated genre has been introduced merely because the source left style open
 
-## 11. Filigranes
+## 11. Optional maker marks
 
-For every projected slide:
+When a maker mark was explicitly requested, verify that it is present, correct, subtle, readable on inspection, contained, collision-free, and absent from speaker notes unless requested there too.
 
-- one unique filigrane exists
-- it ends with `— Ōtsumi`
-- it reflects the slide takeaway
-- it is subtle
-- it is readable only on inspection
-- it does not collide
-- it remains inside the frame
-- it does not appear in notes
+Otherwise mark this check `NOT APPLICABLE`.
 
 ## 12. Batch verification
 
@@ -216,7 +206,7 @@ Look for:
 - inconsistent margins
 - visual monotony
 - random variation
-- filigranes that are missing or too visible
+- requested maker marks that are missing or too visible
 - notes paired with the wrong slide
 
 An XML parse or successful export is not visual inspection.
@@ -235,10 +225,10 @@ Mandatory even when visual inspection succeeds:
 - calculate primary-content union
 - calculate vertical centering
 - detect unintended intersections
-- verify connector endpoints and labels through `excalidraw-design`
+- verify connector endpoints, labels, bindings, and semantic direction directly from the final scene
 - verify row positions
 - verify text fitting
-- verify filigrane presence and uniqueness
+- verify requested maker marks when applicable
 - verify deck-wide semantic style ledger
 
 ## 15. Duration audit
@@ -268,7 +258,7 @@ Verification
 - Slide-level content quality: PASS
 - Narrative and audience calibration: PASS
 - Deck-wide visual coherence: PASS
-- Ōtsumi filigranes: PASS
+- Requested maker marks: PASS / NOT APPLICABLE
 - Visual render inspection: PASS / NOT AVAILABLE
 - Mathematical verification: PASS
 - Estimated duration: <duration>

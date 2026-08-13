@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-jwt
-description: JWT testing. Algorithm switching, secret cracking, claim manipulation, header injection, kid attacks, and token forgery.
+description: "Assess authorized JWT issuance, validation, key-distribution trust, claim binding, and authorization decisions using controlled tokens and minimum-impact evidence without key recovery or token forgery."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

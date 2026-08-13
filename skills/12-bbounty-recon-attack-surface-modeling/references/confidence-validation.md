@@ -33,7 +33,7 @@ Keep conflict excerpts minimal and redacted. Escalate scope or privacy ambiguity
 
 ## Evidence And Handoff
 
-Complete the [evidence/confidence matrix](../assets/evidence-confidence-matrix.md) and include the validation owner, question, and status for every material low-confidence or conflicting claim.
+Complete the [evidence/confidence matrix](../assets/evidence-confidence-matrix.md) and include the validation question, status, and authorized review channel for every material low-confidence or conflicting claim.
 
 ## Sources
 

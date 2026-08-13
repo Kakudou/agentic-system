@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-xxe
 description: Authorized, low-impact assessment of XML parsers for unsafe DTD, entity, and XInclude handling, with evidence-led remediation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -7,7 +7,7 @@ Determine whether public material documents a bounded path to proceed to intake,
 ## Preconditions
 
 - A provenance-recorded public source.
-- A named prospective program and downstream intake owner.
+- A named prospective program and an authorized intake or review channel.
 
 ## Documentation Method
 

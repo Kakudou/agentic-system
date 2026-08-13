@@ -1,8 +1,8 @@
 ---
-name: 99-tools-remotion-design
-description: Transform arbitrary source material into distinctive, production-ready Remotion compositions, rendered media, motion graphics, stills, reusable React motion components, interactive Players, and video applications. Analyze intent and evidence, develop exactly three materially different creative directions, apply mandatory frontend-design critique, require explicit approval, bootstrap or integrate Remotion locally, load the official remotion-best-practices skill, then build, preview, render, inspect, and verify the approved result.
+name: 99-tool-remotion-design
+description: Transform arbitrary source material into distinctive, production-ready Remotion compositions, rendered media, motion graphics, stills, reusable React motion components, interactive Players, and video applications. Analyze intent and evidence, develop exactly three materially different creative directions, adversarially critique them, require explicit approval, bootstrap or integrate Remotion locally, load current official Remotion best-practice guidance when available, then build, preview, render, inspect, and verify the approved result.
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -20,17 +20,15 @@ This skill may create or extend rendered videos in any appropriate aspect ratio,
 
 Remotion is the temporal composition, rendering, and playback engine. For website/application output, build an appropriate React experience around Remotion's Player, compositions, props, and rendering capabilities. Do not pretend Remotion replaces the surrounding web framework.
 
-## Required skill dependencies
+## Optional Design Integration and Remotion Guidance
 
 ### Creative critique
-Resolve and load one installed frontend design skill:
-1. `design-frontend`
-2. otherwise `frontend-design`
+The three directions must receive a mandatory adversarial design critique before presentation.
 
-It is mandatory before presenting creative directions.
+If `98-external-frontend-design` or an equivalent design-critique capability is available, use it as an optional independent pass. If not, apply this skill's critique criteria directly; do not block the core Remotion capability on a local sibling skill.
 
 ### Remotion implementation
-Use the official Remotion Agent Skill `remotion-best-practices` after approval and before implementation. If it is not discoverable, install the current official Remotion Agent Skills using current Remotion documentation, verify discovery, then load it. Do not vendor the official Remotion skills into this skill. If installation or discovery fails, stop before implementation and report the exact failure. Never simulate the skill.
+Prefer the current official Remotion Agent Skill `remotion-best-practices` after approval and before implementation. If it is not discoverable and installing external skills is authorized, use current Remotion documentation to install it and verify discovery. If it remains unavailable, continue only with version-stable Remotion mechanics already established by the local project and verify version-sensitive details from official Remotion documentation before use; never pretend the external skill was loaded.
 
 ## Execution lock
 
@@ -42,8 +40,8 @@ Hard rules:
 - Never scaffold, install project dependencies, or modify implementation files before explicit user approval.
 - Read-only environment inspection is allowed before approval.
 - Always create exactly three materially different creative directions.
-- Always apply frontend-design critique before presenting directions.
-- Always load `remotion-best-practices` before writing or modifying Remotion implementation.
+- Always apply the adversarial design critique before presenting directions.
+- Prefer `remotion-best-practices` before writing or modifying Remotion implementation; when unavailable, verify version-sensitive mechanics from official Remotion documentation instead of guessing.
 - Never invent facts, data, quotations, chronology, assets, relationships, or technical claims.
 - Never invent media files and pretend they exist.
 - Never use arbitrary effects merely to look sophisticated.
@@ -67,7 +65,7 @@ Read only what the current phase needs:
 | Ground source truth | `references/source-grounding.md` |
 | Choose output architecture | `references/output-architecture.md` |
 | Develop directions | `references/creative-direction.md` |
-| Apply unspecified visual choices | `references/black-ice-motion-system.md` |
+| Apply unspecified visual choices | `references/default-motion-system.md` |
 | Bootstrap and capability probe | `references/project-bootstrap.md` |
 | Design timing and motion | `references/temporal-grammar.md` |
 | Handle media/audio/voice/captions | `references/media-system.md` |
@@ -146,9 +144,11 @@ Each direction reserves one controlled, reversible, deterministic **serendipity 
 
 It must support the source, remain isolated enough to remove, be previewed early, preserve readability, and survive render verification. Serendipity is disciplined discovery, not effect accumulation.
 
-## 8. Mandatory frontend-design critique
+## 8. Mandatory adversarial design critique
 
-Load the resolved frontend design skill and attack each direction for generic AI-video aesthetics, style detached from source, purposeless effects, weak hierarchy, poor typography, predictable clichés, noise, lack of identity, unearned complexity, weak interaction/web design, gimmicky serendipity, or architecture larger than the goal.
+Attack each direction for generic AI-video aesthetics, style detached from source, purposeless effects, weak hierarchy, poor typography, predictable clichés, noise, lack of identity, unearned complexity, weak interaction/web design, gimmicky serendipity, or architecture larger than the goal.
+
+When an independent design-critique capability is available, run it against the same source constraints and directions, then reconcile its evidence-backed criticism. Otherwise the local critique is authoritative for this skill.
 
 For each: `retain`, `refine`, or `replace`. Final set remains exactly three. Source truth, audience, platform, and user constraints outrank aesthetics.
 
@@ -166,9 +166,9 @@ After approval, read `references/project-bootstrap.md`.
 - `EXISTING_REACT_PROJECT_WITHOUT_REMOTION`: integrate Remotion locally using current official guidance; preserve host architecture; add only packages required by approved architecture.
 - `NO_SUITABLE_PROJECT`: create a dedicated directory and use the current official Remotion scaffolder; the current documented npm default is `npx create-video@latest`; choose the minimum suitable template; never scaffold over unrelated nonempty content.
 
-## 11. Ensure official Remotion Agent Skills
+## 11. Resolve current Remotion guidance
 
-Check for `remotion-best-practices`. If missing, use current official installation guidance. Current Remotion docs document `npx skills add remotion-dev/skills`; project workflows may also expose `npx remotion skills add`. Use the command appropriate to current docs/environment. Verify discovery after installation, then load `remotion-best-practices`.
+Check for `remotion-best-practices`. If present, load it. If missing and external skill installation is authorized, use current official installation guidance and verify discovery. If installation is not authorized or fails, use official Remotion documentation directly for any version-sensitive API, CLI, codec, rendering, or Player behavior needed by the approved implementation.
 
 ## 12. Capability probe
 
@@ -187,9 +187,9 @@ Player-only probe: application build/start, Player mount, playback, prop update,
 
 If a probe fails, classify the failed layer, repair minimally, and rerun before production.
 
-## 13. Load Remotion best practices
+## 13. Apply Remotion best practices
 
-Load `remotion-best-practices` only after bootstrap/probe. Follow it for current Remotion mechanics. If technical details conflict, official Remotion guidance wins; the approved direction still governs creative intent.
+Load `remotion-best-practices` after bootstrap/probe when available. Otherwise use current official Remotion documentation for the required mechanics. If local/project assumptions conflict with current official guidance, current compatible guidance wins; the approved direction still governs creative intent.
 
 
 ## 14. Start the Studio observer
@@ -277,9 +277,9 @@ Read `references/temporal-grammar.md`. Design at composition, scene, and element
 
 ## 17. Default creative system
 
-Read `references/black-ice-motion-system.md` when style is unspecified. The default draws from Neuromancer, Shadowrun decker culture, black ice, hostile networks, terminal noir, urban technical decay, illicit infrastructure, analog intelligence over digital systems, cybernetic ritual, and controlled corruption.
+Read `references/default-motion-system.md` when style is unspecified. Derive the visual system from the source, audience, platform, and approved direction rather than importing a private brand or genre by default.
 
-It is a launch point, not a rigid template. Do not collapse automatically into vaporwave, synthwave, cyan/magenta glow, code rain, fake terminals, meaningless glitch, or generic sci-fi HUDs. Subject-specific color, imagery, 3D, photography, shaders, materials, and unexpected techniques are welcome when stronger.
+The fallback is intentionally neutral: establish hierarchy, typography, palette, spatial logic, material language, and motion from the actual content. Subject-specific color, imagery, 3D, photography, shaders, materials, and unexpected techniques are welcome when they serve the brief.
 
 ## 18. Typography and readability
 
@@ -313,22 +313,14 @@ Preserve one creative thesis, semantic typography/color, key narrative beats, an
 
 Batch long/complex work by narrative section, composition, format, component family, or web-versus-render core. One approved direction governs everything. Do not reopen the three-direction phase per batch. Share tokens/primitives, preview each batch, inspect cross-batch transitions, and run a final project-wide verification.
 
-## 25. Ōtsumi trace
-
-Every primary creative output should contain a subtle maker's trace unless white-label output is explicitly requested. Use a restrained end card, diegetic terminal credit, final-frame inscription, quiet footer, interface label, or metadata-visible credit.
-
-Format: `<output-specific punchline> — Ōtsumi`
-
-It must derive from the work's thesis, remain short and unique, stay subordinate, and never become a persistent intrusive watermark or generic cyberpunk slogan.
-
-## 26. Verify and deliver
+## 25. Verify and deliver
 
 Read `references/verification.md`. Use `CHECK → RECORD DEFECT → REPAIR SOURCE → RECHECK → RERENDER`. Never patch only the export while source remains broken.
 
 Deliver only artifacts that actually exist: editable source project, composition map, local run instructions, renders, stills/thumbnails, variants, Player/web app, parameter schema, asset inventory, concise architecture summary, verification report, and disclosed uncertainty.
 
 
-## 27. Post-delivery revision mode
+## 26. Post-delivery revision workflow
 
 After the first complete delivery, user feedback is normally an edit pass, not a new creative-direction cycle.
 
@@ -369,7 +361,7 @@ Behavior:
 
 - return to `MODEL`
 - develop exactly three new directions
-- rerun frontend-design critique
+- rerun the adversarial design critique
 - request explicit approval
 - then resume implementation
 
@@ -384,10 +376,10 @@ Complete only when all applicable conditions pass:
 - audience/objective are explicit
 - architecture fits the request
 - exactly three materially different directions were developed
-- frontend-design was loaded/applied
+- required adversarial design critique was actually performed
 - user explicitly approved
 - bootstrap/integration succeeded
-- `remotion-best-practices` is installed and loaded
+- current Remotion mechanics were grounded in either the official best-practices skill or official documentation
 - Studio observer state was classified and reported when Studio was applicable
 - no visual inspection was claimed without actual visual inspection capability
 - capability probes passed
@@ -401,7 +393,6 @@ Complete only when all applicable conditions pass:
 - Player/web behavior works when requested
 - representative frames/previews/final outputs were actually inspected when supported
 - no known visual/timing/media/application/render defect remains
-- Ōtsumi trace is present unless white-label
 - editable source and requested deliverables exist
 
 The acceptable result is an authored temporal experience the user can run, edit, render, understand, and trust.

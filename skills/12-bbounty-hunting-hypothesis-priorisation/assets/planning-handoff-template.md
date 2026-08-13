@@ -13,5 +13,5 @@ planning_handoff:
       safety_constraints: []
       stop_condition: ""
   conflicts_or_questions: []
-  planning_owner: ""
+  authorized_review_recipient_or_channel: ""
 ```

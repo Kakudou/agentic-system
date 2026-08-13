@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-asset-inventory
 description: Synthesize authorized, supplied reconnaissance evidence into a traceable asset inventory without active discovery or validation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

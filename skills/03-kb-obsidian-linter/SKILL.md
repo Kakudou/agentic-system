@@ -1,178 +1,115 @@
 ---
 name: 03-kb-obsidian-linter
-description: "Inspect the configured ordinary non-memory Obsidian Zettelkasten corpus for structural and semantic health issues such as duplicates, overloaded notes, generic/derived drift, missing abstractions, broken parent relationships, weak linkage, and template drift. Read-only: reports evidence-backed findings and recommends the owning skill for repair without mutating the vault."
+description: "Inspect a configured Obsidian Zettelkasten corpus for structural and semantic health issues such as duplicates, overloaded notes, generic/derived drift, missing abstractions, broken relationships, weak linkage, and template drift. Read-only: report evidence-backed findings and concrete repair actions without mutating the vault."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# KB Obsidian Linter
+# Obsidian Linter
 
-Inspect the Zettelkasten corpus and report the problems that make it harder to trust, reuse, or
-navigate.
+Inspect the Zettelkasten corpus and report problems that make it harder to trust, reuse, or navigate.
 
-This skill is a **read-only corpus-health checker**.
+This capability is read-only. It diagnoses; it does not repair.
 
-It does not repair notes. It identifies concrete issues, shows the evidence, and routes the repair to
-the skill that owns that kind of mutation.
+## Vault Configuration Input
 
-## Usage
+Require a trusted vault descriptor that resolves the vault, eligible zettel roots, zettel template, conventions, and safety boundaries. When `03-kb-obsidian-vault-overview` is installed, it is the preferred local provider; an equivalent caller-supplied descriptor is also valid.
 
-`/03-kb-obsidian-linter`
-
-Lint the configured default vault's eligible ordinary non-memory zettel corpus.
-
-## Dependencies
-
-Required:
-
-- `03-kb-obsidian-vault-overview`
-
-The overview owns vault topology and template resolution.
-
-If either dependency is unavailable, fail closed. Do not replace it with ad-hoc directory scanning.
+If required configuration is missing, stop instead of guessing or falling back to an undeclared search path.
 
 ## Load Order
 
 Always read:
 
-- [Lint rules](references/lint-rules.md)
-- [Evidence and severity](references/evidence-and-severity.md)
-- [Vault integration](references/vault-integration.md)
+- [lint rules](references/lint-rules.md)
+- [evidence and severity](references/evidence-and-severity.md)
+- [vault integration](references/vault-integration.md)
 
-Use:
+Use [finding shape](assets/lint-finding-schema.yaml) when a structured finding is useful.
 
-- [Finding schema](assets/lint-finding-schema.yaml)
-- [Report schema](assets/lint-report-schema.yaml)
+## Hard Rules
 
-## Core Contract
-
-The linter must:
-
-- resolve the vault through `03-kb-obsidian-vault-overview`;
-- read the actual configured zettel template;
-- inspect only enough note content and relationships to support concrete findings;
-- apply the stable lint rules from `references/lint-rules.md`;
-- attach evidence and confidence to every finding;
-- avoid duplicate findings for the same underlying defect;
-- recommend the smallest owning skill or manual action that can fix the issue;
-- leave the entire vault unchanged.
-
-The linter must not:
-
-- create, edit, rename, move, or delete any note;
-- mutate counters or frontmatter;
-- rewrite a note "for convenience";
-- merge zettels;
-- create missing generic parents;
-- repair broken links;
-- invoke Git;
-- inspect or expose memory-scoped canonical zettels;
-- invent missing evidence;
-- call a stylistic preference a structural defect.
+- Read the actual configured zettel template before checking template conformance.
+- Inspect only the descriptor-resolved configured zettel roots.
+- Read only enough note content and relationships to support concrete findings.
+- Apply only the stable rules in [lint rules](references/lint-rules.md).
+- Every finding needs concrete evidence, severity, and confidence.
+- Consolidate symptoms that share one root cause.
+- Recommend the smallest useful **repair action**, not an internal routing or executor identity.
+- Do not create, edit, rename, move, delete, merge, or rewrite notes.
+- Do not mutate counters or frontmatter.
+- Do not run Git.
+- Do not turn style preference into a corpus-health defect.
 
 ## Workflow
 
-### 1. Resolve Vault
+### 1. Resolve the Corpus
 
-Invoke `03-kb-obsidian-vault-overview`.
-
-Resolve:
+Resolve from the trusted vault descriptor:
 
 - `vault_root`;
-- `zettel_root`;
-- `all_zettel_roots`;
-- `zettel_template`;
-- relevant conventions and safety boundaries.
+- `root_groups.all_zettel_roots`;
+- `templates.zettel_template`;
+- relevant conventions/safety.
 
-Read the actual configured zettel template before checking template conformance.
+Read the actual configured zettel template.
 
-Never hardcode vault paths or frontmatter fields.
+Inventory only zettel files beneath the explicitly configured zettel roots. Do not broaden into unrelated vault roots.
 
-### 2. Resolve Eligible Corpus
+### 2. Inspect
 
-Do not enumerate the vault independently.
-
-Memory-scoped canonical zettels remain opaque and excluded.
-
-### 3. Inspect Corpus
-
-Read the returned zettels as needed to evaluate:
+Read eligible notes as needed to evaluate:
 
 - frontmatter/template conformance;
 - atomicity;
 - semantic overlap;
 - generic/derived relationships;
 - explicit wikilinks;
-- obvious corpus-level abstraction opportunities.
+- corpus-level abstraction opportunities.
 
-Do not interpret a missing optional field as a defect unless the actual template requires it.
+A missing optional field is not drift unless the actual template requires it.
 
-### 4. Apply Stable Rules
+### 3. Apply Rules
 
-Apply only the rules in `references/lint-rules.md`.
-
-A finding must identify:
+For each material issue record:
 
 - stable rule ID;
-- affected zettel or zettels;
-- evidence;
-- why the issue matters;
-- confidence;
+- affected zettel(s);
+- smallest supporting evidence;
+- reasoning;
+- impact;
 - severity;
-- recommended owner.
+- confidence;
+- concrete repair action.
 
-Do not emit speculative findings as established defects.
+Do not present speculation as an established defect.
 
-### 5. Consolidate
+### 4. Consolidate
 
-Merge findings that describe the same underlying issue.
+Prefer one root-cause finding over repetitive symptoms.
 
-Example:
+Example: several domain notes encoding the same reusable principle with no generic parent should produce one `ZL006 missing-generic-abstraction` finding naming the affected notes.
 
-If three derived zettels all encode the same reusable principle and no generic parent exists, prefer
-one `ZL006 missing-generic-abstraction` finding naming all three notes rather than three nearly
-identical findings.
+### 5. Report
 
-### 6. Report
+Return:
 
-Return the compact report shape from `assets/lint-report-schema.yaml`.
+- `CLEAN`, `FINDINGS`, or `BLOCKED`;
+- counts by severity;
+- ordered findings;
+- checks performed;
+- material inspection limits.
 
-Order findings by:
+Order findings by severity, confidence, then breadth of impact.
 
-1. severity;
-2. confidence;
-3. breadth of impact.
-
-Prefer a short set of meaningful findings over a flood of cosmetic noise.
-
-If no material issue is found, return `CLEAN` with the checks performed.
-
-## Repair Ownership
-
-The linter recommends repairs but never performs them.
-
-Default routing:
-
-- duplicate/near-duplicate knowledge → `03-kb-obsidian-zettelize`
-- overloaded multi-idea zettel → `03-kb-obsidian-zettelize`
-- generic/derived relationship defect → `03-kb-obsidian-zettelize`
-- missing generic abstraction → `03-kb-obsidian-zettelize`
-- template/frontmatter drift → note-owning KB maintenance workflow or explicit manual repair
-- vault topology/configuration issue → `03-kb-obsidian-vault-overview`
-
-Do not route semantic repairs to `03-kb-obsidian-serendipity`; that skill synthesizes knowledge and
-does not own corpus mutation.
+Prefer a short set of meaningful findings over cosmetic noise.
 
 ## Completion Check
 
-Before returning:
-
-- vault topology came from the overview;
-- actual zettel template was read;
-- memory isolation was preserved;
-- every finding cites concrete evidence;
-- severity/confidence are justified;
+- topology came from a trusted vault descriptor;
+- actual template was read;
+- corpus stayed inside configured zettel roots;
+- every finding has evidence;
 - no vault mutation occurred;
-- no counter changed;
 - no Git operation occurred.

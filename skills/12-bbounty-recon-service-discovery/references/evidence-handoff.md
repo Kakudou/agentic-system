@@ -2,7 +2,7 @@
 
 ## Purpose and Preconditions
 
-Prepare a reviewable reconnaissance handoff that lets the next authorized owner assess the observation without repeating or expanding activity. Confirm the recipient and permitted evidence channel.
+Prepare a reviewable reconnaissance handoff that lets an authorized reviewer assess the observation without repeating or expanding activity. Confirm the recipient and permitted evidence channel.
 
 ## Authorized Bounded Method
 

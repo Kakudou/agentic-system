@@ -2,19 +2,19 @@
 
 ## Purpose
 
-Transfer a bounded, evidence-backed intake packet to an authorized owner without turning intake assumptions into authorization.
+Transfer a bounded, evidence-backed intake packet through an authorized review channel without turning intake assumptions into authorization.
 
 ## Preconditions
 
 - Intake worksheet, source register, confidence matrix, and stop checklist are complete.
-- The receiving owner and escalation route are named.
+- The authorized review recipient or channel and escalation route are named.
 
 ## Documentation Methodology
 
 1. State the source version and access time at the top of the handoff.
 2. Separate authorized scope, prohibited actions, conditional items, and unverified items.
 3. Include direct evidence references for every material boundary.
-4. Name the owner responsible for clarification, policy acceptance, and any downstream work.
+4. Record the clarification channel, policy-acceptance authority, and any separately authorized downstream action.
 
 ## Interpretation And Uncertainty Controls
 

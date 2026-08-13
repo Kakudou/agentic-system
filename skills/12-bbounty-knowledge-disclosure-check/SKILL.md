@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-disclosure-check
 description: Authorization-first documentation of supplied public disclosure status, overlap uncertainty, and safe knowledge handoff without retrieval, testing, or comparison automation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -53,7 +53,6 @@ disclosure_status_handoff:
   limitations: [string]
   handling: redacted | embargoed | restricted | cleared
   validation_status: reviewed | needs-clarification | stopped
-  handoff_recipient: string
 ```
 
 ## Supplemental Index

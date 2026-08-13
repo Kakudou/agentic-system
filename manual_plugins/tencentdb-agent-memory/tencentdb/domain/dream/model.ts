@@ -2,6 +2,16 @@ export type DreamKind =
   | "dream"
   | "nightmare"
 
+export type DreamOutcome =
+  | "nothing"
+  | DreamKind
+
+export type DreamRoll = {
+  roll: number
+  outcome: DreamOutcome
+  entropy: string
+}
+
 export type DreamRole =
   | "orchestrator"
   | "worker"
@@ -37,6 +47,7 @@ export type DreamSessionState = {
   role: DreamRole
   openCodeAgent: string
   startedAt: number
+  roll?: DreamRoll
   sample?: DreamSample
   committing: boolean
   committed: boolean

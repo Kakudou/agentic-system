@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-severity-assessment
 description: Assess the evidence-supported impact and uncertainty of an authorized finding for review without assigning a preset severity, reward, or exploit claim.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -55,7 +55,7 @@ severity_assessment:
       alternatives: [string]
   framework_mapping: string | not_performed
   review_decision: hand_off | hold | close
-  handoff_owner: string
+  authorized_review_recipient: string
   requested_decision: string
 ```
 

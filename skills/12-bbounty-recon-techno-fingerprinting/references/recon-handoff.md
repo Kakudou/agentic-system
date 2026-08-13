@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Transfer bounded technology observations to an authorized recon or triage owner without expanding scope or implying that active validation is approved.
+Transfer bounded technology observations through an authorized recon/triage review channel without expanding scope or implying that active validation is approved.
 
 ## Preconditions
 
 - The observations have source locators, timestamps, confidence ratings, and conflicts recorded.
-- The receiving owner and allowed next-stage scope are known.
+- The authorized review recipient/channel and allowed next-stage scope are known.
 
 ## Method
 

@@ -1,8 +1,8 @@
 ---
 name: 06-python-bdd-pytest
-description: "Implement approved Gherkin behavior as raw pytest tests using Kakudou's _given/_when/_then helper style. Use during Python BDD RED work to translate scenarios, outlines, backgrounds, and constraints into behavior-focused pytest without pytest-bdd, step-definition files, placeholder assertions, or implementation-coupled tests."
+description: "Implement approved Gherkin behavior as raw pytest tests using a raw pytest _given/_when/_then helper style. Use during Python BDD RED work to translate scenarios, outlines, backgrounds, and constraints into behavior-focused pytest without pytest-bdd, step-definition files, placeholder assertions, or implementation-coupled tests."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -155,6 +155,6 @@ Return:
 - pytest target(s);
 - expected RED reason for each new behavior;
 - ambiguity that prevented faithful translation;
-- `red_evidence_required: true`.
+- explicit statement that RED remains unproven until the focused test target actually runs.
 
 Do not report the behavior as implemented.

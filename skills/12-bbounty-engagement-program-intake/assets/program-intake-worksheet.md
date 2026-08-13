@@ -6,7 +6,7 @@
 | --- | --- |
 | Program name | |
 | Program owner | |
-| Intake owner | |
+| Prepared by / intake record custodian | |
 | Source register reference | |
 | Primary source ID | |
 | Source version/revision | |
@@ -32,6 +32,6 @@
 
 ## Open Questions And Stop Conditions
 
-| Question or condition | Operational consequence | Escalation owner/channel | Source reference |
+| Question or condition | Operational consequence | Escalation/clarification channel | Source reference |
 | --- | --- | --- | --- |
 | | | | |

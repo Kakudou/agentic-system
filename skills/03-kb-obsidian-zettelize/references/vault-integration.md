@@ -2,7 +2,7 @@
 
 This skill contains no vault-specific paths.
 
-Resolve topology through `03-kb-obsidian-vault-overview`.
+Consume a trusted vault descriptor. The local `03-kb-obsidian-vault-overview` capability is the preferred provider when installed, but this skill remains usable with an equivalent caller-supplied descriptor.
 
 ## Required Values
 
@@ -11,49 +11,45 @@ Resolve topology through `03-kb-obsidian-vault-overview`.
 - `root_groups.all_zettel_roots`
 - `templates.zettel_template`
 
-Normally also:
+Usually also:
 
 - `named_roots.resources_root`
 
-Consume relevant safety and submodule configuration.
+Consume relevant conventions, safety, and submodule configuration.
 
-Unknown or unconfigured required values fail closed.
+Unknown or unconfigured required values block the operation.
 
 ## Template Authority
 
-Read the actual configured `zettel_template`.
+Read the actual configured zettel template.
 
-It controls frontmatter keys/casing, Author, Lang, Template, dates, links/tags, and body scaffold.
-
-Do not embed a stale template here.
+It controls frontmatter keys/casing, author/language fields, dates, tags/links, and body scaffold. Do not embed a copied template here.
 
 ## Stable Markers
 
-If compatible with the actual template's tag field, add:
+When compatible with the actual template's tag field, the following semantic markers may be used:
 
 - `zettel/generic`
 - `zettel/derived`
 - `zettel/domain-bound`
 
-If local conventions reject these or no tag field exists, do not invent a frontmatter field. Surface
-the missing marker convention in the proposal.
+If the local template does not support them, do not invent a field. Record the limitation in the preview.
 
 ## Default Roots
 
-- generic → `zettel_root`
-- derived → `zettel_root`
-- domain-bound → `zettel_root`
-- reconstruction → `resources_root`
+- generic → configured `zettel_root`
+- derived → configured `zettel_root`
+- domain-bound → configured `zettel_root`
+- reconstruction → configured `resources_root`
 
-A caller may explicitly select another overview-configured zettel root.
+An alternate output root must be explicitly requested and must itself be present in the supplied/configured descriptor.
 
-## Search Corpus
+## Deduplication Corpus
 
-Dedup uses overview-resolved `all_zettel_roots` through `kb-obsidian-search`.
+Search only Markdown zettels beneath the descriptor-resolved `all_zettel_roots` using available read-only file/search capabilities.
 
-Its memory-isolation contract remains authoritative.
+Do not widen the corpus to unrelated vault roots.
 
 ## Reconstruction
 
-Reconstruction is a non-atomic resource/proof artifact. If a same-purpose reconstruction exists,
-update with diff instead of blind overwrite.
+Reconstruction is a non-atomic resource/proof artifact. If a same-purpose reconstruction already exists, preview an exact update diff instead of blindly overwriting it.

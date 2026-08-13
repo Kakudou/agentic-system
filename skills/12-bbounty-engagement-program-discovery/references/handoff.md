@@ -2,12 +2,12 @@
 
 ## Purpose
 
-Transfer bounded, source-backed discovery evidence to the program-intake owner without implying authorization or recommending testing.
+Transfer bounded, source-backed discovery evidence through an authorized intake channel without implying authorization or recommending testing.
 
 ## Preconditions
 
 - Completed discovery record, source/confidence matrix, and eligibility/stop checklist.
-- A named intake owner and a documented transfer channel.
+- An authorized intake recipient or review channel is documented.
 
 ## Documentation Method
 
@@ -25,7 +25,7 @@ Transfer bounded, source-backed discovery evidence to the program-intake owner w
 
 ## Evidence And Handoff
 
-Use the handoff template. The intake owner acknowledges receipt, validates the current official rules, and either accepts the bounded documentation or returns unresolved items for escalation.
+Use the handoff template. Record acknowledgement or review status, require validation of the current official rules, and preserve unresolved items for escalation.
 
 ## Public Sources
 

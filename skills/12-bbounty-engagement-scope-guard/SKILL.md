@@ -2,7 +2,7 @@
 name: 12-bbounty-engagement-scope-guard
 description: Make documented, authorization-first scope decisions for bug bounty work and hand off unresolved boundaries safely.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -14,7 +14,7 @@ Keep work inside the current program authorization. This skill documents scope d
 
 ## Prerequisites
 
-- Current program terms and a dated scope source from `12-bbounty-engagement-program-intake` and `12-bbounty-engagement-scope-normalisation`.
+- Current program terms and a dated, normalized scope source with provenance.
 - A proposed asset, action, and intended data exposure level.
 - A named program contact or platform escalation path for unresolved questions.
 

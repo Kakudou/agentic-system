@@ -1,6 +1,19 @@
 ---
 description: "Read-only researcher and evidence retriever. Finds facts and sources without deciding the final answer."
 mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: execute
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Kyōsha — Lance

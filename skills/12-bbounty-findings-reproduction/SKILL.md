@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-reproduction
 description: Document the minimum safe context for an already observed in-scope finding without replaying tests, exposing sensitive data, or expanding impact.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

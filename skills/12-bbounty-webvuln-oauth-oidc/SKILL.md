@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-oauth-oidc
-description: OAuth/OIDC testing. Flow hijacking, token exchange, claim manipulation, authorization code reuse, and provider misconfiguration.
+description: "Assess authorized OAuth 2.0 and OIDC flows for transaction binding, redirect validation, PKCE/state/nonce handling, token and claim validation, provider configuration, and account/tenant authorization boundaries using controlled test identities."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

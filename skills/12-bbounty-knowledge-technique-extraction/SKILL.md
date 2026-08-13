@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-technique-extraction
 description: Authorization-first, evidence-led documentation of security assessment techniques without operational attack guidance.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -54,7 +54,6 @@ technique_knowledge_handoff:
   confidence: low | medium | high
   validation_status: documented | reviewed | needs-clarification | stopped
   limitations: [string]
-  handoff_recipient: string
 ```
 
 ## Supplemental Index

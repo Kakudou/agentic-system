@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-prototype-pollution
 description: Authorized, observation-only prototype-pollution assessment workflow for JavaScript property-handling paths.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

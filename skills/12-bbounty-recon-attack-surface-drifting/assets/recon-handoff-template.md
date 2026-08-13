@@ -2,7 +2,7 @@
 
 ```yaml
 authorization_reference: ""
-receiving_owner: ""
+authorized_review_recipient_or_channel: ""
 comparison_scope: ""
 baseline_evidence_reference: ""
 comparison_evidence_reference: ""
@@ -16,7 +16,7 @@ changes:
     evidence_references: []
     confounders: []
     scope_status: in-scope | needs-review | stopped
-    owner_question: ""
+    required_decision_or_question: ""
 limitations: []
 redaction_statement: ""
 stop_decisions: []

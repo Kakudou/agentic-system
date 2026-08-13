@@ -1,6 +1,6 @@
 # Orchestration Reference
 
-Read this for workstream decomposition, multi-agent execution, local critique, and integration.
+Read this for workstream decomposition, multi-workstream execution, local critique, and integration.
 
 ## 1. Decompose from the contract
 
@@ -13,7 +13,7 @@ First identify:
 - expensive or risky actions that should happen late;
 - verification that can run early and cheaply.
 
-Create the smallest number of workstreams that gives real independence. More agents are not automatically better.
+Create the smallest number of workstreams that gives real independence. More workstreams are not automatically better.
 
 ### Good workstream boundaries
 

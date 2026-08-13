@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-info-disclosure
 description: Assess authorized web targets for unintended information disclosure using minimal, non-invasive observation and redacted evidence.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

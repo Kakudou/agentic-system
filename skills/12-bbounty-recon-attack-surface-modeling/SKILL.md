@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-attack-surface-modeling
 description: Synthesize authorized, already-collected reconnaissance evidence into a scoped, confidence-labelled attack-surface model without performing discovery or making vulnerability claims.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

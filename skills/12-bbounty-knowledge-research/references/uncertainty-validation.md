@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Make confidence, limits, and validation ownership explicit so research context is not represented as a confirmed security finding.
+Make confidence, limits, and the required validation path explicit so research context is not represented as a confirmed security finding.
 
 ## Preconditions
 
@@ -19,7 +19,7 @@ Never convert confidence into proof. Do not assign CVSS, CWE, severity, reward, 
 
 ## Evidence And Handoff
 
-Provide confidence rationale, conflicts, limitations, validation owner or requested authorization, and the blocked status when no safe validation path exists.
+Provide confidence rationale, conflicts, limitations, the authorized validation path or requested authorization, and the blocked status when no safe validation path exists.
 
 ## Sources
 

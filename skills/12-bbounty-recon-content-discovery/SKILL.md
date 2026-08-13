@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-content-discovery
 description: Observe authorized web content through normal navigation and disclosed static artifacts without enumeration or active probing.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -31,7 +31,7 @@ Record content exposed through ordinary, authorized navigation and already-refer
 - Authorization reference, scope snapshot, permitted method, rate/request count, and collection time.
 - Source-to-content relationship, effective target, navigation context, and coarse content classification.
 - Minimal redacted metadata or secure evidence reference, confidence rationale, alternative explanations, and stop decisions.
-- Explicit limitations and recommended next owner; no vulnerability conclusion without separately authorized validation.
+- Explicit limitations and recommended next step; no vulnerability conclusion without separately authorized validation.
 
 ## Output
 

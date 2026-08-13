@@ -66,7 +66,6 @@ Suggested semantic IDs:
 - `slide-01-title`
 - `slide-01-node-core`
 - `slide-01-edge-a-b`
-- `slide-01-signature`
 - `notes-01-panel`
 - `notes-01-text`
 
@@ -122,7 +121,7 @@ After title reservation:
 - ordinary content top: approximately `sy + 230`
 - ordinary content bottom: approximately `sy + 940`
 
-Adjust by slide type, but preserve bottom space for the filigrane.
+Adjust by slide type while preserving balanced safe-area margins.
 
 The main visible composition should fit inside this region.
 
@@ -141,7 +140,6 @@ Exclude:
 
 - title
 - slide number
-- filigrane
 - notes panel
 
 Let composition top be `ct`, bottom be `cb`.
@@ -222,7 +220,7 @@ When a dense diagram is unavoidable:
 
 ## Typography
 
-Follow the visual system selected through `excalidraw-design`.
+Follow the approved deck-wide visual system.
 
 Default Excalifont hierarchy:
 
@@ -231,7 +229,6 @@ Default Excalifont hierarchy:
 - node title: `24–30`
 - short body label: `20–26`
 - tertiary annotation: `18–22`
-- filigrane: `14–18`
 
 Avoid projected text below `18`.
 
@@ -246,7 +243,6 @@ Notes panel default:
 - text size: `20–24`
 - section labels: `22–26`
 - explicit line breaks
-- no filigrane
 - no projected-slide decorative motif unless it improves navigation
 
 The notes panel may scroll conceptually, but its content must fit the actual 1080-height panel. If it does not fit, shorten notes or split the slide.
@@ -263,16 +259,9 @@ If used:
 - make them visually secondary
 - do not let numbering become decorative noise
 
-## Filigrane reserve
+## Optional maker mark
 
-Reserve a quiet lower-right area:
-
-- inset from right: `32–48`
-- inset from bottom: `24–40`
-- below informational content
-- inside the safe area or within a deliberately reserved bottom band
-
-The line must never compete with slide content.
+Reserve space for a maker mark only when the user explicitly requested one. It must remain visually secondary and inside the safe area.
 
 ## Batch assembly
 

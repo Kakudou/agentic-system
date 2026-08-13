@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-hypothesis-priorisation
 description: Prioritize authorized security-test hypotheses using traceable program-scope and recon evidence.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -25,7 +25,7 @@ Produce a transparent review order for security-test hypotheses. Prioritization 
 3. State the review order and confidence using the [indicator and confidence matrix](assets/indicator-confidence-matrix.md). Give every ordering decision a short evidence rationale.
 4. Challenge the order for missing evidence, anchoring, novelty bias, duplicated work, and conflicts of interest. Apply [uncertainty and bias controls](references/risk-adjustment.md) and [validation and ethics controls](references/validation-ethics.md).
 5. Stop, defer, or narrow work when scope, consent, safety, or evidence is insufficient. Confirm this with the [scope and stop checklist](assets/scope-stop-checklist.md).
-6. Hand the resulting order to an authorized test-planning owner without prescribing execution. Use the [safe planning handoff](assets/planning-handoff-template.md).
+6. Package the resulting order for an authorized planning/review channel without prescribing execution. Use the [safe planning handoff](assets/planning-handoff-template.md).
 
 ## Evidence
 

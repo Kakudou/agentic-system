@@ -1,31 +1,11 @@
-kind: "ObsidianVaultOverview/v1"
-version: "v1"
 vault_id: "<configured vault id>"
 is_default: false
 type: "<configured vault type>"
 vault_root: "<absolute configured vault root>"
 config_root: "<vault-relative config root>"
-
 top_level: {}
-
 named_roots: {}
-
 root_groups: {}
-
 templates: {}
-
-conventions:
-  raw_is_immutable_evidence: true
-  zettels_are_atomic: true
-  resources_curate_zettels: true
-  template_registry_is_authoritative: true
-  default_author: "カクドウ ~ Kakudou"
-  default_lang: "EN"
-  datetime_format: "YYYY/MM/DD HH:mm:ss"
-
-safety:
-  never_invent_unconfigured_root: true
-  never_write_outside_vault_root: true
-  no_git_push_of_decrypted_content: true
-  working_tree_plaintext: true
-  configured_submodules: []
+conventions: {}
+safety: {}

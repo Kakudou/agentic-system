@@ -16,5 +16,5 @@ observation:
   limitations: []
   stop_reason: ""
 requested_follow_up: ""
-receiving_owner: ""
+authorized_review_recipient_or_channel: ""
 ```

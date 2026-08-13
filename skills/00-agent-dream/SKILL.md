@@ -2,7 +2,7 @@
 name: 00-agent-dream
 description: Run one stochastic offline dream cycle for every callable custom archetype subagent using its own TencentDB memory.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
   opencode/autoinvoke: "false"
 ---
@@ -11,18 +11,18 @@ metadata:
 
 This skill is **only** for explicit `/dream` execution.
 
-It has two modes:
+It has two execution roles:
 
-- **ORCHESTRATOR mode**: the normal `/dream` invocation.
-- **WORKER mode**: a subagent whose prompt contains the exact marker `TDAI_DREAM_WORKER`.
+- **ORCHESTRATOR role**: the normal `/dream` invocation.
+- **WORKER role**: a subagent whose prompt contains the exact marker `TDAI_DREAM_WORKER`.
 
-Never mix the two modes.
+Never mix the two execution roles.
 
 ## Safety invariants
 
-- The TencentDB v3 memory plugin remains the authority for identity and memory isolation.
-- Every dream execution MUST first call `tdai_dream_begin` with protocol `TDAI_DREAM_SKILL`. This suppresses normal conversation capture for that execution.
-- The 60/30/10 outcome is decided only by `/dev/urandom`, never by the model.
+- The configured TencentDB memory plugin remains the authority for identity and memory isolation.
+- Every dream execution MUST first call `tdai_dream_begin` with protocol `TDAI_DREAM_SKILL_V1`. This suppresses normal conversation capture for that execution.
+- The 60/30/10 outcome is decided only by `tdai_dream_roll`, never by the model.
 - A `nothing` outcome performs no TencentDB retrieval and no memory mutation.
 - A `dream` or `nightmare` calls `tdai_dream_sample` exactly once and `tdai_dream_commit` at most once.
 - Do not use normal Tencent retrieval, Wiki, CodeGraph, web search, web fetch, file edits, or project work during a worker dream.
@@ -30,13 +30,13 @@ Never mix the two modes.
 - Never let dream-derived material override contradictory L0/L1 evidence.
 - After `tdai_dream_commit` returns a terminal result, stop immediately.
 
-# ORCHESTRATOR mode
+# ORCHESTRATOR role
 
-Use this mode unless the current subagent prompt contains `TDAI_DREAM_WORKER`.
+Use this role unless the current subagent prompt contains `TDAI_DREAM_WORKER`.
 
 1. **First tool call:**
 
-   `tdai_dream_begin({ role: "orchestrator", protocol: "TDAI_DREAM_SKILL" })`
+   `tdai_dream_begin({ role: "orchestrator", protocol: "TDAI_DREAM_SKILL_V1" })`
 
 2. Use the **native OpenCode subagent roster already advertised in your context/tooling**. Do **not** inspect `~/.config/opencode/agents`, use `glob`, use `read`, or use shell commands to discover agents.
 
@@ -59,9 +59,11 @@ Use this mode unless the current subagent prompt contains `TDAI_DREAM_WORKER`.
    TDAI_DREAM_WORKER
    Target archetype: <agent-id>
 
-   Explicitly load the `dream` skill and execute ONLY its WORKER mode for yourself.
+   Explicitly load `00-agent-dream` and execute ONLY its WORKER role for yourself.
    Your first dream-protocol tool call must be:
-   tdai_dream_begin({role:"worker", protocol:"TDAI_DREAM_SKILL"})
+   tdai_dream_begin({role:"worker", protocol:"TDAI_DREAM_SKILL_V1"})
+
+   Then call tdai_dream_roll({}) exactly once.
 
    Do not spawn subagents.
    Do not perform project work.
@@ -81,27 +83,27 @@ Use this mode unless the current subagent prompt contains `TDAI_DREAM_WORKER`.
 
    Do not reproduce the full dream narratives in the orchestrator output.
 
-# WORKER mode
+# WORKER role
 
-Use this mode only when the current prompt contains `TDAI_DREAM_WORKER`.
+Use this role only when the current prompt contains `TDAI_DREAM_WORKER`.
 
 ## 1. Begin the dream execution
 
 Your first dream-protocol tool call MUST be:
 
-`tdai_dream_begin({ role: "worker", protocol: "TDAI_DREAM_SKILL" })`
+`tdai_dream_begin({ role: "worker", protocol: "TDAI_DREAM_SKILL_V1" })`
 
 If it returns a terminal error, stop and return that status.
 
-## 2. Roll the outcome with OS entropy
+## 2. Roll the outcome
 
-Run this **inline shell command**. There is deliberately no helper script:
+Call exactly once:
 
-```bash
-while :; do n="$(od -An -N2 -tu2 /dev/urandom | tr -d ' ')"; [ "$n" -lt 65500 ] && break; done; entropy="$(od -An -N16 -tx1 /dev/urandom | tr -d ' \n')"; printf 'roll=%d\nentropy=%s\n' "$((n % 100))" "$entropy"
+```text
+tdai_dream_roll({})
 ```
 
-The rejection step (`n < 65500`) removes modulo bias because 65500 is divisible by 100.
+The plugin uses cryptographic runtime randomness and caches the first result for this execution. Calling the tool again returns the same result; it never rerolls.
 
 Interpret the resulting `roll` exactly:
 
@@ -128,10 +130,7 @@ Then stop.
 For `dream` or `nightmare`, call exactly once:
 
 ```text
-tdai_dream_sample({
-  kind: "dream" | "nightmare",
-  entropy: "<entropy from /dev/urandom>"
-})
+tdai_dream_sample({})
 ```
 
 This sample is immutable for this execution. It intentionally contains only a small subset of your own TencentDB memory. Prior Dream L2 candidates are excluded by the plugin.
@@ -191,7 +190,6 @@ Call exactly once:
 ```text
 tdai_dream_commit({
   sample_id: "<sample.sampleId>",
-  kind: "dream" | "nightmare",
   title: "<short title>",
   seed: "<the seed you created>",
   dream: "<bounded dream/nightmare narrative>",

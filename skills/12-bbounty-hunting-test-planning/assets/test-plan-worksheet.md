@@ -16,6 +16,6 @@
 | Volume and concurrency limits | |
 | Stop conditions / recipient | |
 | Required approval before escalation | |
-| Evidence to retain / handoff owner | |
+| Evidence to retain / authorized recipient | |
 
 Status: `admitted | blocked pending clarification | planning only | authorized validation complete`

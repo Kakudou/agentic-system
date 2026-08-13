@@ -14,7 +14,7 @@ Stop and escalate when sources conflict; an identifier boundary is unclear; an e
 
 ## Evidence and Handoff
 
-Label every item `resolved`, `pending-owner`, or `stop`. A resolved item requires an authoritative citation or written owner clarification. The handoff must distinguish confirmed documentation from unresolved operational authorization.
+Label every item `resolved`, `pending-clarification`, or `stop`. A resolved item requires an authoritative citation or written clarification from the authorized source authority. The handoff must distinguish confirmed documentation from unresolved operational authorization.
 
 ## Authoritative Sources
 

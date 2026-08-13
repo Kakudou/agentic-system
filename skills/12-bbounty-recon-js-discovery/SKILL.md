@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-js-discovery
 description: Build an evidence-bounded inventory of client JavaScript artifacts observed during authorized navigation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

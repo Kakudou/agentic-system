@@ -2,7 +2,7 @@
 name: 04-git-commit
 description: "Create safe local Git commits from the current repository changes. Inspect staged and unstaged diffs, partition changes by dominant intent, stage only exact related paths, choose one gitmoji/Conventional Commit message per atomic change, run relevant repository-required checks, commit locally, and verify the result. Never push or rewrite history."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

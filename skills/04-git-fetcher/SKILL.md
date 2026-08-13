@@ -2,7 +2,7 @@
 name: 04-git-fetcher
 description: "Fetch an issue or pull request referenced by number or URL from the current Git repository's remote, preferably through GitHub CLI when the remote is GitHub. Returns the issue/PR content and metadata for downstream work. Read-only: never runs git fetch, git pull, checkout, merge, or any repository mutation."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

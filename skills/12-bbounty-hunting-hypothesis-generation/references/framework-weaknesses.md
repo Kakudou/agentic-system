@@ -8,7 +8,7 @@ Use framework context to ask focused security questions while avoiding framework
 
 - Framework context came from admitted evidence and is tied to an in-scope asset.
 - A relevant interface or behavior observation is available.
-- Any future validation owner and authorization boundary are known.
+- Any future validation must have a known authorization boundary and review channel.
 
 ## Evidence-Led Method
 

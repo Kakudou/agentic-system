@@ -39,6 +39,59 @@ const STRING_OUTPUT = {
   type: "string",
 }
 
+function secureRandomInt(
+  maxExclusive: number,
+): number {
+  if (
+    !Number.isInteger(maxExclusive) ||
+    maxExclusive <= 0 ||
+    maxExclusive > 0x1_0000_0000
+  ) {
+    throw new Error(
+      "TDAI_RANDOM_RANGE_INVALID",
+    )
+  }
+
+  // Rejection sampling avoids modulo bias while keeping the plugin free of
+  // Node-specific type dependencies. OpenCode V2 runs in a Web-Crypto-capable
+  // JavaScript runtime.
+  const range = 0x1_0000_0000
+  const limit =
+    Math.floor(
+      range / maxExclusive,
+    ) * maxExclusive
+
+  const buffer =
+    new Uint32Array(1)
+
+  let value = 0
+  do {
+    crypto.getRandomValues(
+      buffer,
+    )
+    value = buffer[0] ?? 0
+  } while (value >= limit)
+
+  return value % maxExclusive
+}
+
+function secureRandomHex(
+  byteLength: number,
+): string {
+  const bytes =
+    new Uint8Array(byteLength)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes)
+    .map((value) =>
+      value
+        .toString(16)
+        .padStart(2, "0"),
+    )
+    .join("")
+}
+
+
+
 function toolResult(
   value: unknown,
 ) {
@@ -310,7 +363,7 @@ export async function registerDreamTools(
                 instruction:
                   role === "worker"
                     ? (
-                        "Now perform the /dev/urandom roll from the dream skill. " +
+                        "Now call tdai_dream_roll exactly once. " +
                         "If outcome=nothing, return immediately without sampling. " +
                         "If dream/nightmare, call tdai_dream_sample exactly once."
                       )
@@ -326,34 +379,14 @@ export async function registerDreamTools(
 
       tools.add({
         name:
-          "tdai_dream_sample",
+          "tdai_dream_roll",
         codemode:
           false,
         description:
-          "DREAM WORKER ONLY. Return exactly one bounded, entropy-selected sample of the current archetype's own TencentDB L0/L1/L2/L3 memory. " +
-          "Prior Dream L2 scenarios are excluded to prevent recursive dream amplification. Repeated calls reuse the same immutable sample.",
+          "DREAM WORKER ONLY. Produce the one cryptographically random 60/30/10 dream outcome for this execution. Repeated calls return the same immutable roll and never reroll.",
         input: {
           type: "object",
-          properties: {
-            kind: {
-              type: "string",
-              enum: [
-                "dream",
-                "nightmare",
-              ],
-            },
-            entropy: {
-              type: "string",
-              minLength: 16,
-              maxLength: 128,
-              pattern:
-                "^[0-9a-fA-F]+$",
-            },
-          },
-          required: [
-            "kind",
-            "entropy",
-          ],
+          properties: {},
           additionalProperties:
             false,
         },
@@ -361,7 +394,114 @@ export async function registerDreamTools(
           STRING_OUTPUT,
         execute:
           async (
-            args: any,
+            _args: any,
+            toolCtx: any,
+          ) => {
+            const sessionID =
+              currentSession(
+                toolCtx,
+                deps.turns,
+              )
+
+            const currentGeneration =
+              generation(
+                sessionID,
+                deps.turns,
+              )
+
+            const state =
+              deps.sessions.get(
+                sessionID,
+              )
+
+            if (
+              !state ||
+              state.generation !==
+                currentGeneration ||
+              state.role !== "worker"
+            ) {
+              return present(
+                {
+                  terminal: true,
+                  terminal_code:
+                    "TDAI_DREAM_SESSION_REQUIRED",
+                  message:
+                    "Call tdai_dream_begin(role='worker') first.",
+                },
+                deps.config,
+              )
+            }
+
+            if (state.roll) {
+              return present(
+                {
+                  terminal: false,
+                  reused: true,
+                  roll:
+                    state.roll.roll,
+                  outcome:
+                    state.roll.outcome,
+                },
+                deps.config,
+              )
+            }
+
+            const roll =
+              secureRandomInt(100)
+
+            const outcome =
+              roll < 60
+                ? "nothing"
+                : roll < 90
+                  ? "dream"
+                  : "nightmare"
+
+            const attached =
+              deps.sessions
+                .attachRoll(
+                  sessionID,
+                  currentGeneration,
+                  {
+                    roll,
+                    outcome,
+                    entropy:
+                      secureRandomHex(16),
+                  },
+                )
+
+            return present(
+              {
+                terminal: false,
+                reused: false,
+                roll:
+                  attached.roll?.roll,
+                outcome:
+                  attached.roll?.outcome,
+              },
+              deps.config,
+            )
+          },
+      })
+
+      tools.add({
+        name:
+          "tdai_dream_sample",
+        codemode:
+          false,
+        description:
+          "DREAM WORKER ONLY. After tdai_dream_roll selected dream/nightmare, return exactly one bounded sample of the current archetype's own TencentDB L0/L1/L2/L3 memory. " +
+          "The plugin reuses the roll's private entropy; the model cannot substitute it. Prior Dream L2 scenarios are excluded to prevent recursive amplification. Repeated calls reuse the same immutable sample.",
+        input: {
+          type: "object",
+          properties: {},
+          additionalProperties:
+            false,
+        },
+        output:
+          STRING_OUTPUT,
+        execute:
+          async (
+            _args: any,
             toolCtx: any,
           ) => {
             const sessionID =
@@ -376,26 +516,63 @@ export async function registerDreamTools(
                 deps.turns,
               )
 
+            const currentGeneration =
+              generation(
+                sessionID,
+                deps.turns,
+              )
+
+            const state =
+              deps.sessions.get(
+                sessionID,
+              )
+
+            if (
+              !state ||
+              state.generation !==
+                currentGeneration ||
+              state.role !== "worker" ||
+              !state.roll
+            ) {
+              return present(
+                {
+                  terminal: true,
+                  terminal_code:
+                    "TDAI_DREAM_ROLL_REQUIRED",
+                },
+                deps.config,
+              )
+            }
+
+            if (
+              state.roll.outcome ===
+              "nothing"
+            ) {
+              return present(
+                {
+                  terminal: true,
+                  terminal_code:
+                    "TDAI_DREAM_NOTHING",
+                  message:
+                    "The immutable roll selected nothing; no memory sample is allowed for this execution.",
+                },
+                deps.config,
+              )
+            }
+
             return present(
               await deps.sampler
                 .sample({
                   sessionID,
                   generation:
-                    generation(
-                      sessionID,
-                      deps.turns,
-                    ),
+                    currentGeneration,
                   openCodeAgent:
                     agent,
                   kind:
-                    String(
-                      args.kind,
-                    ) as DreamKind,
+                    state.roll
+                      .outcome as DreamKind,
                   entropy:
-                    String(
-                      args.entropy ??
-                      "",
-                    ),
+                    state.roll.entropy,
                 }),
               deps.config,
             )
@@ -415,13 +592,6 @@ export async function registerDreamTools(
           properties: {
             sample_id: {
               type: "string",
-            },
-            kind: {
-              type: "string",
-              enum: [
-                "dream",
-                "nightmare",
-              ],
             },
             title: {
               type: "string",
@@ -446,11 +616,11 @@ export async function registerDreamTools(
           },
           required: [
             "sample_id",
-            "kind",
             "title",
             "seed",
             "dream",
             "association",
+            "grounding",
           ],
           additionalProperties:
             false,
@@ -474,15 +644,34 @@ export async function registerDreamTools(
                 deps.turns,
               )
 
+            const currentGeneration =
+              generation(
+                sessionID,
+                deps.turns,
+              )
+
+            const state =
+              deps.sessions.get(
+                sessionID,
+              )
+
+            if (!state?.sample) {
+              return present(
+                {
+                  terminal: true,
+                  terminal_code:
+                    "TDAI_DREAM_SAMPLE_REQUIRED",
+                },
+                deps.config,
+              )
+            }
+
             return present(
               await deps.committer
                 .commit({
                   sessionID,
                   generation:
-                    generation(
-                      sessionID,
-                      deps.turns,
-                    ),
+                    currentGeneration,
                   openCodeAgent:
                     agent,
                   sampleID:
@@ -491,9 +680,7 @@ export async function registerDreamTools(
                       "",
                     ),
                   kind:
-                    String(
-                      args.kind,
-                    ) as DreamKind,
+                    state.sample.kind,
                   title:
                     args.title,
                   seed:
@@ -517,6 +704,7 @@ export async function registerDreamTools(
     {
       tools: [
         "tdai_dream_begin",
+        "tdai_dream_roll",
         "tdai_dream_sample",
         "tdai_dream_commit",
       ],

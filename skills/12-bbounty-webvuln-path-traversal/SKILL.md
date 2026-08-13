@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-path-traversal
-description: Path traversal testing. Directory traversal, file reading, symlink attacks, null byte injection, and OS-specific path testing.
+description: "Assess authorized path-handling boundaries using tester-controlled markers, normalization comparisons, and minimum-impact confirmation without retrieving production files or expanding filesystem access."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

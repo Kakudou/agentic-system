@@ -2,7 +2,7 @@
 name: 12-bbounty-engagement-program-discovery
 description: Establish source-traceable authorization and public rules evidence before a program is handed to intake.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -15,7 +15,7 @@ Create a bounded discovery record for a publicly documented vulnerability disclo
 ## Prerequisites
 
 - A public program page, policy, or official program document.
-- The source URL or document identity, access time, and a named downstream intake owner.
+- The source URL or document identity, access time, and an authorized downstream intake/review channel.
 - Authority to review the public material. Private or authenticated material requires explicit authorization.
 
 ## Workflow

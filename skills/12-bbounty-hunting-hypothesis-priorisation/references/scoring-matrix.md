@@ -18,7 +18,7 @@ For each hypothesis, record these qualitative indicators:
 |---|---|---|
 | Scope clarity | Is the asset and proposed activity explicitly allowed? | Unclear scope means defer or exclude. |
 | Observation specificity | Does evidence identify a concrete asset, feature, or behavior? | Specific, recent observations support earlier review. |
-| Test safety | Can a planning owner define a bounded, reversible check? | Unbounded or disruptive work moves to defer. |
+| Test safety | Can a bounded, reversible check be defined within authorization? | Unbounded or disruptive work moves to defer. |
 | Verification path | Is there a non-invasive way to distinguish support from contradiction? | A clear path supports earlier review. |
 | Dependency clarity | Are required accounts, states, or approvals known? | Unknown dependencies require an uncertainty note. |
 
@@ -37,7 +37,7 @@ Do not collect or preserve credentials, personal data, secrets, unpublished repo
 
 ## Evidence And Handoff
 
-Provide the completed indicator rows, source references, assumptions, and unresolved questions to the planning owner.
+Provide the completed indicator rows, source references, assumptions, and unresolved questions in the planning handoff.
 
 ## Sources
 

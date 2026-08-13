@@ -1,69 +1,43 @@
 # Conflict Resolution
 
-Ginshō resolves claims, not personalities and not vote totals.
+Resolve claims, not personalities and not vote totals.
 
-## Evidence hierarchy
+## Evidence Hierarchy
 
-Use this as a default ordering:
+Prefer, in order when applicable:
 
-1. verified fact or deterministic result,
-2. direct artifact observation,
-3. explicit requirement/reference/constraint,
-4. strong evidence-backed inference,
-5. relevant domain convention,
-6. subjective preference.
+1. deterministic or directly observed evidence;
+2. direct inspection of the actual artifact;
+3. authoritative external evidence;
+4. reproducible reasoning tied to the artifact;
+5. unsupported expert opinion.
 
-Relevance and materiality still matter. A precise measurement of an irrelevant property does not beat a directly relevant qualitative observation.
+The hierarchy is contextual. A qualitative design question may legitimately rely on direct inspection and an explicit rubric rather than a deterministic tool.
 
-## Resolution procedure
+## Resolve a Conflict
 
-For each material conflict:
+For each material disagreement:
 
-1. State the competing claims neutrally.
-2. Identify the evidence supporting each claim.
-3. Check whether the claims are actually incompatible or merely optimize different goals.
-4. Determine which claim is better supported relative to the stated purpose and constraints.
-5. If neither side is adequately supported, preserve the dissent and lower confidence.
-6. If both are valid tradeoffs, expose the tradeoff rather than inventing a false winner.
+1. state the conflicting claims neutrally;
+2. identify the evidence each claim depends on;
+3. determine whether the claims are actually incompatible;
+4. prefer the claim better supported by relevant evidence;
+5. if evidence cannot resolve it, preserve the disagreement and lower confidence.
 
-## No vote counting
+## Blocker Test
 
-Never use “four seats agreed, therefore it is correct” as the deciding argument.
+A finding is blocking only when it demonstrates one of:
 
-Example:
+- violation of an explicit requirement;
+- violation of an explicit constraint;
+- failure of the artifact's stated purpose;
+- a necessary correctness/safety property without which the artifact cannot be relied on.
 
-- Six seats like the design.
-- Keima provides a reproducible crash in a core workflow.
+Everything else is a non-blocking reservation or stretch suggestion.
 
-The crash dominates the verdict until disproven or shown irrelevant.
+## Verdict
 
-## Preference versus defect
+Do not derive the verdict from number of findings.
 
-When a finding is primarily stylistic:
-
-- ask whether the stated audience, bar, or constraint makes that style material;
-- if not, classify it as MINOR or NOTE;
-- do not let taste produce a REJECT verdict.
-
-## Tradeoff conflicts
-
-Some disagreements are legitimate optimization choices:
-
-- simplicity vs extensibility,
-- polish vs delivery cost,
-- resilience vs operational complexity,
-- brevity vs completeness.
-
-Ginshō should describe:
-- what each side optimizes,
-- which objective the user's context prioritizes,
-- what cost the chosen direction accepts.
-
-## Confidence
-
-Use:
-- **high** when decisive evidence directly supports the synthesis,
-- **medium** when the evidence is meaningful but incomplete or partly inferential,
-- **low** when important facts are missing or unresolved conflicts remain.
-
-Do not use high confidence merely because the Council agrees.
+A single proven critical defect may justify `REJECT` or `REVISE`.
+A large number of cosmetic notes may still justify `ACCEPT WITH RESERVATIONS` or `ACCEPT`.

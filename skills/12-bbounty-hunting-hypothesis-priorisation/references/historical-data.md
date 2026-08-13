@@ -20,7 +20,7 @@ Use relevant, permitted prior observations to formulate questions and identify e
 ## Interpretation And Controls
 
 - Historical samples are often selective, incomplete, and affected by reporting or survivorship bias.
-- Avoid averages, benchmarks, rankings, and extrapolated success claims unless the program has supplied a verified, authorized dataset and a qualified owner interprets it.
+- Avoid averages, benchmarks, rankings, and extrapolated success claims unless the program has supplied a verified, authorized dataset and a qualified reviewer interprets it.
 - Prefer recent, comparable, independently corroborated records. Note differences in asset, version, scope, and test conditions.
 
 ## Scope And Privacy
@@ -29,7 +29,7 @@ Do not reuse credentials, private report content, personal data, secrets, or evi
 
 ## Evidence And Handoff
 
-Pass only the minimal relevant citation, stated limitation, and current corroborating observation to the planning owner.
+Pass only the minimal relevant citation, stated limitation, and current corroborating observation into the planning handoff.
 
 ## Sources
 

@@ -5,7 +5,7 @@ Graph View's `search` value is a literal Obsidian search expression.
 Queries may be built from:
 
 - explicit user literals; or
-- semantic selectors resolved through `ObsidianVaultOverview/v1`.
+- semantic selectors resolved through the vault overview.
 
 ## Supported Forms
 

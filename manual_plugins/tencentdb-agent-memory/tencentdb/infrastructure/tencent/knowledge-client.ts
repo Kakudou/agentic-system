@@ -15,15 +15,10 @@ export class TencentKnowledgeClient
   private readonly http:
     HttpJsonClient
 
-  private config:
-    AppConfig
-
   constructor(
     config:
       AppConfig,
   ) {
-    this.config = config
-
     this.http =
       new HttpJsonClient(
         config.knowledge.url,

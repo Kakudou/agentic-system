@@ -1,8 +1,8 @@
 ---
 name: 02-excalidraw-design
-description: Turn arbitrary source material—documents, folders, codebases, books, scientific subjects, RPG material, notes, or existing diagrams—into grounded, carefully composed Excalidraw boards. Analyze the user's intent, develop exactly three materially different design directions, load the installed frontend-design skill for mandatory adversarial critique, require explicit approval, then build and verify editable Excalidraw scenes. Use when creating, redesigning, or extending Excalidraw artifacts.
+description: Turn arbitrary source material—documents, folders, codebases, books, scientific subjects, RPG material, notes, or existing diagrams—into grounded, carefully composed Excalidraw boards. Analyze the user's intent, develop exactly three materially different design directions, adversarially critique them, require explicit approval, then build and verify editable Excalidraw scenes. Use when creating, redesigning, or extending Excalidraw artifacts.
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -16,19 +16,18 @@ Transform arbitrary source material into boards that make its meaning easier to 
 
 Follow this state machine exactly:
 
-`GROUND → MODEL → PROPOSE ×3 → FRONTEND-DESIGN CRITIQUE → CONFIRM → BUILD → VERIFY → DELIVER`
+`GROUND → MODEL → PROPOSE ×3 → ADVERSARIAL DESIGN CRITIQUE → CONFIRM → BUILD → VERIFY → DELIVER`
 
 Hard rules:
 
 - Never build, modify, or overwrite an Excalidraw artifact before explicit user approval.
 - Always create exactly three materially different design directions.
-- Always load and apply the installed frontend design skill before presenting those directions.
-- Resolve the design skill from available skills: prefer `98-external-frontend-design`.
-- If neither design skill is available, stop before proposal delivery and report the missing dependency. Never simulate its critique.
+- Always adversarially critique the three directions before presenting them.
+- If `98-external-frontend-design` or an equivalent design-critique capability is available, use it as an optional independent critique. Otherwise apply this skill's critique checklist directly; the capability must remain complete standalone.
 - Never invent source facts, relationships, quotations, components, chronology, or scientific precision.
 - Never force one input into one uniform layout. Mix local layout grammars when the content requires it, while preserving one global navigation grammar.
 - Never claim visual inspection, rendering, validation, or successful file creation unless it actually happened.
-- Never deliver with known clipping, overlap, misrouting, malformed JSON, or missing signatures.
+- Never deliver with known clipping, overlap, misrouting, malformed JSON, or missing required elements.
 
 ## Load references progressively
 
@@ -59,7 +58,7 @@ Determine:
 - source scope and exclusions
 - required facts, terminology, and relationships
 - intended level of abstraction
-- content mode: explain, map, compare, sequence, teach, explore, reference, or a deliberate mixture
+- content intent: explain, map, compare, sequence, teach, explore, reference, or a deliberate mixture
 - style and composition constraints
 - whether the result should be one frame, coordinated frames, or separate files
 - observable success criteria
@@ -91,7 +90,7 @@ Only explicit and defensible derived relationships may appear as ordinary facts.
 Decide the artifact architecture:
 
 - Use one frame when the content has one coherent reading path and remains legible.
-- Use coordinated frames for overview/detail, different semantic modes, or density control.
+- Use coordinated frames for overview/detail, different semantic purposes, or density control.
 - Use separate files only when boards must stand alone or the user requests separation.
 
 ## 3. Propose exactly three directions
@@ -126,11 +125,9 @@ Every pair of directions must differ on at least two of:
 
 If the three directions share the same semantic skeleton, redesign them.
 
-## 4. Mandatory frontend-design critique
+## 4. Adversarial design critique
 
-Load the resolved design skill only after drafting the three directions.
-
-Apply it as an adversarial critique, not as decoration advice. Attack each direction for:
+After drafting the three directions, attack each direction for:
 
 - generic or interchangeable composition
 - structure that does not encode real information
@@ -146,6 +143,8 @@ For each direction decide: `retain`, `refine`, or `replace`.
 
 A replacement is allowed, but the final set must contain exactly three directions. Source truth and user constraints always outrank aesthetic advice.
 
+If an independent design-critique skill is available, give it the same three directions and source constraints without letting it redefine the brief. Reconcile its evidence-backed criticism with the local critique. If none is available, continue with the local critique rather than blocking.
+
 ## 5. Confirm
 
 Present:
@@ -158,7 +157,7 @@ Present:
 
 Do not write or modify scene files during this phase.
 
-Approval must be explicit. A material change to source, scope, or composition invalidates approval; revise the affected directions, rerun the frontend-design critique, and ask again.
+Approval must be explicit. A material change to source, scope, or composition invalidates approval; revise the affected directions, rerun the adversarial critique, and ask again.
 
 ## 6. Build
 
@@ -167,13 +166,13 @@ After approval:
 1. Read `scene-contract.md`, `geometry-routing.md`, and `verification.md`.
 2. Read `visual-system.md` for every unspecified visual decision.
 3. Read only the relevant parts of `patterns.md` if a known grammar helps.
-4. Inventory every frame, region, node, label, relationship, and signature.
+4. Inventory every frame, region, node, label, and relationship.
 5. Assign stable semantic IDs.
 6. Establish frames and major regions.
 7. Place and size text-bearing elements before connectors.
 8. Route connectors only after node geometry is stable.
 9. Add secondary annotation and semantic emphasis.
-10. Add one unique Ōtsumi filigrane to every top-level board or frame.
+10. Add optional maker marks or signatures only when the user explicitly requests them.
 11. Write editable `.excalidraw` scene data.
 12. Parse, inspect, repair, and revalidate.
 
@@ -194,7 +193,7 @@ Unless the user overrides it:
 - minimize crossings by changing layout before adding routing complexity
 - use color semantically, never decoratively
 
-When style is not fully specified, apply the Black-Ice visual system from `visual-system.md`: restrained terminal noir, decker cartography, worn technical intelligence, and hostile infrastructure. It is not vaporwave, synthwave, neon nightlife, or a decorative sci-fi HUD.
+When style is not fully specified, use the source-led fallback in `visual-system.md`. Keep it visually restrained and let source-specific language or explicit user direction take priority.
 
 ## 8. Mixed-layout rule
 
@@ -208,23 +207,11 @@ However:
 - cross-region connectors explain real relationships
 - if the result reads like a collage, split it into coordinated frames
 
-## 9. Ōtsumi filigrane
+## 9. Optional maker mark
 
-Every top-level board or frame must include:
+Do not add a signature, watermark, or maker mark unless the user explicitly requests one.
 
-`<board-specific punchline> — Ōtsumi`
-
-The line must be:
-
-- derived from that board's actual thesis
-- no more than 12 words before the signature
-- sharp, restrained, and in the active Ōtsumi voice
-- unique within a board set
-- subtle enough to remain below all informational content
-- fully contained, normally near the lower-right edge
-- free of collisions with text and connectors
-
-It is a maker's mark, not a headline.
+When requested, keep it visually subordinate, contained, unique where appropriate, and free of collisions with informational content.
 
 ## 10. Verify
 
@@ -260,7 +247,7 @@ The task is complete only when all applicable conditions pass:
 - source claims are grounded
 - uncertainty is visible or disclosed
 - exactly three directions were developed
-- the frontend design skill was loaded and applied
+- the three directions received the required adversarial critique
 - the user explicitly approved the implemented direction
 - the scene is valid JSON with valid Excalidraw top-level structure
 - every board has a clear thesis and reading path
@@ -270,7 +257,6 @@ The task is complete only when all applicable conditions pass:
 - arrows reach the correct source and target
 - frames contain their complete contents
 - multiple boards share one visual system
-- every board has a subtle, unique Ōtsumi filigrane
 - visual inspection occurred when supported
 - mathematical verification passed
 - the editable deliverable was written successfully

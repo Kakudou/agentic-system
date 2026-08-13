@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-origin-exposure
 description: Authorization-first, evidence-led assessment of whether observed edge routing may expose an origin boundary.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

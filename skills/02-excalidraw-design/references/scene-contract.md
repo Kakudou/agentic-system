@@ -341,7 +341,7 @@ A frame must contain the complete bounds of:
 - connector labels
 - annotations
 - arrowheads and visible strokes
-- filigrane
+- optional maker mark
 
 Do not use a frame as a decorative rectangle when a normal rectangle is more appropriate.
 
@@ -393,7 +393,7 @@ General index assignment (earlier = lower in stack):
 5. bound text and labels
 6. annotations
 7. titles
-8. filigranes
+8. optional maker marks
 
 Adjust deliberately when a connector or boundary must appear above another element.
 

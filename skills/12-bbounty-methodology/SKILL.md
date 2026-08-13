@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-methodology
-description: Authorization-first bug-bounty methodology orchestrator. Selects an engagement mode, admits scope and rules, and gates recon, hunting, validation, and reporting handoffs.
+description: Authorization-first bug-bounty methodology for admitting scope and rules, progressing from recon through hunting and finding validation, and stopping safely when authorization or evidence becomes insufficient.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -10,7 +10,7 @@ metadata:
 
 ## Purpose
 
-Coordinate authorized vulnerability research from engagement admission through a defensible report. This skill decides phase entry, handoffs, and stop conditions; focused sub-skills own their specialist work.
+Coordinate authorized vulnerability research from engagement admission through a defensible report. This skill defines phase entry, evidence handoffs, and stop conditions without prescribing any particular execution architecture.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ Coordinate authorized vulnerability research from engagement admission through a
 1. Select an [engagement mode](references/engagement-modes-and-authorization.md). Contractual programs follow their published terms; independent work requires explicit authorization. Do not begin when authorization is absent, expired, ambiguous, or contradictory.
 2. Admit the target using [scope and rules admission](references/scope-and-rules-admission.md). Record allowed assets, restrictions, safe-harbor terms, data handling, and stop triggers before any target interaction.
 3. Hand authorized, in-scope assets to recon. Use the [recon-to-hunting handoff](references/recon-to-hunting-handoff.md) to decide whether the evidence supports a bounded hunting hypothesis. Recon remains an input to prioritization, not permission to test newly discovered assets.
-4. Route only admitted hypotheses to the applicable specialist skill. Recheck scope whenever activity, asset ownership, impact, or testing method changes. Stop rather than escalate uncertainty.
+4. Test only admitted hypotheses using an authorized technique appropriate to the target and program rules. Recheck scope whenever activity, asset ownership, impact, or testing method changes. Stop rather than escalate uncertainty.
 5. Route suspected findings through the [finding-to-report handoff](references/finding-to-report-handoff.md). A report requires reproducible, minimally sufficient, safely handled evidence, not merely an observation.
 6. Use [validation](references/validation.md) for independent decision checks and [uncertainty and ethics](references/uncertainty-and-ethics.md) whenever rules, ownership, safety, or impact are unclear.
 
@@ -51,7 +51,7 @@ methodology:
   scope_basis: string
   handoff_decision: proceed | hold | stop
   evidence_refs: [string]
-  next_owner: string
+  recommended_next_step: string
 ```
 
 ## Reference Index

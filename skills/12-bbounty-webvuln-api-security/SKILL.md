@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-api-security
 description: Conduct an explicitly authorized, low-impact API security assessment using documented or owner-provided API surfaces and controlled evidence collection.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

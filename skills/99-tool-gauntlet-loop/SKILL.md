@@ -2,7 +2,7 @@
 name: 99-tool-gauntlet-loop
 description: Adversarial quality-convergence loop for any task with a clear goal, measurable reference or bar, and constraints. Use when asked to build, improve, revise, design, analyze, write, plan, or produce an artifact that must meet or beat an explicit benchmark, rubric, exemplar, test suite, acceptance criteria, or quality threshold. Decomposes work, verifies concrete outputs, assembles evidence, invokes council-of-seven as an independent gate, routes only failed dimensions back for repair, checks regressions, and stops only on an evidence-backed pass or an explicit terminal condition.
 metadata:
-  version:"1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -87,13 +87,13 @@ Read [references/evidence.md](references/evidence.md) for grading rules.
 
 ### 2. Decompose by quality and dependency
 
-Derive workstreams from the contract and the structure of the problem, not from a fixed number of agents.
+Derive workstreams from the contract and the structure of the problem, not from a fixed number of workers or review passes.
 
 - Parallelize work that can be independently produced and independently verified.
 - Keep tightly coupled work together.
 - Assign each workstream explicit criteria and interfaces.
 - Identify integration criteria separately; locally good pieces can still form a bad whole.
-- Do not create seven builders merely because the Council has seven seats.
+- Do not create seven workstreams merely because the Council has seven lenses.
 
 Read [references/orchestration.md](references/orchestration.md) for decomposition and concurrency rules.
 
@@ -105,7 +105,7 @@ After producing real output, run a local verification loop:
 
 `BUILD -> INSPECT/TEST -> FIND LARGEST GAP -> REPAIR -> RETEST`
 
-Use a separate critic when practical. Keep local loops cheap and criterion-specific. Do not invoke the full Council for every edit.
+Use an independent reviewer when practical. Keep local loops cheap and criterion-specific. Do not invoke the full Council for every edit.
 
 A workstream becomes integration-ready only when its mandatory local criteria have evidence-backed PASS results or an explicit blocker is recorded.
 
@@ -135,7 +135,7 @@ Use [assets/evidence-pack-template.md](assets/evidence-pack-template.md) and rea
 
 Invoke the **`99-tool-council-of-seven`** skill on the integrated candidate, using the locked contract and Evidence Pack as context.
 
-The Council is the independent adversarial gate, not the implementation team. Let its existing seven archetypes and three-round workflow operate normally. Use [assets/council-gate-packet-template.md](assets/council-gate-packet-template.md) when a concrete handoff packet is useful. The Gauntlet then translates Ginshō's Council Report into a gate decision using the rules in [references/council-gate.md](references/council-gate.md).
+The Council is the independent adversarial gate, not the implementation team. Let its existing seven archetypes and three-round workflow operate normally. Use [assets/council-gate-packet-template.md](assets/council-gate-packet-template.md) when a concrete handoff packet is useful. The Gauntlet then translates the Council Report into a gate decision using the rules in [references/council-gate.md](references/council-gate.md).
 
 The Council may discover missing criteria, but it may not silently redefine the user's bar. A newly discovered issue is a blocker only if it violates the goal, an existing criterion, a constraint, or a necessary property implied by successful operation. Otherwise record it as a stretch suggestion.
 
@@ -168,7 +168,7 @@ For every blocking Council or verification finding, create a repair ticket conta
 
 Use [assets/repair-ticket-template.md](assets/repair-ticket-template.md).
 
-Route each ticket to the smallest appropriate workstream. Builders may retain implementation context; critics should remain fresh where possible.
+Route each ticket to the smallest appropriate workstream. Implementation work may retain local context; reviewers should remain fresh where possible.
 
 After repairs, retest locally, reintegrate, update the Evidence Pack, and return to the Council Gate. Do not replay unrelated successful work.
 
@@ -191,7 +191,7 @@ Return exactly one primary state:
 - **FAILED** — evidence shows the goal/bar cannot be satisfied under the locked constraints with the available approach, and no viable repair remains.
 - **BLOCKED** — required input, access, tool capability, dependency, or evidence is unavailable.
 - **BUDGET_EXHAUSTED** — a user-specified resource/time/iteration limit was reached before PASS.
-- **HUMAN_DECISION_REQUIRED** — progress requires a trade-off, requirement change, subjective choice, or repeated-gap decision the contract does not authorize the agent to make.
+- **HUMAN_DECISION_REQUIRED** — progress requires a trade-off, requirement change, subjective choice, or repeated-gap decision the contract does not authorize the workflow to make.
 
 `FAILED`, `BLOCKED`, `BUDGET_EXHAUSTED`, and `HUMAN_DECISION_REQUIRED` are never euphemisms for PASS.
 

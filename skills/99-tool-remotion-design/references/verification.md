@@ -58,9 +58,6 @@ Command completes; file exists/nonzero; format, duration, dimensions, audio, tra
 ## Multi-format
 Same thesis/semantic system/beats/audio identity; deliberate recomposition; correct safe areas/captions; no crop artifacts; each format authored for platform.
 
-## Ōtsumi trace
-When not white-label: present, thesis-specific, unique, subordinate, nonpersistent. When white-label: absent.
-
 ## Repair loop
 `CHECK → RECORD → REPAIR SOURCE → RECHECK → RERENDER`.
 
@@ -80,4 +77,4 @@ For post-delivery changes:
 - project/bootstrap was not recreated without a verified need
 
 ## Final report
-Use concise states for source grounding, project/dependencies, capability probe, Studio observer, composition metadata, determinism, typography/layout, timing/motion, assets, audio, captions, Player/web, still inspection, preview inspection, final output inspection, multi-format coherence, revision verification when applicable, and Ōtsumi trace. Completion requires zero `FAIL` states.
+Use concise states for source grounding, project/dependencies, capability probe, Studio observer, composition metadata, determinism, typography/layout, timing/motion, assets, audio, captions, Player/web, still inspection, preview inspection, final output inspection, multi-format coherence, and revision verification when applicable. Completion requires zero `FAIL` states.

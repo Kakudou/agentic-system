@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-duplicate-analysis
 description: Compare already captured, authorized finding evidence for possible duplicate handling without querying databases, testing targets, or asserting a shared root cause.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

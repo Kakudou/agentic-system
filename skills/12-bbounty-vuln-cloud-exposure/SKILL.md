@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-cloud-exposure
 description: Authorization-first, evidence-led assessment of publicly observable cloud exposure without retrieval, enumeration, or exploitation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

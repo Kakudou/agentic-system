@@ -392,7 +392,7 @@ export function loadConfig(
   let outputLanguage =
     asString(
       process.env.TDAI_OUTPUT_LANGUAGE,
-      "English",
+      "user-language",
     )
 
   let annotateTencentEvidence =
@@ -684,7 +684,7 @@ export function loadConfig(
       asString(
         options.traceFile,
         process.env.TDAI_OPENCODE_TRACE_FILE ??
-        "/tmp/tencentdb-opencode-v3.log",
+        "/tmp/tencentdb-opencode-v4.log",
       ),
 
     timeouts: {

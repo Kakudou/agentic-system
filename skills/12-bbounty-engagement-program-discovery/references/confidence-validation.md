@@ -25,7 +25,7 @@ Make source age, conflicts, and unknowns visible so discovery does not convert s
 
 ## Evidence And Handoff
 
-Provide the completed source/confidence matrix, conflict log, recency status, recheck time, and owner for each unresolved question. Intake accepts only documented claims and must revalidate material authorization.
+Provide the completed source/confidence matrix, conflict log, recency status, recheck time, and clarification channel for each unresolved question. Any authorization-dependent use must revalidate material authorization.
 
 ## Public Sources
 

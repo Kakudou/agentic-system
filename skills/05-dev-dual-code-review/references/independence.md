@@ -24,11 +24,11 @@ Neither arm receives the other's:
 - questions;
 - omitted surfaces.
 
-Do not seed Arm B with "check whether Arm A is right."
+Do not seed Review B with "check whether Review A is right."
 
-## Arm B Quality Bar
+## Review B Quality Bar
 
-Arm B is not a superficial challenger.
+Review B is not a superficial challenger.
 
 It should independently inspect:
 

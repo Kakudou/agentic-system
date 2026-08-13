@@ -1,34 +1,32 @@
 ---
 name: 03-kb-obsidian-zettelize
-description: Atomize a source into reusable generic Zettelkasten notes and business-derived zettels, deduplicate or update existing knowledge, then reconstruct the source mainly from derived-note embeds and verify near-complete semantic coverage. Use for turning documents, notes, URLs, PDFs, or pasted text into a reusable Obsidian knowledge graph.
+description: Atomize a source into reusable generic Zettelkasten notes and domain-derived zettels, deduplicate or update existing knowledge, reconstruct the source mainly from derived-note embeds, and verify near-complete semantic coverage before applying approved vault changes.
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# KB Obsidian Zettelize
+# Obsidian Zettelize
 
 Compile one source into a reusable Zettelkasten graph.
 
 ```text
-SOURCE
+source
   ↓
 atomic source units
   ↓
 generic/core zettels
   ↓
-business-derived zettels
+domain-derived zettels
   ↓
 source reconstruction
   ↓
 coverage proof
 ```
 
-The source is evidence. Generic zettels capture reusable knowledge stripped of incidental business
-context. Derived zettels bind that generic knowledge back to the source's concrete domain. The final
-reconstruction proves that the decomposition did not quietly lose important content.
+The source is evidence. Generic zettels capture reusable knowledge stripped of incidental domain context. Derived zettels bind that knowledge back to the source's concrete context. Reconstruction proves the decomposition did not quietly lose important content.
 
-This skill is not a summarizer. It is a **loss-aware knowledge compiler**.
+This is a **loss-aware knowledge compiler**, not a summarizer.
 
 ## Usage
 
@@ -37,46 +35,40 @@ This skill is not a summarizer. It is a **loss-aware knowledge compiler**.
 - `/03-kb-obsidian-zettelize {source} --lang {EN|FR|...}`
 - `/03-kb-obsidian-zettelize {source} --dry-run`
 
-When `{vault-id}` is omitted, use the default vault resolved by `03-kb-obsidian-vault-overview`.
+## Vault Configuration Input
 
-## Dependencies
+Require a trusted vault descriptor for vault roots, eligible zettel roots, templates, conventions, and safety metadata. When `03-kb-obsidian-vault-overview` is installed, it is the preferred local provider; an equivalent caller-supplied descriptor is also valid.
 
-Required:
-
-- `03-kb-obsidian-vault-overview`
-
-The overview owns vault topology and template locations. Search owns ordinary non-memory zettel
-discovery for deduplication. If either dependency cannot satisfy its contract, fail closed.
+Do not depend on a separate search skill. Use available read-only search/file capabilities only inside the descriptor-resolved eligible zettel roots.
 
 ## Load Order
 
 Always read:
 
-- [Knowledge model](references/knowledge-model.md)
-- [Atomization and genericization](references/atomization.md)
-- [Deduplication and update](references/dedup-and-update.md)
-- [Reconstruction and coverage](references/reconstruction-and-coverage.md)
-- [Vault integration](references/vault-integration.md)
+- [knowledge model](references/knowledge-model.md)
+- [atomization and genericization](references/atomization.md)
+- [deduplication and update](references/dedup-and-update.md)
+- [reconstruction and coverage](references/reconstruction-and-coverage.md)
+- [vault integration](references/vault-integration.md)
 
-Before mutation or formal preflight, read [Execution and safety](references/execution-and-safety.md).
+Before mutation read [execution and safety](references/execution-and-safety.md).
 
-Use:
+Use the local candidate and coverage shapes when structured working data helps:
 
-- [Candidate schema](assets/zettel-candidate-schema.yaml)
-- [Coverage ledger schema](assets/coverage-ledger-schema.yaml)
-- [Proposal schema](assets/zettelize-proposal-schema.yaml)
+- [candidate shape](assets/zettel-candidate-schema.yaml)
+- [coverage ledger](assets/coverage-ledger-schema.yaml)
 
 ## Core Invariants
 
 - Source snapshot is immutable.
 - One zettel contains one atomic idea.
 - Every substantive source unit is accounted for.
-- Generic zettels contain no accidental project/business specificity.
-- Genericization must preserve meaning; fake abstraction is forbidden.
+- Generic zettels contain no accidental project/domain specificity.
+- Genericization preserves meaning; fake abstraction is forbidden.
 - Derived zettels link to and embed their generic parent.
 - Derived zettels contain the domain-specific delta, not a copy of the generic note.
-- Existing equivalent knowledge is reused or updated instead of duplicated.
-- Memory-scoped zettels never participate in generic deduplication.
+- Equivalent existing knowledge is reused or minimally updated instead of duplicated.
+- Deduplication is limited to the descriptor-resolved zettel corpus.
 - The actual configured zettel template is authoritative.
 - No source claim may be invented, strengthened, weakened, or silently dropped.
 - Reconstruction preserves source meaning and order closely enough to act as a coverage proof.
@@ -87,77 +79,69 @@ Use:
 
 ### 1. Resolve Vault and Template
 
-Invoke `03-kb-obsidian-vault-overview` and obtain `ObsidianVaultOverview/v1`.
+Resolve from the trusted vault descriptor:
 
-Resolve `vault_root`, `zettel_root`, `all_zettel_roots`, `resources_root`, `zettel_template`, and
-relevant safety/submodule information.
+- `vault_root`;
+- `named_roots.zettel_root`;
+- `root_groups.all_zettel_roots`;
+- `named_roots.resources_root` when reconstruction will be persisted;
+- `templates.zettel_template`;
+- relevant conventions and safety metadata.
 
-Read the actual configured `zettel_template` before drafting any zettel. Never guess fields or paths.
+Read the actual configured zettel template before drafting notes.
 
 ### 2. Capture Source Snapshot
 
-Acquire the entire source into one immutable snapshot with provenance. Record enough provenance to
-locate every extracted source unit. Never mutate the source.
+Acquire the complete source into an immutable working snapshot with provenance sufficient to locate every extracted unit.
+
+Never mutate the source as a side effect.
 
 ### 3. Build Source Unit Ledger
 
-Decompose the source into ordered units and classify each as:
+Decompose the source into ordered units:
 
-- `ZETTEL_GRADE`
-- `DECORATION`
-- `STRUCTURE`
+- `ZETTEL_GRADE` — durable claim, concept, rule, relationship, definition, procedure, constraint, decision, explanation, or materially reusable example;
+- `DECORATION` — no independent durable knowledge;
+- `STRUCTURE` — composition scaffolding such as headings, order, or table layout.
 
-`ZETTEL_GRADE` carries durable knowledge: claim, concept, rule, relationship, definition, procedure,
-constraint, decision, explanation, or materially reusable example.
-
-`DECORATION` carries no independent durable knowledge.
-
-`STRUCTURE` is composition scaffolding such as headings/order/table layout.
-
-Follow `references/atomization.md`.
+Follow [atomization](references/atomization.md).
 
 ### 4. Produce Generic Candidates
 
-For every `ZETTEL_GRADE` atomic unit, attempt a **lossless genericization**.
+For every atomic `ZETTEL_GRADE` unit, attempt **lossless genericization**.
 
-Remove incidental business names, project identifiers, proprietary nouns, local filenames, and
-accidental implementation context while preserving the core claim.
+Remove incidental project names, proprietary nouns, local filenames, and accidental implementation context while preserving the core claim.
 
-Prefer natural general language. Do not create `<PLACEHOLDER>` soup unless the source itself defines
-a parameterized pattern.
+Prefer natural reusable language. Do not create placeholder soup.
 
-If removing the domain destroys the claim's meaning, mark it `INTRINSICALLY_DOMAIN_BOUND` and do not
-manufacture a fake generic parent.
+If removing the domain destroys the claim's meaning, mark it `INTRINSICALLY_DOMAIN_BOUND` instead of manufacturing a fake generic parent.
 
 ### 5. Deduplicate Generic Knowledge
 
-For every generic candidate, search across overview-resolved eligible non-memory
-zettel roots.
+Search only the descriptor-resolved eligible zettel roots.
 
-Classify:
+For each generic candidate decide:
 
 - `REUSE`
 - `UPDATE`
 - `CREATE`
 - `CONFLICT`
 
-Follow `references/dedup-and-update.md`.
+Follow [deduplication and update](references/dedup-and-update.md).
 
 ### 6. Produce Derived Candidates
 
-For each source unit with a generic parent, create or update one business-derived zettel.
+For each source unit with a generic parent, create or update one domain-derived zettel.
 
-The derived zettel:
+The derived note:
 
-- names the concrete domain/business binding;
+- names the concrete domain binding;
 - links the generic parent using the actual template's link field;
 - embeds the generic parent near the beginning of the body;
 - contains only the source-specific delta;
 - preserves source provenance.
 
-Do not copy generic prose into the derived note.
-
-For `INTRINSICALLY_DOMAIN_BOUND`, create/update one domain-bound zettel with no fake parent.
+For `INTRINSICALLY_DOMAIN_BOUND`, create or update one domain-bound zettel with no fake parent.
 
 Deduplicate derived/domain-bound candidates before creation.
 
@@ -166,22 +150,18 @@ Deduplicate derived/domain-bound candidates before creation.
 Reconstruct the source using:
 
 - original structural order where available;
-- mostly `![[derived-zettel]]` embeds for substantive content;
+- primarily `![[derived-zettel]]` embeds for substantive content;
 - domain-bound embeds where required;
-- minimal source decoration and structural glue;
+- minimal original decoration and structural glue;
 - original code, quotes, tables, examples, citations, or local details when they are not zettel-grade.
 
-The reconstruction is a **transclusion-first proof artifact**, not a rewritten summary.
+The reconstruction is a transclusion-first proof artifact, not a rewritten summary.
 
 ### 8. Run Coverage Gate
 
-Build `assets/coverage-ledger-schema.yaml`.
+Populate [coverage ledger](assets/coverage-ledger-schema.yaml).
 
-Every substantive source unit must map to:
-
-- a derived zettel;
-- a domain-bound zettel; or
-- an explicitly justified non-zettel decoration unit.
+Every substantive unit maps to a derived/domain-bound zettel or has an explicit non-zettel justification.
 
 Default pass bar:
 
@@ -191,52 +171,46 @@ Default pass bar:
 - zero invented claims;
 - source ordering and relationships materially recognizable.
 
-If the gate fails, return uncovered units to atomization and create/reuse/update the missing zettels.
+If coverage fails, return uncovered units to atomization/deduplication. Do not lower the bar.
 
-Do not lower the bar to make an incomplete decomposition pass.
+### 9. Preview Mutations
 
-### 9. Present Closed Proposal
-
-Present:
+Before any write, present a closed mutation preview containing:
 
 - generic reuse/update/create/conflict decisions;
 - derived/domain-bound decisions;
-- source-unit coverage;
+- source-unit coverage result;
 - reconstruction preview;
-- exact diffs for updates;
-- proposed new paths;
-- submodule disclosure;
-- bounded formal execution batches.
-
-Use `assets/zettelize-proposal-schema.yaml`.
+- exact diffs for existing-note updates;
+- exact proposed new paths;
+- any configured submodule implications.
 
 `--dry-run` stops here.
 
-### 10. Formal Write
+Require explicit approval before applying vault mutations.
 
-Only after semantic proposal completion and approval may mutation enter the bounded workflow in
-`references/execution-and-safety.md`.
+### 10. Apply Approved Mutations
 
-Large decompositions may require multiple independently approved execution batches. Never trim
-knowledge coverage merely to fit one batch.
+Follow [execution and safety](references/execution-and-safety.md).
 
-### 11. Final Verification
+Apply only the approved creates/updates. If a target changed since preview, stop and rebuild the affected proposal instead of overwriting newer state.
 
-After all approved zettel batches succeed, finalize the reconstruction from verified zettel
-identities and rerun coverage.
+Large decompositions may be applied in bounded batches, but do not reduce semantic coverage merely to make a batch smaller.
 
-`COMPLETED` means the reconstruction is semantically near-equivalent to the source and the reusable
-knowledge graph owns the substantive content.
+### 11. Verify and Finalize
 
-## What This Skill Does Not Do
+Read every changed note back, confirm intended content/template/path, then finalize the reconstruction from verified note identities and rerun coverage.
 
-- Does not rewrite the source.
-- Does not create a generic note merely for symmetry.
-- Does not zettelize every sentence.
-- Does not treat headings/formatting as knowledge.
-- Does not duplicate generic content in derived notes.
-- Does not mutate generic parents for reciprocal links.
-- Does not increment access/use counters merely because notes were searched or embedded.
-- Does not use memory-scoped zettels for deduplication.
-- Does not silently resolve contradictory zettels.
-- Does not replace topical resource assembly; reconstruction exists to prove source coverage.
+Completion means the verified reconstruction is semantically near-equivalent to the source and the reusable knowledge graph owns its substantive content.
+
+## Does Not
+
+- rewrite the source;
+- create generic notes merely for symmetry;
+- zettelize every sentence;
+- treat formatting as knowledge;
+- duplicate generic prose in derived notes;
+- mutate generic parents just to create reciprocal links;
+- mutate usage counters because notes were read;
+- silently resolve contradictory zettels;
+- run Git.

@@ -2,7 +2,7 @@
 name: 06-python-env-setup
 description: "Create or verify a project-local Python virtual environment with the standard-library venv module. Use when a Python repository needs an isolated .venv before tests, linting, typing, or development commands. Prefer python -m venv .venv, use the venv interpreter explicitly, verify isolation and pip, and never delete or clear an existing environment automatically."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-nosql-injection
-description: NoSQL injection testing. MongoDB operators, aggregation pipelines, field projection, type coercion, and regex injection.
+description: "Assess an authorized application for NoSQL injection by testing parser, type, and query-structure boundaries with low-impact differentials while avoiding broad matching, data retrieval, or authorization bypass."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

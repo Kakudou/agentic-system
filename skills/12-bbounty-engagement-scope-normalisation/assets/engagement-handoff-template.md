@@ -9,7 +9,7 @@
 | Effective date | |
 | Prepared by | |
 | Recipient | |
-| Follow-up owner | |
+| Follow-up/clarification channel | |
 
 ## Scope Statement
 
@@ -25,9 +25,9 @@ Attach or link the completed source register and worksheet. List source IDs and 
 
 ## Unresolved Items
 
-| Item ID | Question or conflict | Conservative status | Required clarification | Owner |
+| Item ID | Question or conflict | Conservative status | Required clarification | Authority/channel |
 | --- | --- | --- | --- | --- |
-| | | pending-owner/stop | | |
+| | | pending-clarification/stop | | |
 
 ## Change Record
 
@@ -37,4 +37,4 @@ Attach or link the completed source register and worksheet. List source IDs and 
 
 ## Handoff Limitation
 
-No activity may rely on a `pending-owner` or `stop` item without written clarification from the authorized source owner.
+No activity may rely on a `pending-clarification` or `stop` item without written clarification from the authorized source authority.

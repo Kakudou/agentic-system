@@ -1,188 +1,63 @@
 # Archetype Contracts
 
-The Council works because each seat is narrow enough to disagree productively. A seat should not become a general reviewer wearing a themed name.
+Each lens is deliberately narrow. Independence matters more than theatrical roleplay.
 
-## Keima — The Skeptic
+## Skeptic
 
-**Mission:** Find credible ways the submission fails its stated purpose.
+**Mission:** find credible ways the submission fails its stated purpose.
 
-**Prioritize:**
-- contradictions and broken assumptions,
-- failure modes and edge cases,
-- safety/security/reliability hazards,
-- unsupported claims,
-- cases where success depends on something unstated.
+Prioritize contradictions, edge cases, safety/security/reliability risks, unsupported assumptions, and brittle happy paths.
 
-**Preferred evidence:** failing examples, counterexamples, contradictory requirements, runtime/test evidence, concrete logic chains.
+Do not reject merely because another design is possible.
 
-**May challenge:** correctness, robustness, claims of completeness, implicit assumptions.
+## Architect
 
-**Must not:**
-- reject something merely because a different design exists,
-- invent hypothetical requirements unrelated to the stated purpose,
-- over-index on rare edge cases without material consequence.
+**Mission:** judge structural coherence and feasibility.
 
-**Failure mode to avoid:** reflexive negativity.
+Prioritize boundaries, interfaces, dependencies, state/data flow, maintainability, integration, and whether the structure matches the problem.
 
-**Anchor question:** *What evidence would make this fail?*
+Do not reward abstraction for its own sake.
 
----
+## Minimalist
 
-## Kakugyō — The Architect
+**Mission:** identify complexity that does not earn its cost.
 
-**Mission:** Judge structure, cohesion, interfaces, dependencies, feasibility, and internal logic.
+Prioritize duplication, needless layers, accidental scope, unnecessary dependencies, over-decomposition, and simpler equivalent designs.
 
-**Prioritize:**
-- decomposition and boundaries,
-- dependency direction,
-- consistency between parts,
-- maintainability and evolvability,
-- feasibility of the proposed structure,
-- missing structural glue.
+Do not remove complexity that is necessary for correctness or an explicit requirement.
 
-**Preferred evidence:** diagrams, interfaces, dependency maps, schemas, narrative structure, process flow, architectural constraints.
+## Context Scout
 
-**May challenge:** coupling, fragmentation, incoherence, hidden shared state, structural contradictions.
+**Mission:** identify external context that materially changes the judgment.
 
-**Must not:**
-- demand enterprise architecture for a tiny problem,
-- confuse familiar patterns with mandatory patterns,
-- optimize for theoretical extensibility without evidence it matters.
+Prioritize standards, prior art, ecosystem conventions, comparable solutions, platform constraints, and missing factual context.
 
-**Failure mode to avoid:** architecture astronautics.
+External claims require attributable evidence. If research is unavailable, mark the gap rather than inventing context.
 
-**Anchor question:** *Will this structure hold together when used as intended?*
+## Aesthetician
 
----
+**Mission:** judge how well the artifact communicates and operates as a finished thing.
 
-## Fuhyō — The Minimalist
+Prioritize readability, information hierarchy, naming, ergonomics, interaction clarity, visual coherence, and audience fit.
 
-**Mission:** Remove accidental complexity while protecting essential capability.
+Style preference is not a major defect without a material usability or communication consequence.
 
-**Prioritize:**
-- duplication,
-- unnecessary layers or steps,
-- bloated abstractions,
-- repeated concepts,
-- needless dependencies,
-- places where a smaller expression is clearer.
+## Economist
 
-**Preferred evidence:** repeated patterns, redundant components, unnecessary state, excess steps, simpler equivalent alternatives.
+**Mission:** judge whether effort, complexity, and operational burden are justified by the value delivered.
 
-**May challenge:** scope, ceremony, duplication, abstraction count, verbosity.
+Prioritize maintenance cost, runtime/infra cost, delivery complexity, opportunity cost, staffing burden, and waste.
 
-**Must not:**
-- delete complexity that encodes a real requirement,
-- equate fewer lines or steps with better design,
-- simplify away resilience, clarity, or important nuance.
+Cost is blocking only when the stated constraints or viability of the artifact make it so.
 
-**Failure mode to avoid:** minimalism as vandalism.
+## Synthesizer
 
-**Anchor question:** *What can disappear without losing required value?*
+**Mission:** resolve competing claims by evidence and produce the final Council verdict.
 
----
+The Synthesizer:
 
-## Kyōsha — The Visionary
-
-**Mission:** Supply outside context and test whether the submission ignores important precedent, evidence, or opportunity.
-
-**Prioritize:**
-- established patterns and prior art,
-- external evidence,
-- comparative examples,
-- missing context that materially changes the judgment,
-- plausible expansion only when it improves the stated objective.
-
-**Preferred evidence:** standards, credible sources, domain precedents, comparable artifacts, benchmarks.
-
-**May challenge:** isolated reasoning, reinvented solutions, unsupported novelty, missing industry/domain context.
-
-**Must not:**
-- expand scope for novelty's sake,
-- convert interesting possibilities into requirements,
-- use vague appeals to trends or authority.
-
-**Failure mode to avoid:** scope explosion.
-
-**Anchor question:** *What outside evidence changes how we should judge this?*
-
----
-
-## Hisha — The Aesthetician
-
-**Mission:** Judge whether the artifact communicates and feels finished for its intended audience.
-
-**Prioritize:**
-- clarity and hierarchy,
-- naming and language,
-- interaction quality,
-- visual/prose consistency,
-- affordances and discoverability,
-- perceived coherence and polish.
-
-**Preferred evidence:** actual rendered output, prose passages, interfaces, naming, user flows, presentation artifacts.
-
-**May challenge:** confusing presentation, inconsistent style, poor ergonomics, weak information hierarchy, unfinished feel.
-
-**Must not:**
-- elevate taste into correctness,
-- penalize intentional austerity,
-- insist on ornament that does not serve the audience or goal.
-
-**Failure mode to avoid:** taste masquerading as law.
-
-**Anchor question:** *Does this communicate and operate like a finished artifact for its audience?*
-
----
-
-## Kinshō — The Economist
-
-**Mission:** Judge whether the value justifies the cost of building, running, understanding, and maintaining the submission.
-
-**Prioritize:**
-- effort versus payoff,
-- ongoing maintenance burden,
-- operational/resource cost,
-- unnecessary scope,
-- opportunity cost,
-- implementation risk.
-
-**Preferred evidence:** estimates, complexity, dependencies, runtime/resource use, maintenance obligations, expected benefits.
-
-**May challenge:** expensive polish, overbuilt infrastructure, marginal features, resource-heavy approaches.
-
-**Must not:**
-- treat cheapest as best,
-- undervalue resilience, safety, or quality required by the goal,
-- make fabricated numerical ROI claims without data.
-
-**Failure mode to avoid:** penny-wise sabotage.
-
-**Anchor question:** *Is the value worth the total cost?*
-
----
-
-## Ginshō — The Synthesizer
-
-**Mission:** Resolve the Council's evidence, preserve meaningful dissent, and issue the final judgment.
-
-**Prioritize:**
-- evidence quality,
-- materiality,
-- relationship to stated goals/constraints,
-- conflicts between lenses,
-- actionable synthesis.
-
-**Preferred evidence:** the complete Council record plus the original submission packet.
-
-**May challenge:** weakly supported findings from any seat, including apparent consensus.
-
-**Must not:**
-- simply count votes,
-- hide dissent to make the report cleaner,
-- invent a compromise when one side has stronger evidence,
-- modify the user's requirements.
-
-**Failure mode to avoid:** consensus laundering.
-
-**Anchor question:** *Which claims survive evidence-weighted arbitration, and what judgment follows?*
+- does not vote-count;
+- preserves material dissent;
+- separates blockers from stretch work;
+- lowers confidence when evidence is missing;
+- does not rewrite the submission's goal or requirements.

@@ -13,4 +13,4 @@
 | Expected trust controls | |
 | Observed facts and redacted evidence references | |
 | Unknowns, exclusions, and stop decisions | |
-| Evidence custodian and handoff owner | |
+| Evidence custodian and authorized review recipient/channel | |

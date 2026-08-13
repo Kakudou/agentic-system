@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-subdomain-takeover
 description: Authorization-first, passive assessment of observed dangling DNS delegations and service-lifecycle risk.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

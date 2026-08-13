@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-business-logic
 description: Authorized assessment of business rules, pricing, state, workflow, invariants, and trust boundaries.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

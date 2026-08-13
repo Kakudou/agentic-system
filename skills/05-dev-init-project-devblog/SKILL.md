@@ -1,8 +1,8 @@
 ---
 name: 05-dev-init-project-devblog
-description: "Initialize an existing Git project with a dedicated Jekyll developer diary on a local gh-pages branch. Use an isolated orphan worktree, materialize the bundled minimal devblog template, verify it, create the initial local commit through 04-git-commit, and leave publishing/push as a separate explicit action."
+description: "Initialize an existing Git project with a dedicated Jekyll developer diary on a local gh-pages branch. Use an isolated orphan worktree, materialize the bundled minimal devblog template, verify it, create one exact local initialization commit, and leave publishing/push as a separate explicit action."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -42,7 +42,7 @@ a post template, and a GitHub Pages workflow.
 - Never push.
 - Never create or modify repository secrets.
 - Never change GitHub Pages repository settings automatically.
-- Never commit from this skill directly; use `04-git-commit` for the initial commit.
+- Create only the one local initialization commit described below. Never push or rewrite history.
 - Do not copy the old PoC's example doctrine/law posts into a new project.
 - Do not invent project history.
 
@@ -82,7 +82,7 @@ Do not fabricate product claims.
 
 ### 3. Create Isolated Orphan Worktree
 
-Choose a collision-free, caller-visible linked-worktree path outside the main worktree.
+Choose a collision-free, visible linked-worktree path outside the main worktree.
 
 Create:
 
@@ -123,15 +123,24 @@ additional evidence. Do not install Ruby/gems automatically merely to verify ini
 
 ### 6. Initial Local Commit
 
-Invoke `04-git-commit` in the `gh-pages` worktree.
-
 The initial branch contents are one atomic intent:
 
 ```text
 ✨ feat(devblog): initialize developer diary
 ```
 
-Let `04-git-commit` inspect/stage exact paths and create the local commit.
+If `04-git-commit` or an equivalent safe local-commit capability is available, it may perform this step.
+
+Otherwise, because the orphan worktree contains only the just-materialized devblog template, stage exactly the files reported by the verified worktree status and inspect the staged diff before committing:
+
+```bash
+git -C <devblog-worktree-path> add -- <exact-template-path> [<exact-template-path> ...]
+git -C <devblog-worktree-path> diff --cached --check
+git -C <devblog-worktree-path> diff --cached
+git -C <devblog-worktree-path> commit -m "✨ feat(devblog): initialize developer diary"
+```
+
+Do not use blanket staging. Stop if the staged set contains anything outside the initialized template.
 
 Do not push.
 

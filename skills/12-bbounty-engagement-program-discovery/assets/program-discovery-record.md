@@ -8,7 +8,7 @@
 - Discovery access time (UTC):
 - Displayed status:
 - Revision, effective date, or last-updated signal:
-- Named intake owner:
+- Authorized intake/review recipient or channel:
 
 ## Source Register
 

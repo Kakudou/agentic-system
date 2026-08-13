@@ -16,7 +16,7 @@ Prefer sources that directly record intent or outcomes:
 
 Lower-ranked sources may contextualize higher-ranked evidence but should not silently override it.
 
-## Feature-Scoped Mode
+## Feature-scoped use
 
 When a feature name resolves in the repository, inspect only relevant material. Typical sources include:
 
@@ -28,7 +28,7 @@ When a feature name resolves in the repository, inspect only relevant material. 
 
 Do not scan unrelated repository history merely to inflate the retrospective.
 
-## Standalone Mode
+## Standalone use
 
 Use the current task/conversation, provided files, generated artifacts, and an explicitly supplied original request.
 

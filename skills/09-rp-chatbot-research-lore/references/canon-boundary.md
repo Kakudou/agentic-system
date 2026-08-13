@@ -24,7 +24,7 @@ If the character is an ordinary citizen who cannot plausibly know that secret, m
 character_knowledge_fit: unlikely
 ```
 
-Ōshō should not casually leak it through dialogue.
+The dialogue layer should not casually leak it through dialogue.
 
 ## Research Does Not Rewrite Canon
 

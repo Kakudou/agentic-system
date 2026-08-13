@@ -1,8 +1,8 @@
 ---
 name: 01-doc-otsumi-voice
-description: "Rewrite a provided Markdown or prose asset so it reads unmistakably as Ōtsumi's writing while preserving the source's structure, meaning, scope, technical content, ordering, and factual claims. Use when the content is already correct and organized but needs a strong Ōtsumi voice pass rather than an editorial refactor. Loads agent-load-persona first, performs a voice-only rewrite, then runs 99-tool-humaniser as the final prose polish."
+description: "Rewrite a provided Markdown or prose asset so it reads unmistakably as Ōtsumi's writing while preserving the source's structure, meaning, scope, technical content, ordering, and factual claims. Use when the content is already correct and organized but needs a strong Ōtsumi voice pass rather than an editorial refactor. Requires a canonical Ōtsumi persona/voice profile, then performs a voice-only rewrite with an optional final humanisation pass."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 
@@ -31,22 +31,17 @@ This skill owns only **how the editable prose sounds**.
 Default voice intensity is **strong Ōtsumi**. If the user explicitly requests a different intensity,
 honor it without changing the preservation contract.
 
-## Dependencies
+## Persona Requirement and Optional Humaniser
 
-1. `00-agent-load-persona`
-2. `99-tool-humaniser`
+A canonical Ōtsumi persona/voice profile is intrinsic to this capability because it defines the identity being transferred.
 
-Before rewriting, ensure `00-agent-load-persona` is loaded.
+When `00-agent-load-persona` is installed locally, it is the preferred provider. Otherwise accept an equivalent caller-supplied canonical persona/voice profile.
 
-If direct skill-to-skill invocation is restricted by caller authorization, route the persona load
-through Ōshō. Do not imitate or reconstruct the persona from memory when the canonical skill is
-available.
+Do not imitate or reconstruct the persona from memory when no canonical profile is available.
 
-After the Ōtsumi rewrite is complete, invoke `99-tool-humaniser` in **embedded mode** as the final
-prose pass.
+After the Ōtsumi rewrite is complete, `99-tool-humaniser` or an equivalent prose-humanisation capability may be used as an **embedded prose pass**. If none is available, perform the finishing checks in `references/humaniser-handoff.md` locally rather than blocking.
 
-If either required dependency is unavailable, stop and report the missing dependency. Do not silently
-substitute a local approximation.
+If no canonical persona definition is available from either source, stop. Do not silently substitute a local approximation of Ōtsumi.
 
 ## Read When Needed
 
@@ -67,8 +62,8 @@ When rules conflict, use this order:
 2. source meaning, factual content, scope, and structure;
 3. protected technical content;
 4. this skill's strong Ōtsumi voice target;
-5. generic `00-agent-load-persona` style defaults;
-6. `99-tool-humaniser` stylistic preferences.
+5. canonical persona style defaults;
+6. optional humanisation stylistic preferences.
 
 Humaniser may polish the voice. It may not neutralize it.
 
@@ -85,17 +80,17 @@ Humaniser may polish the voice. It may not neutralize it.
 - MUST NOT add a TL;DR, summary, section, heading, list item, table row, conclusion, or other new
   structural element.
 - MUST NOT merge, split, reorder, or delete source sections or list items merely to improve flow.
-- MUST NOT perform the job of `01-doc-editorial-refactor`.
+- MUST NOT restructure the document, add summaries, reorder sections, or perform an editorial refactor.
 - MUST make the editable prose recognizably Ōtsumi rather than applying a cosmetic synonym pass.
-- MUST run `99-tool-humaniser` only after the voice rewrite is complete.
-- MUST reject any Humaniser change that weakens meaning, structure, technical precision, or the
+- MUST run any optional humanisation only after the voice rewrite is complete.
+- MUST reject any humanisation change that weakens meaning, structure, technical precision, or the
   deliberate Ōtsumi voice.
 
 ## Workflow
 
 ### 1. Load Persona
 
-Load `00-agent-load-persona`.
+Obtain the canonical Ōtsumi persona/voice profile from the local persona loader when available or from an equivalent caller-supplied profile.
 
 Use its canonical identity, core behavior, and voice rendering as the source of truth.
 
@@ -154,12 +149,12 @@ Do not continue until the voice draft passes.
 
 ### 5. Humanise the Finished Voice Draft
 
-Invoke `99-tool-humaniser` in embedded mode following `references/humaniser-handoff.md`.
+Follow `references/humaniser-handoff.md`. When `99-tool-humaniser` or an equivalent capability is available, it may perform the embedded prose pass; otherwise apply the same finishing checks directly.
 
 Pass only content that Humaniser is allowed to modify. Keep immutable technical spans outside its
 rewrite authority whenever the runtime permits span-level processing.
 
-Humaniser's task is to remove machine-writing tells while preserving the intentional Ōtsumi voice.
+The task is to remove machine-writing tells while preserving the intentional Ōtsumi voice.
 
 ### 6. Final Verification
 
@@ -177,7 +172,7 @@ Verify:
 - same technical literals;
 - no factual additions or omissions;
 - strong Ōtsumi voice remains obvious;
-- Humaniser removed artificial phrasing without sanding the prose into generic assistant language.
+- the finishing pass removed artificial phrasing without sanding the prose into generic assistant language.
 
 If any check fails, repair and re-verify before completion.
 

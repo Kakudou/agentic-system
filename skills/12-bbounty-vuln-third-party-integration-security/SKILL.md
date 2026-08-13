@@ -1,8 +1,8 @@
 ---
-name: 12-bbounty-vuln-third-party-integratior-security
+name: 12-bbounty-vuln-third-party-integration-security
 description: Explicitly authorized, observation-first assessment of third-party integration boundaries.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

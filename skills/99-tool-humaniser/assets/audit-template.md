@@ -1,6 +1,6 @@
 # Humaniser Audit Template
 
-Use this template only in pasted-text mode. Embedded and file modes run the same audit internally.
+Use this template only in pasted-text use. Embedded and file inputs run the same audit internally.
 
 ## Draft
 

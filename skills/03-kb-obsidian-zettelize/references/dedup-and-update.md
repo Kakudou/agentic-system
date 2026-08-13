@@ -1,8 +1,8 @@
 # Deduplication and Update
 
-Use `kb-obsidian-search` for discovery. Do not implement a second vault-wide search engine here.
+Search only the overview-resolved eligible zettel roots using available read-only file or search capabilities. Do not broaden discovery to the whole vault.
 
-The corpus is ordinary non-memory zettels only.
+The corpus is configured zettels only.
 
 ## Generic Disposition
 

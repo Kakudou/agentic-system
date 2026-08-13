@@ -5,8 +5,8 @@
 - Program:
 - Primary source and version:
 - Access time:
-- Intake owner:
-- Receiving owner:
+- Prepared by:
+- Authorized review recipient or channel:
 
 ## Bounded Authorization
 

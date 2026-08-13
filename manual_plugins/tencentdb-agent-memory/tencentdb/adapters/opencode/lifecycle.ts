@@ -711,28 +711,47 @@ export class OpenCodeLifecycle {
 
   run(
     ctx: any,
-  ) {
+  ): () => Promise<void> {
+    let iterator: AsyncIterator<any> | null =
+      null
+
     const task =
       (async () => {
         try {
           const events =
             ctx.event.subscribe()
 
+          iterator =
+            events?.[
+              Symbol.asyncIterator
+            ]?.() ?? events
+
           this.trace.write(
             "EVENT_SUBSCRIBED",
             {
               asyncIterator:
-                typeof events?.[
-                  Symbol.asyncIterator
-                ],
+                typeof iterator?.next,
             },
           )
 
-          for await (
-            const raw of events
-          ) {
+          if (!iterator?.next) {
+            throw new Error(
+              "OpenCode V2 event subscription is not async-iterable",
+            )
+          }
+
+          while (true) {
+            const item =
+              await iterator.next()
+
+            if (item?.done) {
+              break
+            }
+
             try {
-              await this.handle(raw)
+              await this.handle(
+                item?.value,
+              )
             } catch (error) {
               this.trace.write(
                 "EVENT_HANDLER_FAILED_OPEN",
@@ -754,6 +773,20 @@ export class OpenCodeLifecycle {
         }
       })()
 
-    void task
+    return async () => {
+      try {
+        await iterator?.return?.()
+      } catch (error) {
+        this.trace.write(
+          "EVENT_UNSUBSCRIBE_FAILED",
+          {
+            error:
+              String(error),
+          },
+        )
+      }
+
+      await task
+    }
   }
 }

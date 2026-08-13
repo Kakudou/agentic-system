@@ -19,8 +19,8 @@ A finding from only one arm survives when its evidence is valid.
 
 Provenance:
 
-- `arm_a`
-- `arm_b`
+- `review_a`
+- `review_b`
 
 Do not penalize discovery uniqueness.
 

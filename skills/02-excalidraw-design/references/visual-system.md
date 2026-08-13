@@ -1,206 +1,162 @@
-# Visual System
+# Source-Led Visual System
 
-Use this reference for all visual decisions the user has not specified.
+Use this reference only for visual decisions the user and source have not already resolved.
 
-User-provided style always wins when it is compatible with readability and source truth.
+User direction and source-specific visual language always take priority when compatible with readability and truth.
 
-## Intent: Black-Ice cartography
+## Principle
 
-The default mood is restrained terminal noir: decker field notes, black-market infrastructure maps, worn technical intelligence, hostile systems, and analog marks over a cold digital substrate.
+Let structure and subject determine the visual system.
 
-It should feel:
+Build a small coherent grammar from:
 
-- tactical rather than theatrical
-- dangerous through implication rather than glow
-- hand-drawn but controlled
-- dense with meaning, not ornament
-- urban, cybernetic, weathered, and precise
-- native to Excalidraw
+- one canvas/background treatment;
+- one primary text/boundary color;
+- one secondary/context color;
+- one or two semantic accents at most;
+- stable shape meanings;
+- consistent typography, spacing, and connector semantics.
 
-It is not:
+Do not import a genre, brand, or mood merely because styling is unspecified.
 
-- vaporwave
-- synthwave
-- neon nightlife
-- cyan/magenta spectacle
-- glossy science-fiction HUD
-- generic dark dashboard
-- decorative circuit-board wallpaper
-- random glyphs, fake terminal logs, or meaningless serial numbers
+## Neutral Fallback
 
-Atmosphere must come from information design: cable-like routes, asymmetric balance, compressed annotation, boundaries, crossings avoided under pressure, and a slight human instability.
+When the source provides no stronger signal, use a restrained editorial/technical treatment:
 
-## Core palette
+- high contrast and legibility;
+- neutral light or dark canvas chosen for the content;
+- low-saturation surfaces;
+- one restrained emphasis accent;
+- one warning/exception accent only when the content actually contains a warning or exception;
+- clean hierarchy and generous negative space;
+- hand-drawn Excalidraw character without decorative noise.
 
-| Semantic role | Name | Hex | Meaning |
-|---|---|---:|---|
-| Canvas | Black Ice | `#0B0E11` | hostile void; primary background |
-| Surface | Carbon | `#151A1F` | frames, quiet zones, grouped regions |
-| Primary | Dead Paper | `#D6D1C7` | verified facts, primary text, main boundaries |
-| Secondary | Cold Steel | `#7F8B94` | context, dormant links, secondary labels |
-| Focus | Burned Amber | `#C58A3A` | insight, active path, control, decisive mechanism |
-| System | Oxide Teal | `#3E7C74` | data, stable systems, technical structure |
-| Exception | Dried Blood | `#A34A46` | threat, failure, conflict, corruption, destructive path |
+The fallback should disappear behind the information rather than become the subject.
 
-Foundation:
+## Semantic Color Rules
 
-- approximately 80% Black Ice and Carbon
-- approximately 15% Dead Paper and Cold Steel
-- no more than 5% active accents
-
-Use at most two active accents on a normal board. `Dried Blood` is not a decorative accent; use it only when the content contains an actual warning, failure, threat, contradiction, or hostile relationship.
-
-## Semantic color rules
-
-- A color must mean the same thing throughout a board set.
+- A color must mean the same thing throughout one board set.
 - Meaning outranks visual balance.
 - Do not assign a unique color to every category.
-- Prefer shape, position, labels, or boundary before adding another color.
-- Uncertain content should use qualification and reduced emphasis, not an arbitrary hue.
-- Never use red merely to make a board feel cyberpunk.
+- Prefer position, shape, label, boundary, or line style before adding another color.
+- Use a warning color only for a real warning, failure, threat, contradiction, or destructive path.
+- Show uncertainty through qualification and reduced emphasis, not an arbitrary hue.
+- Keep active accents sparse enough that emphasis remains meaningful.
 
-## Prohibited styling
+## Canvas and Surfaces
 
-- gradients
-- glow or bloom
-- bright cyan with magenta
-- decorative purple haze
-- rainbow coding
-- large saturated fills
-- equal distribution of accents
-- ornamental circuit traces
-- fake warnings or system codes
-- excessive dashed borders
-- polished corporate diagram aesthetics
+Choose a light or dark canvas from the approved direction and source needs.
 
-## Canvas and surfaces
-
-Default canvas: `#0B0E11`.
-
-Use Carbon surfaces sparingly to distinguish true zones or frames. Large areas may remain unfilled so the canvas carries the composition.
+Use surfaces only to express real regions, containment, hierarchy, or focus. Large areas may remain unfilled when whitespace is clearer.
 
 For nested regions:
 
-- outer frame: low-emphasis Dead Paper or Cold Steel boundary
-- inner zone: Carbon fill or no fill
-- important active region: Burned Amber boundary or label, not a saturated block
+- outer boundary: low-emphasis primary or secondary stroke;
+- inner zone: subtle fill or no fill;
+- active region: emphasis through boundary, label, or position before saturated fill.
 
 ## Strokes
 
-Default:
+Default unless the approved direction requires otherwise:
 
-- `strokeStyle`: solid
-- `strokeWidth`: 1
-- `roughness`: 1
-- `opacity`: 100
+- `strokeStyle`: solid;
+- `strokeWidth`: 1;
+- `roughness`: 1;
+- `opacity`: 100.
 
-Use stroke width 2 only for:
+Use thicker strokes only for a primary spine, major boundary, deliberately emphasized route, or title device.
 
-- the primary system spine
-- the most important boundary
-- a deliberately emphasized route
-- the principal title device
+Dashed or dotted strokes must encode uncertainty, planned state, indirect relationship, or another declared semantic convention. Never use them only as texture.
 
-Avoid width 3+ unless the user explicitly requests a heavier visual language.
+## Shapes and Boundaries
 
-Dashed or dotted strokes must encode uncertainty, planned state, indirect relationship, or a domain-specific convention. Never use them for texture.
+Prefer shapes for meaning:
 
-## Shapes and boundaries
-
-Prefer:
-
-- rounded rectangles for most concepts, components, actors, and notes
-- diamonds only for actual decisions, constraints, forks, or tests
-- ellipses for events, cycles, external actors, or conceptual foci when semantically appropriate
-- frames for top-level boards and navigable regions
-- lines for boundaries or undirected relationships
-- arrows for directed relationships
+- rounded rectangles for general concepts, components, actors, and notes;
+- diamonds only for real decisions, constraints, forks, or tests;
+- ellipses for events, cycles, external actors, or conceptual foci when appropriate;
+- frames for top-level boards and navigable regions;
+- lines for boundaries or undirected relationships;
+- arrows for directed relationships.
 
 Define shape semantics per artifact and keep them stable.
 
-Do not use a diamond because a flowchart “needs variety.”
+Do not add shape variety merely for decoration.
 
 ## Typography
 
-Use Excalifont for all text unless the user requires another font.
+Use Excalifont unless the user or existing scene requires another font.
 
-When writing native Excalidraw JSON, use the current Excalifont family value supported by the target environment. If the environment exposes named constants, use the named Excalifont constant. If editing an existing scene, copy the verified Excalifont `fontFamily` value from that scene. Do not guess a numeric font identifier when it cannot be verified.
+When writing native Excalidraw JSON, use the verified Excalifont family value supported by the target environment. If editing an existing scene, preserve its verified font-family convention rather than guessing a numeric identifier.
 
 Suggested hierarchy:
 
-- board title: 32–40
-- region title: 24–28
-- node title: 18–22
-- body or annotation: 16–18
-- tertiary note: 14–16
-- filigrane: 12–14
+- board title: 32–40;
+- region title: 24–28;
+- node title: 18–22;
+- body or annotation: 16–18;
+- tertiary note: 14–16.
 
 Do not shrink core information below 16 merely to avoid restructuring.
 
-Use:
+Use short headings, explicit line breaks, left alignment for prose, and centered text only for compact labels or focal nodes.
 
-- short headings
-- sentence case or restrained uppercase
-- explicit line breaks
-- left alignment for prose
-- centered text only for compact labels or focal nodes
-
-## Spacing rhythm
+## Spacing Rhythm
 
 Use a 20-unit base grid unless the source or existing scene establishes another rhythm.
 
 Typical intervals:
 
-- text-to-container padding: 20–28
-- related node gap: 40–60
-- major region gap: 80–120
-- frame padding: 48–72
-- title reserve inside frame: 56–80
+- text-to-container padding: 20–28;
+- related node gap: 40–60;
+- major region gap: 80–120;
+- frame padding: 48–72;
+- title reserve inside frame: 56–80.
 
 Consistency matters more than exact numbers.
 
 ## Connectors
 
-Default connectors:
+Default connectors are thin, clear, and semantically directed.
 
-- thin solid wire
-- moderate roughness
-- curved when a curve clarifies hierarchy or bypasses congestion
-- elbowed when orthogonal routing clarifies a technical system
-- arrowheads only where direction is real
-- concise relationship labels
+- curve a connector when it clarifies hierarchy or bypasses congestion;
+- use orthogonal routing when it clarifies a technical structure;
+- use arrowheads only where direction is real;
+- keep relationship labels concise;
+- reserve accent colors for meaningful active/recommended/exception paths.
 
-Use Burned Amber for one active or recommended path. Use Oxide Teal for stable data or system flow. Keep ordinary dependencies in Dead Paper or Cold Steel.
+Change layout before adding routing complexity when crossings become dense.
 
-## Signature device
+## Source-Specific Signature Device
 
-Each direction should contain one source-specific, defensible visual move, such as:
+Each proposed direction should contain one defensible visual move derived from the material, such as:
 
-- a system spine that also expresses chronology
-- a trust boundary shaped by actual domains
-- a repeated motif derived from the subject's artifacts
-- a central contradiction made spatially visible
-- a layered “black box” reveal
-- an annotated route through hostile infrastructure
+- a system spine that also expresses chronology;
+- a trust boundary shaped by actual domains;
+- a motif derived from source artifacts;
+- a contradiction made spatially visible;
+- a layered reveal;
+- a route through a real process or dependency structure.
 
-The signature device must improve comprehension. It cannot be generic cyberpunk decoration.
+The device must improve comprehension. It cannot be generic decoration.
 
-## Ōtsumi filigrane
+## Prohibited Defaults
 
-Format:
+Do not introduce by default:
 
-`<punchline> — Ōtsumi`
+- a private brand palette;
+- cyberpunk, corporate, playful, cinematic, brutalist, retro, luxury, or other genre styling;
+- gradients, glow, or heavy effects without an approved reason;
+- fake warnings, codes, terminal logs, glyphs, or serial numbers;
+- ornamental circuit traces or other subject-detached motifs;
+- rainbow category coding;
+- large saturated fills;
+- maker signatures or watermarks.
 
-Rules:
+If one of these choices is source-supported or explicitly requested, it may be part of an approved direction.
 
-- unique per board
-- derived from the board thesis
-- 12 words maximum before signature
-- placed near lower-right when possible
-- fully inside the top-level frame
-- no overlap with connectors or content
-- Cold Steel or Dead Paper
-- visually subordinate to tertiary notes
-- target opacity: 14–20%, adjusted only to remain subtly legible
+## Optional Maker Mark
 
-Do not reuse stock slogans. The line should feel like a quiet blade left in the margin.
+Add a signature, watermark, or maker mark only when the user explicitly requests one.
+
+Keep it visually subordinate, fully contained, and collision-free. Do not invent a slogan or signature identity on the user's behalf.

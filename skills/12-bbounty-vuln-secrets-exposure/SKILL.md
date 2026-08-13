@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-secrets-exposure
 description: Privacy-preserving assessment and restricted reporting of a potentially exposed secret within explicit authorization.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

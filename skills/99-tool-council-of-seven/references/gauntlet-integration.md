@@ -1,105 +1,39 @@
 # Gauntlet Integration
 
-When invoked by `gauntlet-loop`, the Council becomes an **independent adversarial quality gate**. It does not own the Gauntlet contract.
+When the Council is used as an independent gate inside a larger iterative workflow, keep the Council independent from the builder history.
 
-## Input packet
+## Input Packet
 
-The Council should receive only what it needs to judge the candidate:
+The consuming workflow should provide:
 
-- locked Goal,
-- locked Reference / Bar,
-- locked Constraints,
-- current Candidate / Artifact,
-- Evidence Pack,
-- criterion identifiers when available.
+- fixed goal/bar/constraints;
+- actual candidate;
+- criterion-level evidence;
+- known failures or unverified criteria;
+- reference material needed for comparison.
 
-Prefer a blind packet. Do **not** expose unless necessary:
+Do not provide builder identity, internal reasoning, attempt count, prior Council verdicts, or persuasive excuses unless needed to investigate a specific regression.
 
-- builder identity,
-- builder chain-of-thought/reasoning,
-- effort already spent,
-- number of failed attempts,
-- emotional framing,
-- prior Council verdicts.
+## Council Output
 
-This reduces rationalization and sunk-cost bias.
+The Council returns its normal semantic report:
 
-## Contract authority
+- verdict;
+- confidence;
+- material findings;
+- dissent;
+- alternatives;
+- evidence limits.
 
-In Gauntlet mode, the Council may:
+The consuming workflow translates findings into its own gate states.
 
-- discover defects,
-- challenge evidence,
-- identify regressions,
-- expose missing verification,
-- recommend repairs,
-- flag stretch improvements separately.
+A Council finding is blocking for the consuming workflow only when it maps to:
 
-The Council may **not**:
+- the fixed goal;
+- a mandatory criterion;
+- a fixed constraint;
+- a necessary property of successful operation.
 
-- rewrite the locked goal,
-- raise or lower the reference/bar,
-- add new mandatory constraints,
-- fail a candidate solely because a seat prefers a different design.
+Other suggestions remain stretch work.
 
-## Blocking finding rule
-
-A Council finding is eligible to block Gauntlet acceptance only if it maps to at least one of:
-
-1. an explicit Goal requirement,
-2. an explicit Reference/Bar criterion,
-3. an explicit Constraint,
-4. a prerequisite objectively necessary for the above to hold.
-
-Otherwise classify it for Gauntlet routing as:
-
-- `STRETCH` — worthwhile enhancement outside the contract,
-- `RISK` — credible concern not presently proven to violate the contract,
-- `DISMISSED` — unsupported or irrelevant to acceptance.
-
-## Severity versus Gauntlet status
-
-Council severity and Gauntlet criterion status are related but distinct.
-
-Examples:
-
-- Council `CRITICAL` mapped to a mandatory criterion usually means Gauntlet `FAIL`.
-- Council `MAJOR` without enough evidence may mean `UNVERIFIED`, not automatically `FAIL`.
-- Council `NOTE` should not block acceptance.
-
-## Output to Gauntlet
-
-In addition to the human Council Report, provide a compact routing section when the caller needs it:
-
-```yaml
-gate_verdict: revise
-findings:
-  - id: C7-KEIMA-01
-    seat: Keima
-    severity: critical
-    contract_mapping: AUTH-03
-    disposition: blocking
-    owner_hint: backend
-    retest:
-      - authentication-negative-paths
-  - id: C7-HISHA-02
-    seat: Hisha
-    severity: minor
-    contract_mapping: null
-    disposition: stretch
-```
-
-The Gauntlet decides PASS/FAIL using its own locked contract and evidence rules.
-
-## Repair routing
-
-When a finding is blocking, phrase it so the Gauntlet can create a targeted repair ticket:
-
-- exact defect,
-- contract mapping,
-- evidence,
-- expected repaired condition,
-- minimum retest scope,
-- known regression risk.
-
-Avoid vague directives such as “improve quality” or “make architecture cleaner.”
+The Council does not rewrite the consuming workflow's contract.

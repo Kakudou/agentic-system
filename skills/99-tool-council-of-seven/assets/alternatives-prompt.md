@@ -1,21 +1,7 @@
-# Alternatives Prompt Template
+# Council Alternatives Prompt
 
-```text
-Council of Seven — Round 3: Alternatives
+Based on the completed critique and cross-fire, propose one concrete improvement, mitigation, or simplification that materially improves the submission.
 
-Seat: {SEAT}
+Keep it within the submission's purpose and constraints.
 
-Debate summary:
-{DEBATE_SUMMARY}
-
-Propose exactly one concrete improvement, alternative, mitigation, or simplification.
-It must respond to a material issue raised in the debate.
-
-Return exactly:
-- Proposal: what changes
-- Rationale: which material concern it addresses
-- Tradeoff: what cost, limitation, or risk it introduces
-
-Do not turn the proposal into a new requirement unless it is already required by the submission's goal, bar, or constraints.
-Keep it implementable and concise.
-```
+Do not present an optional alternative as a mandatory requirement.

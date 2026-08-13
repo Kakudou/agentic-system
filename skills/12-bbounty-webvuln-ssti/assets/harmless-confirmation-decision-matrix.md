@@ -3,7 +3,7 @@
 | Condition | Permitted action | Interpretation | Next step |
 |---|---|---|---|
 | No explicit authorization | Do not test | Out of scope | Obtain written permission |
-| Input is not server-rendered | Plain-text mapping only | SSTI not supported by this route | Stop or route to relevant assessment |
+| Input is not server-rendered | Plain-text mapping only | SSTI not supported by this route | Stop and record that another assessment category may be relevant |
 | Plain-text sentinel is rejected | Record validation behavior | No parser conclusion | Stop unless owner supplies a safe test path |
 | Sentinel reflects literally | One delimiter-only marker, if policy permits | Baseline established | Compare to matched control |
 | Marker reflects literally or is encoded | No further marker variation | No interpretation evidence | Report inconclusive or no finding |

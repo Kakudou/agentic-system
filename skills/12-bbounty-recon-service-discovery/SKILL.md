@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-service-discovery
 description: Record authorized, low-impact observations that help identify in-scope exposed services without active enumeration or interaction.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -52,7 +52,7 @@ service_recon_handoff:
       evidence_references: [string]
       limitations: [string]
   stopped_or_excluded: [string]
-  next_owner: string
+  recommended_next_step: string
 ```
 
 ## Supplemental Index

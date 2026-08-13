@@ -7,7 +7,7 @@ Establish which program materials support the intake packet and whether they are
 ## Preconditions
 
 - At least one program document, URL, or platform record is available.
-- The intake owner can record access time and document identity.
+- The intake process can record access time and document identity.
 
 ## Documentation Methodology
 

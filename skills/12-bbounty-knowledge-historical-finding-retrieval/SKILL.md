@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-historical-finding-retrieval
 description: Authorization-first, privacy-preserving documentation of historical security knowledge without retrieval automation or operational testing guidance.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -49,7 +49,6 @@ historical_knowledge_handoff:
   confidence: low | medium | high
   privacy_status: none | redacted | restricted | stopped
   limitations: [string]
-  handoff_recipient: string
 ```
 
 ## Supplemental Index

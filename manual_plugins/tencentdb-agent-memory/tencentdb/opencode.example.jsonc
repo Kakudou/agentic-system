@@ -16,12 +16,15 @@
           "teamId": "TEAM_ID_FROM_HUB",
           "userId": "USER_ID_FROM_HUB",
 
-          "defaultAgentId": "TENCENT_AGENT_ID_DEFAULT",
-
           "agents": {
-            "build": "TENCENT_AGENT_ID_BUILD",
-            "plan": "TENCENT_AGENT_ID_PLAN",
-            "toto": "TENCENT_AGENT_ID_TOTO"
+            "osho": "TENCENT_AGENT_ID_OSHO",
+            "kyosha": "TENCENT_AGENT_ID_KYOSHA",
+            "kinsho": "TENCENT_AGENT_ID_KINSHO",
+            "keima": "TENCENT_AGENT_ID_KEIMA",
+            "kakugyo": "TENCENT_AGENT_ID_KAKUGYO",
+            "hisha": "TENCENT_AGENT_ID_HISHA",
+            "ginsho": "TENCENT_AGENT_ID_GINSHO",
+            "fuhyo": "TENCENT_AGENT_ID_FUHYO"
           }
         },
 
@@ -43,12 +46,7 @@
           /*
            * Optional per-OpenCode-agent restrictions/overrides.
            */
-          "agents": {
-            "build": {
-              "wikiIds": [],
-              "codeGraphIds": []
-            }
-          }
+          "agents": {}
         },
 
         "retrieval": {
@@ -81,10 +79,12 @@
           "blockPublicWebOnPersonalMemory": true,
 
           /*
-           * Force user-visible answers that use TencentDB evidence to English.
+           * "user-language" preserves the language established by the
+           * user-facing conversation. Set a literal language such as
+           * "English" only when you intentionally want to force it.
            * Raw Wiki/Memory/CodeGraph evidence is NOT destructively translated.
            */
-          "outputLanguage": "English",
+          "outputLanguage": "user-language",
 
           /*
            * Every tdai_* result gets a compact language-safety envelope.
@@ -95,7 +95,7 @@
         },
 
         "exposeAdminTools": false,
-        "traceFile": "/tmp/tencentdb-opencode-v3.log",
+        "traceFile": "/tmp/tencentdb-opencode-v4.log",
 
         "timeouts": {
           "gatewayMs": 5000,

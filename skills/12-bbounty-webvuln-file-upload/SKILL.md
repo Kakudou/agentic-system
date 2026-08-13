@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-file-upload
 description: Authorized assessment of file upload validation, processing, storage, serving, and impact boundaries using inert test files.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

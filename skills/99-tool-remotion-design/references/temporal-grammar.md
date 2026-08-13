@@ -31,4 +31,4 @@ Make end/beginning compatible; verify first/last frames and audio loop points.
 Repeat only to create learnable grammar. Consistency should make later scenes easier to understand.
 
 ## Ending
-End on resolved thesis, complete system, closed loop, clear action, deliberate open question, memorable symbol, or quiet Ōtsumi trace. Do not end merely because `durationInFrames` runs out.
+End on resolved thesis, complete system, closed loop, clear action, deliberate open question, memorable symbol, or another deliberate closing image. Do not end merely because `durationInFrames` runs out.

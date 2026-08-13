@@ -44,20 +44,11 @@ export class SessionModeStore {
     }
   }
 
+
   get(sessionID, config) {
+    if (!sessionID) return null
     const stored = this.sessions.get(sessionID)?.mode
-    if (stored && config.modes.has(stored)) return stored
-    return config.defaultMode
-  }
-
-  async ensureValid(sessionID, config) {
-    const stored = this.sessions.get(sessionID)?.mode
-    if (stored && config.modes.has(stored)) return stored
-
-    if (sessionID) {
-      await this.set(sessionID, config.defaultMode)
-    }
-    return config.defaultMode
+    return stored && config.modes.has(stored) ? stored : null
   }
 
   async set(sessionID, mode) {

@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-attack-surface-drifting
 description: Analyze authorized, supplied recon evidence for attributable attack-surface changes without conducting monitoring or new discovery.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -16,7 +16,7 @@ Compare two supplied, authorized recon evidence sets to produce a bounded, evide
 
 - Written authorization, program rules, and a defined comparison scope.
 - A baseline and comparison observation with source, collection time, collection boundary, and handling status.
-- An approved evidence location and a receiving owner for uncertain or material changes.
+- An approved evidence location and authorized review channel for uncertain or material changes.
 
 ## Analysis Workflow
 
@@ -25,7 +25,7 @@ Compare two supplied, authorized recon evidence sets to produce a bounded, evide
 3. Classify each supported difference as addition, removal, modification, or inconclusive. Separate observed facts from explanations and use the [drift classification guide](references/drift-classification.md) with the [classification-confidence matrix](assets/classification-confidence-matrix.md).
 4. Assign confidence from evidence quality, comparability, and corroboration already present in the supplied material. Do not resolve uncertainty by active validation. Follow [confidence and validation limits](references/confidence-validation.md).
 5. Stop analysis when ownership, scope, sensitive data, or attribution is uncertain. Record the boundary and question in the [scope/stop checklist](assets/scope-stop-checklist.md).
-6. Deliver a facts-only comparison with evidence references, limitations, and owner questions. Use [evidence and handoff](references/evidence-handoff.md) and the [recon handoff template](assets/recon-handoff-template.md).
+6. Deliver a facts-only comparison with evidence references, limitations, and required decisions/questions. Use [evidence and handoff](references/evidence-handoff.md) and the [recon handoff template](assets/recon-handoff-template.md).
 
 ## Evidence
 

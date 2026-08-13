@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Prepare a safety-bounded handoff for an authorized validation owner without providing testing instructions, payloads, or exploit paths.
+Prepare a safety-bounded handoff for separately authorized validation without providing testing instructions, payloads, or exploit paths.
 
 ## Preconditions
 
 - A falsifiable hypothesis is tied to admitted evidence and an in-scope asset.
 - Written authorization specifies permitted methods, limits, data handling, and escalation contacts.
-- The validation owner accepts the handoff boundary.
+- The authorized validation process has an explicit recipient or review channel.
 
 ## Evidence-Led Method
 
@@ -30,7 +30,7 @@ Protect service availability, customer data, credentials, and third parties. Cap
 
 ## Evidence And Handoff
 
-Use the planning handoff template to identify the owner, authorization reference, hypothesis, minimum validation question, stop conditions, escalation path, and required evidence. Label the handoff `planning only` until validation is separately authorized and performed.
+Use the planning handoff template to identify the authorized review channel, authorization reference, hypothesis, minimum validation question, stop conditions, escalation path, and required evidence. Label the handoff `planning only` until validation is separately authorized and performed.
 
 ## Sources
 

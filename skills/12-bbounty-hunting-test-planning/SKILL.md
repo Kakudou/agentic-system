@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-test-planning
 description: Produce an authorized, low-impact security-test plan from admitted scope and evidence. Planning only; no scanning, exploitation, payloads, or execution.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -36,7 +36,7 @@ Use [safety boundaries](references/safety-boundaries.md) and [the checklist](ass
 
 ## Evidence And Handoff
 
-Record only authorized, minimally necessary observations with timestamps, asset identifiers, test-plan IDs, conditions, and uncertainty. Separate observations, interpretation, and recommended owner action. Handoff does not assert a vulnerability without corroborated evidence and responsible review.
+Record only authorized, minimally necessary observations with timestamps, asset identifiers, test-plan IDs, conditions, and uncertainty. Separate observations, interpretation, and the recommended next decision. Handoff does not assert a vulnerability without corroborated evidence and responsible review.
 
 Use [evidence and handoff](references/evidence-handoff.md) and [the handoff template](assets/handoff-template.md).
 
@@ -55,7 +55,7 @@ Use [evidence and handoff](references/evidence-handoff.md) and [the handoff temp
 
 ## Output
 
-Return a static plan containing: scope decision, evidence inventory, hypotheses, bounded validation steps, stop conditions, required approvals, and handoff owner. State `planning only` when no validation authorization is provided.
+Return a static plan containing: scope decision, evidence inventory, hypotheses, bounded validation steps, stop conditions, required approvals, authorized review recipient/channel, and recommended next decision. State `planning only` when no validation authorization is provided.
 
 ## Supplemental Index
 

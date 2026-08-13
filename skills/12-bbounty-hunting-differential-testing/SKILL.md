@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-differential-testing
 description: Assess authorized, supplied observations for security-relevant differences using a bounded, evidence-led comparison plan.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -36,7 +36,7 @@ Deliver a facts-only packet with admitted evidence, comparison conditions, obser
 
 - Written authorization, scope boundary, exclusions, and handling constraints.
 - At least two supplied observations with source, time, context, and redaction status.
-- A defined security property, permitted comparison boundary, and receiving owner.
+- A defined security property, permitted comparison boundary, and authorized review recipient or channel.
 
 ## Evidence
 

@@ -18,11 +18,11 @@ Validation confirms documentation quality and authorization alignment, not wheth
 
 ## Scope And Privacy
 
-Do not plan denial-of-service, social engineering, persistence, data extraction, or other sensitive activity unless the written program authorization explicitly permits it and the planning owner accepts the constraints.
+Do not plan denial-of-service, social engineering, persistence, data extraction, or other sensitive activity unless the written program authorization explicitly permits it and the required constraints are explicitly accepted for the planned work.
 
 ## Evidence And Handoff
 
-Record validation status, reviewer, unresolved concerns, and the exact scope constraints that the planning owner must preserve.
+Record validation status, reviewer, unresolved concerns, and the exact scope constraints that any subsequent planning must preserve.
 
 ## Sources
 

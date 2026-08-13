@@ -1,71 +1,58 @@
-# SRS Persistence Handoff
+# SRS Persistence
 
-Persistent storage is optional backend work.
+Persistent SRS storage is optional. The visible language drop is valid without it.
 
-The visible language drop is valid without it.
+## Configuration
 
-## Configuration First
-
-Resolve the configured vault through `03-kb-obsidian-vault-overview`.
+Consume a trusted vault descriptor. If `03-kb-obsidian-vault-overview` is installed locally, it may provide that descriptor; otherwise an equivalent caller-supplied descriptor is sufficient.
 
 Require:
 
-- a configured SRS deck/root for the selected language;
-- the configured `srscard` template.
+- `named_roots.srs_japanese_root` for Japanese or `named_roots.srs_german_root` for German;
+- `templates.srscard_template`.
 
-If the deck/root is not configured, stop persistence.
-
-Never invent a vault path.
-
-Never fall back to an unrelated zettel directory merely to force a write.
+If either is unconfigured, skip persistence. Never invent a vault path or fall back to an unrelated zettel directory.
 
 ## Template Authority
 
 Read the actual configured SRS card template before creating or updating a card.
 
-Do not copy a stale frontmatter layout from this skill.
+The template owns frontmatter keys and sections. Do not carry a copied card schema here.
 
 ## Existing Card Match
 
-Within the configured target-language deck, look for a card representing the same learning item.
+Within the configured target-language deck, look for a card representing the same learning item using the template's stable identity fields.
 
-Prefer the template's stable identity fields.
+When the active template contains `NbEncounter`:
 
-When the active template uses the legacy `NbEncounter` field:
+- no existing card → create with the template's initial value;
+- existing value `< 3` → increment by exactly 1 when the new encounter is worth recording;
+- existing value `>= 3` → normally skip the update as already familiar.
 
-- no existing card → candidate starts at `1`;
-- existing value `< 3` → propose increment by exactly `1`;
-- existing value `>= 3` → suppress that card candidate as already familiar.
+Do not mutate a counter merely because a card was read.
 
-Do not mutate `NbEncounter` merely because a card was read outside this gadget.
+## Card Content
 
-## Candidate Content
-
-Preserve:
+Populate only information supported by the current language drop:
 
 - learning item;
-- language;
-- card type;
+- language/card type required by the template;
 - concise meaning;
-- contextual sentence from this drop;
+- contextual sentence;
 - translation;
 - optional grammar explanation;
-- provenance pointing to the current delivered response when the backend supports source tracing.
+- provenance when the template supports it.
 
-## Mutation Boundary
+## Write Boundary
 
-The gadget itself does not gain filesystem authority from being randomly selected.
+Persistence requires an authorized file-write capability independent of this skill.
 
-Dispatch persistence only through the host's authorized vault-write path.
+Before writing:
 
-A failed, blocked, duplicate, or unavailable write must:
+1. read the current target/template state;
+2. preserve unrelated existing card content;
+3. avoid overwriting an unexpected conflicting card.
 
-- remain backend-only when the gadget was optional;
-- not change the visible drop;
-- never be reported as successful.
+After writing, read the changed card back and verify the intended fields/content.
 
-## Chatbot Mode
-
-If chatbot mode forbids local vault mutation, skip persistence.
-
-Do not weaken chatbot file-access restrictions for an SRS drop.
+A blocked, duplicate, unavailable, or failed write does not invalidate the visible language drop and must never be reported as successful.

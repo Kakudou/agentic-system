@@ -35,7 +35,7 @@
 
 ## Handoff
 
-- Recommended next authorized owner:
+- Recommended next step:
 - Questions requiring program clarification:
 - Evidence locations or approved artifact references:
 - Facts vs. hypotheses note:

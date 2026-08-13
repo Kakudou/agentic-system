@@ -17,12 +17,12 @@ Candidate evidence may include:
 
 Typical Council emphasis:
 
-- Keima: bugs, security, races, edge cases;
-- Kakugyō: architecture, coupling, interfaces;
-- Fuhyō: accidental complexity, duplication;
-- Kyōsha: standards, idioms, established patterns;
-- Hisha: API ergonomics, naming, UI polish;
-- Kinshō: maintenance/operational cost.
+- Skeptic: bugs, security, races, edge cases;
+- Architect: architecture, coupling, interfaces;
+- Minimalist: accidental complexity, duplication;
+- Context Scout: standards, idioms, established patterns;
+- Aesthetician: API ergonomics, naming, UI polish;
+- Economist: maintenance/operational cost.
 
 Never treat "code compiles" as proof of behavioral correctness unless compilation is the criterion.
 

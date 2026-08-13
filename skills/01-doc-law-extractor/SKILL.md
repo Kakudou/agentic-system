@@ -1,30 +1,24 @@
 ---
 name: 01-doc-law-extractor
-description: "Evaluate completed or implemented work for durable engineering laws, then create, update, supersede, or explicitly decline law records from actual repository evidence. Use after feature work, review, or acceptance when architecture, interfaces, dependencies, persistence, security, performance, or cross-cutting conventions may have established a reusable rule future work must follow."
+description: "Evaluate completed or implemented work for durable engineering laws, then create, update, supersede, or explicitly decline law records from actual evidence. Use after meaningful work when architecture, interfaces, dependencies, persistence, security, performance, or cross-cutting conventions may have established a reusable rule future work should follow."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# Doc - Law Extractor
+# Law Extractor
 
-Evaluate whether completed work forged a durable law the repository should preserve. If it did,
-write or update the appropriate law records. If it did not, return explicit no-law reasoning.
+Evaluate whether completed work forged a durable law worth preserving. If it did, write or update the appropriate law record. If not, explain why no law is warranted.
 
-A law is **normative and reusable**. It captures a rule, boundary, convention, or governing choice
-that future work is expected to respect. It is not a changelog entry, implementation summary, or
-ceremonial record of every feature.
-
-This skill is optional post-close work unless an approved acceptance contract explicitly requires
-law evidence. It does not create another delivery phase.
+A law is **normative and reusable**. It captures a rule, boundary, convention, or governing choice that future work is expected to respect. It is not a changelog entry or ceremonial record of every feature.
 
 ## Usage
 
-`/01-doc-law-extractor {feature-name}`
+`/01-doc-law-extractor {completed-work-or-feature}`
 
-When no feature name is supplied, evaluate the completed or available work in the current context.
+When no explicit source is supplied, use the completed or inspectable work in the current context.
 
-## Canonical Resources
+## Resources
 
 Always read:
 
@@ -33,99 +27,90 @@ Always read:
 
 Read when needed:
 
-- [Identifier and storage](references/identifier-and-storage.md) before creating a new law.
-- [Lifecycle and supersession](references/lifecycle-and-supersession.md) when an existing law is
-  affected, contradicted, replaced, revoked, or superseded.
+- [Identifier and storage](references/identifier-and-storage.md) before creating a law.
+- [Lifecycle and supersession](references/lifecycle-and-supersession.md) when an existing law is affected.
 - [Law writing guide](references/law-writing-guide.md) before drafting a law body.
-- [Migration notes](references/migration-from-decisions.md) when updating callers, paths, schemas,
-  or older records that still use the previous decision terminology.
 
-Use:
-
-- [Canonical law template](assets/law-template.md) for every new law.
-- [Result schema](assets/law-result-schema.yaml) for the caller-facing result.
+Use [law template](assets/law-template.md) for each new law unless the repository already defines an authoritative law template. When a repository template exists, it wins.
 
 ## Hard Rules
 
-- MUST evaluate law worthiness explicitly. Never silently skip the evaluation.
-- NEVER create a law merely because work was completed.
-- NEVER create a law merely because a dependency, interface, or implementation detail exists.
-- NEVER invent rationale, alternatives, tradeoffs, incidents, constraints, or lessons.
-- MUST ground every material law statement in repository or workflow evidence.
-- MUST return either one or more law changes or non-empty `no_law_reasoning`.
-- MUST inspect relevant existing laws before creating a potentially overlapping law.
-- MUST keep one law centered on one quotable governing rule.
-- MUST preserve the canonical law template's frontmatter keys and section order.
-- MUST use `law` terminology in current outputs and paths. Do not emit the retired decision schema.
-- Fuhyō executes this skill atomically. Hisha owns broader narrative documentation outside this
-  skill's scope.
+- Evaluate law worthiness explicitly; never create a law merely because work completed.
+- Never create a law merely because an implementation detail exists.
+- Never invent rationale, alternatives, tradeoffs, incidents, constraints, or lessons.
+- Ground every material law statement in available evidence.
+- Inspect relevant existing laws before creating a potentially overlapping law.
+- Keep one law centered on one quotable governing rule.
+- Prefer updating an existing governing law over creating a near-duplicate.
+- Preserve the authoritative law template's frontmatter keys and section order.
+- Use current `law` terminology for new records.
+- Do not turn law extraction into broader narrative documentation.
 
 ## Workflow
 
-### 1. Reconstruct what actually happened
+### 1. Reconstruct the completed work
 
-Inspect the strongest available evidence for the completed work: behavior contracts, implementation,
-tests, review findings, operational evidence, and relevant existing laws.
+Inspect the strongest available evidence: accepted behavior, implementation, tests, review findings, operational evidence, and relevant existing laws.
 
 Do not infer a law from a feature name or completion status alone.
 
 ### 2. Evaluate law worthiness
 
-Apply the trigger policy.
+Apply [law trigger policy](references/law-trigger-policy.md).
 
-A candidate law must describe a durable rule future work should obey, not merely a local fact about
-the current implementation.
-
-Classify each candidate as:
+Classify the result as one of:
 
 - `LAW_REQUIRED`
 - `LAW_UPDATE_REQUIRED`
 - `LAW_SUPERSESSION_REQUIRED`
 - `NO_LAW`
+- `BLOCKED`
 
-### 3. Resolve overlap with existing laws
+A candidate must describe a durable rule future work should obey, not a local fact about the current implementation.
 
-Before creating a new law, search the canonical law directory for:
+### 3. Resolve overlap
+
+Search the repository's law records for:
 
 - the same rule stated differently;
 - a broader law that already governs the case;
 - a conflicting or obsolete law;
 - a law that should be amended rather than duplicated.
 
-Prefer updating the governing law over creating near-duplicates.
-
-### 4. Create or mutate records
+### 4. Create or update records
 
 For a new law:
 
-1. allocate the next identifier using the identifier reference;
-2. instantiate `assets/law-template.md`;
+1. allocate a collision-free identifier according to [identifier and storage](references/identifier-and-storage.md);
+2. instantiate the authoritative law template;
 3. populate only evidence-supported content;
-4. preserve the template's structure;
+4. preserve template structure;
 5. include a concrete mutation trigger;
-6. write the record to the canonical law directory.
+6. write the record to the configured/canonical law location.
 
-For changes to existing laws, follow the lifecycle and supersession reference.
+For changes to existing laws, follow [lifecycle and supersession](references/lifecycle-and-supersession.md).
 
 ### 5. Validate
 
-Before returning success, verify:
+Before completion verify:
 
-- every law has a single clear governing statement;
+- one clear governing statement per law;
 - every factual or historical claim is supported;
 - no alternative or lesson was invented;
-- the law is durable beyond the feature that caused it;
-- overlapping existing laws were checked;
+- the rule is durable beyond the feature that exposed it;
+- overlapping laws were checked;
 - supersession metadata is reciprocal when applicable;
 - identifiers and paths are valid;
-- the canonical template structure is preserved;
-- caller result matches `assets/law-result-schema.yaml`.
-
-If no candidate survives validation, return `law_required: false` with non-empty reasoning.
+- template structure is preserved.
 
 ## Output
 
-Return only the structured result required by `assets/law-result-schema.yaml`, plus concise error
-context when execution is blocked.
+Return a concise human-readable result containing:
 
-Do not paste full law bodies into the caller result unless explicitly requested.
+- classification;
+- laws created, updated, or superseded, with paths;
+- the governing rule/trigger for each affected law;
+- non-empty reasoning when no law is required;
+- blocker and missing evidence when the evaluation cannot complete.
+
+Do not require a versioned result envelope solely for downstream orchestration.

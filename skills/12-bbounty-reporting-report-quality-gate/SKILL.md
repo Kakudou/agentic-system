@@ -2,7 +2,7 @@
 name: 12-bbounty-reporting-report-quality-gate
 description: Review an evidence-led security report for factual completeness, traceable claims, safe disclosure, and a clear reviewer handoff without testing, scoring, or submission activity.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -56,7 +56,6 @@ report_review_handoff:
   redaction_status: complete | review-required | stop
   required_revisions: [string]
   unresolved_questions: [string]
-  handoff_recipient: string
   requested_decision: string
 ```
 

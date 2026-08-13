@@ -29,7 +29,7 @@ Test output, benchmark result, schema comparison, dependency diff. "The endpoint
 
 ### Council gate
 
-A Keima-discovered crash on a valid edge-case request is a blocker even if the exact case was absent from tests, because the endpoint goal would be nonfunctional. Hisha preferring different response naming is not a blocker if the schema fixes the names.
+A Skeptic-discovered crash on a valid edge-case request is a blocker even if the exact case was absent from tests, because the endpoint goal would be nonfunctional. Aesthetician preferring different response naming is not a blocker if the schema fixes the names.
 
 ## Example B — executive report against a reference
 
@@ -57,7 +57,7 @@ Source mapping for facts, direct excerpts, page count, blind A/B comparison agai
 
 ### Council gate
 
-Kyōsha may recommend industry background; it is stretch unless required to understand the incident or by the bar. A factual contradiction found by Keima is a blocker.
+Context Scout may recommend industry background; it is stretch unless required to understand the incident or by the bar. A factual contradiction found by Skeptic is a blocker.
 
 ## Example C — product landing page against a visual benchmark
 
@@ -77,7 +77,7 @@ Rendered screenshots, responsive inspection, accessibility checks, dependency di
 
 ### Council gate
 
-Do not let Hisha approve from source code alone; the visual bar requires rendered evidence. A gorgeous page that violates required accessibility remains FAIL.
+Do not let Aesthetician approve from source code alone; the visual bar requires rendered evidence. A gorgeous page that violates required accessibility remains FAIL.
 
 ## Example D — operational rollout plan
 
@@ -97,4 +97,4 @@ Service coverage table, dependency graph inspection, schedule duration calculati
 
 ### Council gate
 
-Kinshō can flag operator overload as a practical blocker if the plan cannot be executed by two operators. Extra dashboards are stretch unless necessary for the stated validation steps.
+Economist can flag operator overload as a practical blocker if the plan cannot be executed by two operators. Extra dashboards are stretch unless necessary for the stated validation steps.

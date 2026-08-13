@@ -7,7 +7,7 @@ Prevent unsupported interpretations from becoming engagement authorization.
 ## Preconditions
 
 - Source, scope, restrictions, and disclosure entries have evidence references.
-- A downstream owner or program clarification channel is known.
+- A program clarification or authorized review channel is known.
 
 ## Documentation Methodology
 
@@ -19,7 +19,7 @@ Prevent unsupported interpretations from becoming engagement authorization.
 ## Interpretation And Uncertainty Controls
 
 - Never resolve ambiguity in favor of broader scope, greater access, or more intrusive activity.
-- A downstream team's risk appetite cannot replace program authorization.
+- A downstream reviewer's risk appetite cannot replace program authorization.
 - Confidence measures evidence quality, not legal validity or operational safety.
 - Do not use later documents to silently rewrite the evidence for an earlier intake.
 

@@ -1,8 +1,8 @@
 ---
 name: 97-gadget-random-srs
-description: "Append a compact random Japanese or German SRS language drop derived from concepts already present in a completed response. Use only when the response-finalizer selects this gadget. Randomly choose the target language, teach a few context-relevant vocabulary items and optionally one grammar point, and emit bounded SRS card candidates for optional backend persistence."
+description: "Append a compact Japanese or German language-learning drop derived from concepts already present in a completed response. Randomly choose the target language, teach a few context-relevant vocabulary items and optionally one grammar point, and optionally persist matching SRS cards when a configured vault and authorized write capability are available."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -10,27 +10,15 @@ metadata:
 
 Append a tiny language-learning drop based on the completed response.
 
-This gadget does not own its outer trigger.
-
 ## Usage
 
 `/97-gadget-random-srs`
 
-The caller supplies the completed main response.
+Input: the completed main response.
 
-## Load Order
+Always read [references/language-extraction.md](references/language-extraction.md).
 
-Always read:
-
-- [Language extraction](references/language-extraction.md)
-
-Read only when persistent SRS storage is available and authorized:
-
-- [SRS persistence handoff](references/srs-persistence.md)
-
-Use:
-
-- [SRS candidate schema](assets/srs-candidate-schema.yaml)
+Read [references/srs-persistence.md](references/srs-persistence.md) only when persistent SRS storage is both configured and writable.
 
 ## Language Selection
 
@@ -39,71 +27,59 @@ Randomly choose:
 - Japanese: approximately 60%
 - German: approximately 40%
 
-Do not reroll merely because one language is harder for the current topic.
-
-If the selected language cannot produce a useful drop from the response, suppress the gadget.
+Do not reroll merely because one language is harder for the current topic. If the selected language cannot produce a useful drop, append nothing.
 
 ## Hard Rules
 
 - Never alter the completed main response.
-- Never trigger or reroll another gadget.
-- Never fabricate a fact from the main response.
-- Language teaching may translate/re-express concepts already present, but must not add unrelated
-  subject matter.
+- Never add unrelated subject matter.
 - Never invent uncertain Japanese readings, pitch accent, German grammar, or usage claims.
 - Maximum 3 vocabulary/phrase items.
 - Maximum 1 grammar point.
 - Keep the drop compact.
-- Do not claim a card was persisted unless a separate backend write actually succeeded.
-- Visible delivery must not depend on vault persistence succeeding.
+- Do not claim a card was persisted unless the write actually succeeded and was verified.
+- Visible delivery does not depend on persistence succeeding.
+- Enclose the visible gadget appendix in the generic ephemeral markers shown below. Persistent SRS cards, when explicitly written, remain normal knowledge artifacts and are not part of those markers.
 
 ## Workflow
 
 ### 1. Fit Check
 
-Suppress when:
-
-- the main response is trivial;
-- there is too little meaningful content to mine;
-- a language-learning appendage would be contextually inappropriate;
-- the answer is already too long.
+Append nothing when the main response is trivial, contains too little useful material, is already long, or is contextually inappropriate for a language-learning appendage.
 
 ### 2. Select Language
 
 Choose Japanese or German using the 60/40 split.
 
-Randomness occurs after invocation only.
+### 3. Mine Concepts
 
-### 3. Mine Concepts from the Main Response
+Select one to three useful words, phrases, or concepts already present in the main response and re-express them naturally in the target language.
 
-Select one to three useful words/phrases/concepts already present in the response.
+When useful, choose one grammar construction demonstrated by the examples.
 
-Re-express them naturally in the selected target language.
+### 4. Prepare Optional Card Material
 
-When useful, choose one grammar pattern demonstrated by the mini examples.
+For each taught item, retain enough information to create an SRS card later:
 
-Follow `references/language-extraction.md`.
+- target-language item;
+- reading when relevant and known;
+- concise English meaning;
+- contextual target-language example;
+- English translation;
+- optional grammar pattern/explanation.
 
-### 4. Build Card Candidates
-
-For each taught item emit an internal candidate conforming to
-`assets/srs-candidate-schema.yaml`.
-
-The candidate is a persistence handoff, not proof of a write.
+This is ordinary working data, not a versioned handoff schema.
 
 ### 5. Optional Persistence
 
-When the current mode/backend permits vault mutation and the required SRS root/template are
-configured, follow `references/srs-persistence.md`.
+If an authorized write capability and a configured SRS location/template are available, follow [references/srs-persistence.md](references/srs-persistence.md).
 
-If persistence is unavailable, unconfigured, blocked, or fails, continue with the visible drop
-without claiming persistence.
+If persistence is unavailable, unconfigured, blocked, or fails, continue without claiming a write.
 
 ### 6. Append
 
-Append:
-
 ```markdown
+<!-- otsumi-ephemeral:start -->
 ---
 ### 📚 Random SRS — <Japanese|German>
 
@@ -112,14 +88,9 @@ Append:
 
 - **Grammar: <pattern>** — <one-line explanation>
   - `<example>` → `<translation>`
+<!-- otsumi-ephemeral:end -->
 ```
 
 Omit the grammar section when no useful grammar point fits.
 
-Do not expose internal card/persistence metadata in the visible drop.
-
-## Suppression
-
-Return `NO_DROP` internally when fewer than one useful, trustworthy teaching item can be produced.
-
-Never force vocabulary merely to satisfy the gadget slot.
+If no trustworthy teaching item can be produced, append nothing.

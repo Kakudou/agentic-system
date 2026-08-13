@@ -183,7 +183,7 @@ Use:
 
 - trust-zone frames
 - distinct asset and actor shapes
-- Dried Blood only for evidenced or explicitly hypothetical hostile paths
+- warning/exception accent only for evidenced or explicitly hypothetical hostile paths
 - controls positioned at the boundary or step they affect
 - assumptions and uncertainty visible
 
@@ -247,5 +247,5 @@ Each frame must have:
 - a distinct job
 - a clear entry point
 - stable visual semantics
-- a unique Ōtsumi filigrane
+- an optional maker mark only when explicitly requested
 - links or visual cues showing how it relates to the other frames

@@ -43,5 +43,4 @@ Never write the behavior you wish the code had.
 
 Every generated feature is `draft-recovered`.
 
-It becomes an accepted behavior contract only through a later approval/planning process such as
-`05-dev-bdd-doctrine`.
+It becomes an accepted behavior contract only through a later explicit approval/planning process.

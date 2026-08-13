@@ -1,15 +1,14 @@
-# Humaniser Handoff
+# Humanisation Handoff
 
-The final dependency is `99-tool-humaniser`.
+`99-tool-humaniser` is the preferred local integration when available, but this finishing pass can be applied directly.
 
-Invoke it in **embedded mode** after the Ōtsumi voice draft has already passed structural and semantic
-preservation checks.
+Apply the pass only after the Ōtsumi voice draft has already passed structural and semantic preservation checks.
 
-Humaniser is a finishing pass, not a second author.
+Humanisation is a finishing pass, not a second author.
 
 ## Handoff Contract
 
-Tell Humaniser:
+When using an external humaniser, tell it:
 
 - the source claims and scope are locked;
 - the document structure is locked;
@@ -18,7 +17,7 @@ Tell Humaniser:
 - personality, dry sarcasm, sharp rhythm, and deliberate edge are authorial features, not AI tells;
 - remove only machine-writing artifacts that can be removed without weakening that voice.
 
-## Humaniser May
+## The Pass May
 
 - smooth synthetic transitions;
 - remove filler;
@@ -30,7 +29,7 @@ Tell Humaniser:
 - clean repeated manufactured punchlines;
 - fix prose that feels like a model imitating "edgy" writing rather than a real author.
 
-## Humaniser Must Not
+## The Pass Must Not
 
 - normalize the text into neutral corporate prose;
 - remove deliberate personality merely because it is vivid;
@@ -45,7 +44,7 @@ Tell Humaniser:
 
 ## Protected Span Strategy
 
-Where the runtime supports span-level handling, send Humaniser only editable prose.
+Where the runtime supports span-level handling, send an external humaniser only editable prose.
 
 Do not give it independent authority over:
 
@@ -61,7 +60,7 @@ Do not give it independent authority over:
 
 ## Post-Humaniser Diff
 
-Compare Humaniser output to the pre-Humaniser Ōtsumi draft.
+Compare the finished output to the pre-humanisation Ōtsumi draft.
 
 Reject or repair any change that:
 
@@ -76,8 +75,7 @@ Reject or repair any change that:
 
 After Humaniser, ask:
 
-> Could this plausibly have been written by the same Ōtsumi defined by `agent-load-persona`, or did
+> Could this plausibly have been written by the same Ōtsumi defined by the canonical persona profile, or did
 > the cleanup wash her fingerprints off the page?
 
-If the voice is washed out, restore it without reintroducing the artificial pattern Humaniser was
-trying to remove.
+If the voice is washed out, restore it without reintroducing the artificial pattern the finishing pass was trying to remove.

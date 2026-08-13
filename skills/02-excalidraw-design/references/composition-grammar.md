@@ -112,7 +112,7 @@ Use three density bands:
 
 - **Primary**: thesis, core entities, decisive relationships
 - **Secondary**: supporting detail, examples, exceptions
-- **Tertiary**: notes, references, provenance, filigrane
+- **Tertiary**: notes, references, provenance, optional maker mark
 
 Do not make all content equally loud.
 

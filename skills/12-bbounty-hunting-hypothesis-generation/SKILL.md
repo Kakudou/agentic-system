@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-hypothesis-generation
 description: Synthesize authorized, provenance-labeled observations into bounded security hypotheses. Planning only; no scanning, payloads, exploitation, or active testing.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

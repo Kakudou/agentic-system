@@ -1,9 +1,9 @@
 ---
-name: 99-tools-last30days
-description: Research what was said, shipped, debated, recommended, published, or predicted about a topic during the last 30 days using only the host agent's existing web, search, browser, and connector capabilities. Use for recent developments, community sentiment, product research, software/project activity, people, research, comparisons, trends, or predictions where multi-source freshness and explicit coverage matter.
+name: 99-tool-last30days
+description: Research what was said, shipped, debated, recommended, published, or predicted about a topic during the last 30 days using only the host's existing web, search, browser, and connector capabilities. Use for recent developments, community sentiment, product research, software/project activity, people, research, comparisons, trends, or predictions where multi-source freshness and explicit coverage matter.
 compatibility: Requires host-provided network/search/browser access to public sources. No bundled runtime, scripts, API keys, database, cache, or package installation.
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: 'true'
 ---
 
@@ -11,11 +11,11 @@ metadata:
 
 Research a topic over an exact recent time window without shipping a search engine inside the skill.
 
-This skill is an **orchestrator**. Source-specific acquisition knowledge lives in `references/*.md` and is loaded only when that source is selected.
+This skill coordinates a bounded research workflow. Source-specific acquisition knowledge lives in `references/*.md` and is loaded only when that source is selected.
 
 ## Invariants
 
-1. Use only capabilities already exposed by the host agent.
+1. Use only capabilities already exposed by the host.
 2. Do not install tools, require API keys, create databases/caches, or run bundled code.
 3. Compute and state an exact research window internally before searching.
 4. Resolve ambiguous entities before broad fan-out.

@@ -11,7 +11,7 @@ Prefer, roughly in this order:
 
 1. explicit links from the seed;
 2. generic parent or derived siblings when the zettel model exposes them;
-3. strong semantic neighbors from `kb-obsidian-search`;
+3. strong semantic neighbors found with the available read-only search capability inside the overview-resolved eligible zettel roots;
 4. a smaller number of related notes that add contrast or a missing angle.
 
 Avoid collecting several notes that all restate the same claim.

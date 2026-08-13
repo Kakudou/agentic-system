@@ -2,7 +2,7 @@
 name: 12-bbounty-engagement-scope-normalisation
 description: Produce an evidence-bound, non-expanding normalized engagement scope from authorized program material.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -48,7 +48,7 @@ Deliver a static normalized-scope package containing:
 - Included identifiers, exclusions, restrictions, and conditions, each traceable to source text.
 - Identifier/restriction matrix and unresolved-items register.
 - Explicit statement that no target expansion or active validation occurred.
-- Versioned engagement handoff and named follow-up owner.
+- Versioned engagement handoff and named follow-up/clarification channel.
 
 ## Supplemental Index
 

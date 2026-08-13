@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-finding-capture
 description: Capture an in-scope security observation as a bounded, evidence-led finding handoff without active testing, severity scoring, or report generation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

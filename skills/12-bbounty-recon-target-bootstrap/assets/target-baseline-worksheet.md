@@ -27,4 +27,4 @@
 | Requests observed or count unavailable | |
 | Rate/safety signals | |
 | Stop condition triggered | |
-| Next authorized owner or clarification channel | |
+| Recommended next step or clarification channel | |

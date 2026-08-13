@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-api-discovery
 description: Record an authorized API surface from declared documentation and naturally observed client traffic without probing, enumeration, or introspection.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

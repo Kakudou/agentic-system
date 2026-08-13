@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-passive-recon
 description: Produce authorized, evidence-bound passive reconnaissance observations without contacting target infrastructure or handling sensitive data beyond need.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

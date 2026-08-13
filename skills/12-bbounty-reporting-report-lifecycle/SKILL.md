@@ -2,7 +2,7 @@
 name: 12-bbounty-reporting-report-lifecycle
 description: Document the evidence-led lifecycle of an already approved vulnerability report without polling platforms, messaging, submission, or escalation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -7,7 +7,7 @@ Set a transparent order for human review of authorized surface records without f
 ## Preconditions
 
 - Entries are in scope and supported by admissible evidence.
-- The review objective, capacity constraint, and receiving owner are known.
+- The review objective, capacity constraint, and authorized review channel are known.
 
 ## Evidence-Led Methodology
 
@@ -29,7 +29,7 @@ Prioritization uses retained evidence only. It does not authorize discovery, val
 
 ## Evidence And Handoff
 
-Hand off the order, stated considerations, evidence references, uncertainty, entries on hold, and the owner decision or authorization needed before any later work.
+Hand off the order, stated considerations, evidence references, uncertainty, entries on hold, and the decision or authorization needed before any later work.
 
 ## Sources
 

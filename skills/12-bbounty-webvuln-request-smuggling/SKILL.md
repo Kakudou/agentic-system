@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-request-smuggling
 description: Authorization-bounded HTTP message-framing assessment for identifying and safely validating potential request desynchronization.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-attack-surface-priorisation
 description: Synthesize already authorized reconnaissance evidence into a transparent, non-exploitative surface review and handoff.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -16,7 +16,7 @@ Organize already authorized reconnaissance evidence into a bounded, transparent 
 
 - Written authorization with exact scope, evidence-handling rules, and stop contact.
 - Existing, attributable reconnaissance evidence gathered within that authorization.
-- A receiving owner or approved review process for the handoff.
+- An authorized review recipient/channel or approved review process for the handoff.
 
 ## Workflow
 
@@ -47,7 +47,7 @@ attack_surface_review:
       review_order: now | next | hold
       rationale: string
       limitations: [string]
-  handoff_owner: string
+  authorized_review_recipient_or_channel: string
   requested_decision: string
 ```
 

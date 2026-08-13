@@ -1,12 +1,10 @@
-# Proposal and Inventory
+# Proposal and Mutation Boundary
 
-Kyōsha owns this read-only phase.
-
-The proposal is a possible future complete `graph.json` replacement. It is never authorization.
+The proposal is a complete, reviewable future Graph View configuration. It is not authorization by itself.
 
 ## Bounded Inputs
 
-Accept concrete requests:
+Accept concrete requests such as:
 
 - literal search expression;
 - search reset;
@@ -15,43 +13,29 @@ Accept concrete requests:
 - explicit supported display values;
 - explicit supported force values.
 
-Reject unbounded requests like:
+Reject unbounded discovery requests such as:
 
 - "scan the vault and pick good groups";
 - "discover my projects";
 - "organize everything intelligently";
-- "find all useful tags."
+- "find all useful tags".
 
-## Closed Inventory
+Those require a different retrieval/discovery capability.
 
-Before preflight, close every literal file the formal plan may access.
+## Proposal
 
-Typical candidates:
+Build the proposed complete JSON object from the current parsed object.
 
-- resolved existing `graph.json`;
-- exact overview descriptor if the manifest reads it;
-- explicitly required overview-resolved templates.
+Record the exact changed fields and their old/new values. Preserve every untouched value.
 
-No directory enumeration is allowed.
+## Approval Boundary
 
-## Complete Final Bytes
+Before mutation:
 
-The proposal contains complete final bytes, not a patch Fuhyō must interpret.
+1. show the exact field-level diff;
+2. state the literal target file;
+3. obtain explicit approval;
+4. re-read the target before writing;
+5. stop if current state drifted from the proposal basis.
 
-Kyōsha owns parsing, merging, formatting, and validation.
-
-## Exact Diff
-
-Identify at least:
-
-- changed field;
-- old value;
-- proposed value;
-- complete `colorGroups` replacement when applicable;
-- `search` change/reset.
-
-State that untouched values remain preserved.
-
-## No Implicit Activation
-
-Diffs, previews, selections, summaries, and conversational approval are proposal artifacts only.
+The write must not reinterpret the proposal or choose additional changes.

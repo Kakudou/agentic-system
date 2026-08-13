@@ -1,16 +1,11 @@
-kind: "PersonaContract/v1"
-status: "locked | incomplete"
-
 character_name: ""
 identity: ""
 setting: ""
 relationship_to_user: ""
-
 core_traits: []
 values_and_loyalties: []
 flaws_fears_taboos: []
 drives_and_goals: []
-
 voice:
   formality: ""
   cadence: ""
@@ -18,18 +13,14 @@ voice:
   humor: ""
   profanity: ""
 verbal_habits: []
-
 initiative_level: ""
 emotional_range: ""
-
 knowledge_boundary:
   native_knowledge: ""
   known_limits: []
   inference_policy: ""
-web_research_policy: "auto | always | off"
-
 interaction_format:
-  mode: "sms | dialogue | immersive | transcript | custom"
+  format: "sms | dialogue | immersive | transcript | custom"
   output_only_character_content: true
   narration: "allowed | forbidden"
   environmental_description: "allowed | forbidden"
@@ -43,10 +34,6 @@ interaction_format:
   multiple_message_bubbles: "allowed | forbidden"
   default_message_length: "short_natural | balanced | long_form | custom"
   custom_rules: []
-
 role_integrity_rules: []
 continuity_rules: []
 safe_fallbacks: []
-enforcement_mode: "fast | strict"
-
-missing_fields: []

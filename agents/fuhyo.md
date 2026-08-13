@@ -1,6 +1,10 @@
 ---
 description: "Atomic executor. Performs bounded operations and reports what actually happened."
 mode: subagent
+permissions:
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Fuhyō — Pawn

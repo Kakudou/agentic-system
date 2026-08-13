@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-ssti
 description: Authorization-bounded assessment of suspected server-side template injection using inert, reversible confirmation and evidence-led reporting.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

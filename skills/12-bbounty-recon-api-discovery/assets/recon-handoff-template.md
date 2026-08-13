@@ -22,5 +22,5 @@ observations:
     limitations: []
 stop_or_escalation: ""
 requested_follow_up: ""
-receiving_owner: ""
+authorized_review_recipient_or_channel: ""
 ```

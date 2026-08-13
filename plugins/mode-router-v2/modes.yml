@@ -1,53 +1,99 @@
-# OpenCode2 V2 mode-router configuration.
+# OpenCode V2 mode-router configuration.
 #
-# Edit this file to add/remove modes. No JavaScript changes are required.
-# Changes are hot-reloaded automatically on the next model request or tool call.
-#
-# Matching:
-#   *  = any number of characters
-#   ?  = one character
-#
-# A skill is MODE-MANAGED only if it matches at least one pattern appearing
-# anywhere in managed_prefixes, prefixes_allowed, or prefixes_denied.
-# Everything else is PASS-THROUGH and remains governed only by OpenCode's
-# normal agent permissions.
-#
-# Within a managed mode:
-#   DENY wins over ALLOW.
-#   If no allow rule matches, the managed skill is denied.
-#
-# "extends" is optional and can be a string or list. Parent rules are inherited.
+# Runtime modes are enforced here, not in agents or skills.
+# A skill is mode-managed when it matches any pattern appearing in a mode rule.
+# Managed skills that are not allowed by the active mode are denied.
+# Unmanaged skills pass through to normal OpenCode permissions.
 
 version: 1
 default_mode: dev
 
 mode:
   - name: dev
-    description: General development workflow
+    description: General development and real-work capabilities
+    agents_allowed:
+      - "kinsho"
+      - "kakugyo"
+      - "kyosha"
+      - "keima"
+      - "fuhyo"
+      - "ginsho"
+      - "hisha"
     prefixes_allowed:
-      - "dev-*"
+      - "00-agent-create-skill"
+      - "01-doc-*"
+      - "02-excalidraw-*"
+      - "03-kb-*"
+      - "04-git-*"
+      - "05-dev-*"
+      # Reserved JohnnyDecimal families. No current skill package is required
+      # for these patterns to remain protected if capabilities are added later.
+      - "07-opencti-*"
+      - "08-openaev-*"
+      - "12-bbounty-*"
 
   - name: dev-python
-    description: Python-focused development; keeps generic dev skills but excludes Java
+    description: Python-focused development; extends general development
     extends: dev
     prefixes_allowed:
-      - "dev-python-*"
-    prefixes_denied:
-      - "dev-java-*"
+      - "06-python-*"
 
-  - name: video-edit
-    description: Video editing workflow
+  - name: gamemaster
+    description: Pen-and-paper and campaign workflows
+    agents_allowed:
+      - "kinsho"
+      - "kakugyo"
+      - "kyosha"
+      - "keima"
+      - "fuhyo"
+      - "ginsho"
+      - "hisha"
+    tools_denied:
+      - "read"
+      - "glob"
+      - "grep"
+      - "edit"
+      - "write"
+      - "patch"
+      - "shell"
+      - "execute"
     prefixes_allowed:
-      - "video-edit-*"
+      # Reserved families; the global gamemaster invariants remain usable even
+      # before system-specific RPG skill packages are installed.
+      - "10-rpg-*"
+      - "11-shadowrun-*"
 
   - name: chatbot
-    description: Chatbot, persona, and role-play workflow
+    description: Persona-driven two-person roleplay chatbot workflow
+    agents_allowed:
+      - "kyosha"
+      - "keima"
+    tools_denied:
+      - "read"
+      - "glob"
+      - "grep"
+      - "edit"
+      - "write"
+      - "patch"
+      - "shell"
+      - "execute"
     prefixes_allowed:
-      - "chat-*"
-      - "persona-*"
-      - "rp-*"
+      - "09-rp-*"
 
-# Optional: patterns you want the router to own even if no mode currently
-# allows/denies them. Usually you can leave this empty because the managed
-# universe is derived automatically from the mode rules.
+  - name: video-edit
+    description: Remotion video and motion-design workflow
+    agents_allowed:
+      - "kinsho"
+      - "kakugyo"
+      - "kyosha"
+      - "keima"
+      - "fuhyo"
+      - "ginsho"
+      - "hisha"
+    prefixes_allowed:
+      - "99-tool-remotion-design"
+
+# Persona continuity, explicit Dream, optional gadgets, external helper skills, and general
+# tools remain pass-through unless explicitly managed above. Skill creation is a dev mutation
+# capability and is therefore explicitly mode-managed.
 managed_prefixes: []

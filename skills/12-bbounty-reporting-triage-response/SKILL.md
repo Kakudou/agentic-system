@@ -2,7 +2,7 @@
 name: 12-bbounty-reporting-triage-response
 description: Prepare evidence-led, privacy-safe triage-response records from supplied bug-bounty material without sending messages, retesting, or disputing decisions.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-web-cache-deception
 description: Authorization-bounded assessment of whether caches can store a controlled account's dynamic response under a cacheable-looking path.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -1,6 +1,19 @@
 ---
 description: "Requirements and contract owner. Defines what success means and what is out of scope."
 mode: subagent
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: shell
+    resource: "*"
+    effect: deny
+  - action: execute
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 # Kinshō — Gold General

@@ -1,97 +1,135 @@
 ---
 name: 12-bbounty-webvuln-sql-injection
-description: SQL injection detection and exploitation. Union-based, error-based, blind boolean/time, OOB (DNS), DBMS auto-detection, schema extraction, and data dumping.
+description: "Assess an authorized web input for SQL injection using low-impact differential evidence. Establish a stable baseline, confirm SQL-dependent behavior with harmless controls, identify the likely injection class when useful, stop at minimum necessary proof, and document remediation without retrieving application data."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# SQL Injection
+# SQL Injection Assessment
 
-## Overview
+Assess whether an in-scope input can alter a backend SQL query.
 
-Detect and exploit SQL injection vulnerabilities across all variants. Tests union-based, error-based, blind boolean/time, and OOB techniques with automatic DBMS detection and schema extraction.
+The objective is a defensible finding, not database exploration.
 
-## Prerequisites
+## Preconditions
 
-- Target URL(s) with known parameters
-- Recon data (parameters, endpoints)
-- DBMS type (if known)
+Require:
 
-## Execution Workflow
+- an explicitly authorized target and input;
+- the current engagement limits for request rate and sensitive data;
+- a reproducible baseline request;
+- a clear stop condition.
 
-### Step 1: DBMS Auto-Detection
+If scope is ambiguous, stop before active testing.
 
-1. Capture a normal response baseline for each in-scope input and record status, body shape, and latency.
-2. Use small, authorized differential probes to establish whether query parsing is influencing the response.
-3. Treat error wording, function behavior, and syntax acceptance as hypotheses, not proof, until independently confirmed.
+## Workflow
 
-Read [evidence-based DBMS detection](references/dbms-detection.md) once a candidate exists. Use the [DBMS syntax and safe-probe lookup](assets/dbms_payloads.md) only for the candidate database family.
+### 1. Establish a Baseline
 
-### Step 2: Union-Based Injection
+Capture repeated normal requests using the same session, method, and input shape.
 
-After a stable observable injection candidate is established, determine whether the response can display compatible query output. Confirm the column structure and data compatibility incrementally, then collect only minimum-necessary proof.
+Record only the response properties needed for comparison, such as:
 
-Read [UNION-based workflow](references/union-based.md) before testing this branch. Use the [technique selection matrix](assets/sqli_cheatsheet.md) to decide whether an observable response supports this method.
+- status;
+- stable body markers;
+- response shape or length;
+- redirect behavior;
+- latency range.
 
-### Step 3: Blind Boolean/Time Injection
+Normalize obvious dynamic content before comparison.
 
-When no query output is visible, choose a conditional-response method only if controlled true/false baselines differ reproducibly. Use timing only after measuring normal variance and defining a conservative stop condition.
+### 2. Look for SQL-Dependent Behavior
 
-Read [blind conditional-response workflow](references/blind-boolean.md) for differential controls. Read [blind timing workflow](references/blind-time.md) before any delay-based testing. Use the [printable validation matrix](assets/sqli_validation_matrix.md) to record repeated observations.
+Change one input characteristic at a time.
 
-### Step 4: Schema Extraction
+Use paired controls so an application error, WAF response, cache variation, or network jitter is not mistaken for SQL execution.
 
-Only examine metadata after confirming injection and DBMS evidence. Minimize requests and retrieve no personal data or credentials unless the engagement expressly requires and permits it; record schema-level proof wherever sufficient.
+Read [detection and false-positive controls](references/detection.md).
 
-Read [schema and metadata discovery](references/schemas.md) and [minimum-necessary data proof](references/data-dumping.md). If errors are the observable signal, read [error-based workflow](references/error-based.md); if an authorized external interaction is the only signal, read [out-of-band interaction workflow](references/oob.md).
+### 3. Confirm with the Least Invasive Oracle
 
-## Validation
+Choose the smallest confirmation method supported by the observed behavior:
 
-- Verify injection point is consistent
-- Confirm data extraction works
-- Check for multiple injection vectors
-- Validate schema accuracy
-- Test for blind injection variants
+- **error differential** — a repeatable SQL-relevant parser/type error differs from ordinary malformed input;
+- **boolean differential** — controlled true/false conditions produce a stable, repeatable response difference;
+- **visible harmless marker** — a non-sensitive constant is rendered only through the suspected query path;
+- **timing differential** — only when no safer oracle exists, after measuring baseline variance and using a conservative bounded delay.
+
+Use [the validation matrix](assets/sqli_validation_matrix.md) to keep controls and stop conditions explicit.
+
+Read only the reference matching the chosen oracle:
+
+- [error-based confirmation](references/error-based.md)
+- [boolean differential confirmation](references/blind-boolean.md)
+- [timing differential confirmation](references/blind-time.md)
+
+Do not combine techniques merely to make the finding look stronger.
+
+### 4. Characterize Only What Matters
+
+When DBMS family materially affects remediation or confidence, infer it from already-observed syntax/error/function behavior and corroborate it with one harmless indicator.
+
+Read [evidence-based DBMS identification](references/dbms-detection.md).
+
+Do not enumerate schemas, table names, credentials, personal data, secrets, files, or arbitrary database records as part of this skill.
+
+### 5. Stop at Minimum Necessary Proof
+
+A useful confirmation normally needs:
+
+- the affected endpoint/input;
+- a normal baseline;
+- a matched control;
+- a reproducible SQL-dependent observation;
+- the request context needed to reproduce safely.
+
+Stop immediately on:
+
+- unexpected sensitive data;
+- state-changing behavior;
+- service instability;
+- rate limiting;
+- authorization uncertainty;
+- evidence already sufficient to report the issue.
 
 ## Evidence
 
-- DBMS detection results
-- Injection point confirmation
-- Schema extraction data
-- Data dump samples
-- Error messages
+Retain only the minimum evidence needed to support the claim:
 
-## Output Format
+- endpoint and parameter/input location;
+- request method and relevant non-secret input shape;
+- baseline/control/probe observations;
+- repetition count where needed;
+- redacted error excerpt or harmless marker;
+- bounded timing measurements when timing was required;
+- likely DBMS family only when sufficiently supported;
+- explicit uncertainty and alternative explanations.
 
-```yaml
-sqli_report:
-  target: string
-  timestamp: timestamp
-  dbms: string
-  injection_points:
-    - id: string
-      parameter: string
-      type: union | blind_boolean | blind_time | error | oob
-      evidence: string
-      extracted_data: [strings]
-  schema:
-    tables: [strings]
-    columns: [strings]
-  impact: low | medium | high | critical
-```
+Redact cookies, tokens, credentials, personal data, and unrelated response content.
 
-## Detailed resources
+## Result
 
-- [Technique selection and remediation matrix](assets/sqli_cheatsheet.md)
-- [DBMS syntax and safe-probe lookup](assets/dbms_payloads.md)
-- [Printable validation matrix](assets/sqli_validation_matrix.md)
-- [UNION-based workflow](references/union-based.md)
-- [Error-based workflow](references/error-based.md)
-- [Blind conditional-response workflow](references/blind-boolean.md)
-- [Blind timing workflow](references/blind-time.md)
-- [Out-of-band interaction workflow](references/oob.md)
-- [Evidence-based DBMS detection](references/dbms-detection.md)
-- [Schema and metadata discovery](references/schemas.md)
-- [Minimum-necessary data proof](references/data-dumping.md)
-- [SQL injection prevention](references/prevention.md)
+Return a concise finding containing:
+
+- affected surface;
+- confirmation method;
+- evidence summary;
+- confidence;
+- demonstrated impact;
+- important limits or unverified impact;
+- remediation.
+
+Do not include extracted application data because this procedure does not retrieve it.
+
+## Remediation
+
+Primary remediation is to remove user-controlled SQL grammar:
+
+- parameterize values with prepared/bound queries;
+- map dynamic identifiers to server-side allowlisted fixed fragments;
+- use least-privilege database accounts;
+- avoid exposing database error detail to clients;
+- add regression tests proving hostile input remains data rather than query structure.
+
+Read [SQL injection prevention](references/prevention.md) for implementation guidance.

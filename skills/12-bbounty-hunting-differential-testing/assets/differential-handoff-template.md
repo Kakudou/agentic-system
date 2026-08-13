@@ -26,6 +26,6 @@
 ## Handoff
 
 - Minimum safe next question:
-- Requested receiving owner:
+- Authorized review recipient or channel:
 - Stop or escalation status:
 - Attached worksheet and matrix references:

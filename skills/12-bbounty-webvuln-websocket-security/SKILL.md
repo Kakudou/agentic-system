@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-websocket-security
 description: Authorized, evidence-led assessment of WebSocket handshake, session, origin, message authorization, and validation controls.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

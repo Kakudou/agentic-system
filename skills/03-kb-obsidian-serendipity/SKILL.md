@@ -1,8 +1,8 @@
 ---
 name: 03-kb-obsidian-serendipity
-description: "Start from one or more Obsidian zettels, expand into a small set of related non-memory zettels, and synthesize a coherent, evidence-grounded output from what the knowledge graph already contains. Use when the user wants to think with the vault rather than merely retrieve individual notes."
+description: "Start from one or more Obsidian zettels, expand into a small set of related configured zettels, and synthesize a coherent, evidence-grounded output from what the knowledge graph already contains. Use when the user wants to think with the vault rather than merely retrieve individual notes."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -23,17 +23,11 @@ It does not create, edit, move, rename, or delete vault files.
 
 The input may contain one seed zettel or several.
 
-## Dependencies
+## Vault Configuration Input
 
-Required:
+Require a trusted vault descriptor that resolves the target vault and eligible zettel roots. When `03-kb-obsidian-vault-overview` is installed, it is the preferred local provider; an equivalent caller-supplied descriptor is also valid.
 
-- `03-kb-obsidian-vault-overview`
-
-Use the vault overview to resolve the target vault and eligible zettel roots.
-
-
-If either dependency is unavailable, fail closed rather than replacing it with ad-hoc vault
-discovery.
+If required roots are unavailable or unconfigured, stop rather than guessing.
 
 ## Read When Needed
 
@@ -62,7 +56,6 @@ The skill must not:
 - scan the entire vault;
 - invent missing knowledge;
 - treat semantic similarity as proof of a relationship;
-- use memory-scoped canonical zettels;
 - mutate access/use counters;
 - modify the vault;
 - perform Git operations.
@@ -71,9 +64,7 @@ The skill must not:
 
 ### 1. Resolve Vault
 
-Invoke `03-kb-obsidian-vault-overview`.
-
-Resolve the requested or default vault and its eligible non-memory zettel roots.
+Resolve the requested or default vault and its eligible configured zettel roots from the trusted descriptor. Use `03-kb-obsidian-vault-overview` when available locally, otherwise consume equivalent supplied configuration.
 
 Do not hardcode vault paths.
 
@@ -90,13 +81,13 @@ Capture:
 - explicit zettel links;
 - generic/derived relationship markers when present.
 
-If a seed cannot be resolved unambiguously, return the bounded ambiguity to Ōshō instead of guessing.
+If a seed cannot be resolved unambiguously, report the bounded ambiguity instead of guessing.
 
 ### 3. Expand a Small Neighborhood
 
 For each seed:
 
-1. consider directly linked ordinary zettels;
+1. consider directly linked configured zettels;
 2. do a search using the seed's core concepts;
 3. keep only notes that materially add context, explanation, contrast, application, or a reusable
    parent/derived relationship.
@@ -162,7 +153,6 @@ Before returning:
 
 - every material factual statement is supported by selected zettels;
 - synthesis is distinguishable from direct source claims where needed;
-- no memory-scoped zettel was used;
 - the result is coherent rather than a list of note summaries;
 - the expansion remained bounded;
 - no vault mutation or Git operation occurred.

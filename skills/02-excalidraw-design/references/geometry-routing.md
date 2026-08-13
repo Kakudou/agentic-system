@@ -20,7 +20,7 @@ Recommended defaults:
 | Frame padding | 48–72 |
 | Title reserve | 56–80 |
 | Connector clearance | 16–24 |
-| Filigrane edge inset | 24–40 |
+| Optional maker mark edge inset | 24–40 |
 
 ## Text measurement
 
@@ -116,7 +116,7 @@ Include:
 - connector labels
 - internal annotations
 - arrowheads
-- filigrane
+- optional maker mark
 - visible strokes
 
 Do not include connectors that intentionally leave the container unless the container semantically owns them.
@@ -291,4 +291,4 @@ Before render:
 - labels avoid nodes and other labels
 - routes do not pass through unrelated content
 - gaps follow the selected rhythm
-- filigranes fit inside their frames
+- optional maker marks fit inside their frames

@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-impact-analysis
 description: Document evidence-supported security impact within an authorized finding's scope.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

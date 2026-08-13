@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-research
 description: Document authorized security research as attributable, bounded claims without testing targets or collecting sensitive material.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

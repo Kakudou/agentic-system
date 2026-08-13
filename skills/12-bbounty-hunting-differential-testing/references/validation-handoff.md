@@ -6,7 +6,7 @@ Prepare a bounded, reviewable handoff for a difference that remains security-rel
 
 ## Preconditions
 
-- Admitted evidence, scope decision, and a receiving owner.
+- Admitted evidence, scope decision, and an authorized review recipient or channel.
 - A factual observed difference with limitations and alternative explanations.
 
 ## Low-Impact Methodology

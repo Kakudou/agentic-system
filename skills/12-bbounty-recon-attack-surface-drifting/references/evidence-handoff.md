@@ -2,16 +2,16 @@
 
 ## Purpose
 
-Deliver a reproducible, privacy-safe change analysis to the authorized receiving owner.
+Deliver a reproducible, privacy-safe change analysis through the authorized review channel.
 
 ## Preconditions
 
 - Completed classifications, confidence statements, and scope decisions.
-- An approved channel, evidence location, and receiving owner.
+- An approved channel, evidence location, and authorized review recipient.
 
 ## Evidence-Led Method
 
-Use one row per potential change. Separate observed facts from interpretation, cite both source records, and state comparison keys, confidence basis, confounders, and limitations. Include excluded evidence and stop decisions when they affect completeness. Ask bounded owner questions rather than proposing unapproved follow-up.
+Use one row per potential change. Separate observed facts from interpretation, cite both source records, and state comparison keys, confidence basis, confounders, and limitations. Include excluded evidence and stop decisions when they affect completeness. Ask bounded decision questions rather than proposing unapproved follow-up.
 
 ## Interpretation And Attribution Controls
 
@@ -23,7 +23,7 @@ Redact secrets, personal data, session artifacts, internal-only values, and unne
 
 ## Evidence And Handoff
 
-Complete the provided template and attach or reference only authorized evidence. Identify the receiving owner, required decision, and any condition that prevents further analysis.
+Complete the provided template and attach or reference only authorized evidence. Identify the authorized review recipient or channel, required decision, and any condition that prevents further analysis.
 
 ## Sources
 

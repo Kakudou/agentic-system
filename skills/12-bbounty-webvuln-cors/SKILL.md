@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-cors
 description: Safely assess authorized CORS policy for unintended cross-origin access to controlled data.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

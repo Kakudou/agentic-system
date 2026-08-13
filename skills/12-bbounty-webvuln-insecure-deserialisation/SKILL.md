@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-insecure-deserialisation
 description: Authorized, non-exploit assessment of unsafe deserialization boundaries, evidence, and remediation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

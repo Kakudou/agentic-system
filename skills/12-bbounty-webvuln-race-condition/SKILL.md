@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-race-condition
 description: Assess authorized stateful web workflows for race conditions using bounded, low-impact validation and evidence-driven reporting.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

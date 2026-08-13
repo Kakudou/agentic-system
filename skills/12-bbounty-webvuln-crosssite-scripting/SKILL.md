@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-crosssite-scripting
-description: Cross-site scripting detection and exploitation. Reflected, stored, DOM-XSS, event handler injection, attribute splitting, SVG/JS vectors, context-aware payloads, and filter bypass.
+description: "Assess authorized reflected, stored, and DOM XSS by tracing input to browser context, confirming execution with non-destructive local signals, checking relevant filtering/CSP boundaries, and stopping at minimum necessary proof."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 
@@ -10,7 +10,7 @@ metadata:
 
 ## Overview
 
-Detect and exploit XSS vulnerabilities across all variants. Tests reflected, stored, and DOM-based XSS with context-aware payloads, filter bypasses, and automated vector testing.
+Assess reflected, stored, and DOM-based XSS using context-aware, non-destructive confirmation. Establish the exact source-to-browser boundary, preserve false-positive controls, and stop once the executable context and realistic impact are demonstrated.
 
 ## Prerequisites
 
@@ -64,13 +64,12 @@ Read [filter analysis](references/filters.md). If a policy affects execution, re
 - Confirm payload execution in browser
 - Check for multiple vectors (reflected, stored, DOM)
 - Validate context awareness (HTML, attribute, JavaScript, text, JSON)
-- Test filter bypasses for coverage
+- Test only filter behaviors relevant to the confirmed context and scope
 
 ## Evidence
 
 - HTTP request/response captures
 - Screenshot of payload execution
-- Terminal output for commands
 - Structured finding records
 - Reproduction steps
 
@@ -100,7 +99,7 @@ Read only the resource needed for the active test. All example probes are for au
 - [Context selection and escaping](references/contexts.md)
 - [Filter analysis](references/filters.md)
 - [CSP assessment](references/csp.md)
-- [Exploitation and impact assessment](references/exploitation-and-impact.md)
+- [Impact assessment](references/impact-assessment.md)
 - [Context-indexed XSS cheat sheet](assets/xss_cheatsheet.md)
 - [Minimal authorized-test probe catalog](assets/payload_catalog.md)
 - [Stored-XSS operational cheat sheet](assets/stored_xss_cheatsheet.md)

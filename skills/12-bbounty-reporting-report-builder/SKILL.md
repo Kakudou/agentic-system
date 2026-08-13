@@ -2,7 +2,7 @@
 name: 12-bbounty-reporting-report-builder
 description: Draft evidence-led security finding reports from authorized, reviewable observations without submission automation, exploit guidance, or unsupported claims.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -57,7 +57,6 @@ report_draft_handoff:
   redaction_status: complete | review-required
   remediation_framing: string | none
   reviewer_questions: [string]
-  handoff_recipient: string
 ```
 
 ## Supplemental Index

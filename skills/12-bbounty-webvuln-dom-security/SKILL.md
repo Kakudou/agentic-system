@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-dom-security
 description: Authorized, evidence-led assessment of client-side DOM data flows and boundary handling.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

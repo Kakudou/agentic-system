@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-source-artifact-exposure
 description: Authorization-first, privacy-preserving assessment of an already observed public source or build artifact.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

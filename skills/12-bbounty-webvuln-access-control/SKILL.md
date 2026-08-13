@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-access-control
 description: Access-control assessment for object, function, role, ownership, and tenant authorization failures.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

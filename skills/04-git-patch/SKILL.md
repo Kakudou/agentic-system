@@ -2,7 +2,7 @@
 name: 04-git-patch
 description: "Work with Git diff patches in a local repository. Given a patch, inspect it, run git apply --check, and apply it when requested. Given one or more target files, generate a portable .patch from their tracked changes relative to HEAD. Never commits, pushes, rewrites history, or silently stages files."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 
@@ -60,11 +60,11 @@ Do not clean or normalize the working tree.
 
 If the input is a patch:
 
-- inspect mode.
+- inspect/apply path.
 
 If the input names repository file(s):
 
-- generate mode.
+- generate path.
 
 Do not guess between two equally plausible interpretations; return the ambiguity.
 

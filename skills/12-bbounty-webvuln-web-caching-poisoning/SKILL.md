@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-web-caching-poisoning
 description: Authorization-bounded assessment of cache-key completeness using only owner-approved harmless markers on controlled endpoints.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

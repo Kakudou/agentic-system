@@ -27,6 +27,5 @@ failed_approach_learning_record:
   limitations_and_exclusions: []
   privacy_and_handling: ""
   validation_status: needs-clarification # reviewed | needs-clarification | stopped
-  handoff_recipient: ""
   unresolved_questions: []
 ```

@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-false-positive-analysis
 description: Assess an authorized security finding against admitted evidence, known behavior, and uncertainty before handoff. No active testing, payload replay, exploitation, or retest automation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

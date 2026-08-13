@@ -16,7 +16,7 @@ Evidence should include:
 
 Do not flag two notes merely because they discuss the same topic.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: consolidate the duplicate ownership through the normal zettel creation/update workflow.
 
 ## ZL002 overloaded-zettel
 
@@ -31,7 +31,7 @@ Strong signals:
 
 A long note is not automatically overloaded.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: split the independent ideas through the normal zettel creation/update workflow.
 
 ## ZL003 generic-contamination
 
@@ -46,7 +46,7 @@ Examples of contamination:
 
 Do not remove specificity when the specificity is intrinsic to the knowledge.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: rewrite the generic note so the reusable principle stands independently, moving incidental project/business detail into a derived or domain-bound note when needed.
 
 ## ZL004 derived-parent-missing
 
@@ -54,7 +54,7 @@ A derived zettel declares or embeds a generic parent that cannot be resolved in 
 
 Evidence must include the literal parent reference and the failure to resolve it.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: restore or replace the missing generic-parent link using evidence from the corpus; do not invent a parent that is not actually justified.
 
 ## ZL005 derived-duplicates-parent
 
@@ -65,7 +65,7 @@ The derived note should normally embed/link the parent and add only what is spec
 
 Do not flag short unavoidable restatements needed to make the application intelligible.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: reduce the derived note to the context-specific delta and rely on the generic parent for the reusable principle.
 
 ## ZL006 missing-generic-abstraction
 
@@ -78,7 +78,7 @@ Require strong semantic overlap and a reusable domain-independent core.
 
 Do not force genericization when the shared specificity is intrinsic.
 
-Recommended owner: `03-kb-obsidian-zettelize`.
+Recommended repair: extract one reusable generic parent and retain the concrete notes as derived applications when the shared abstraction is strongly evidenced.
 
 ## ZL007 template-drift
 
@@ -94,11 +94,11 @@ Examples:
 
 Do not flag optional fields or cosmetic formatting that the template does not constrain.
 
-Recommended owner: explicit KB maintenance/manual repair unless another owning skill is known.
+Recommended repair: restore conformance through the normal note-maintenance workflow after reviewing the actual template.
 
 ## ZL008 weak-linkage
 
-A zettel has no meaningful explicit relationship to the ordinary corpus, or its links are only
+A zettel has no meaningful explicit relationship to the configured corpus, or its links are only
 non-semantic/navigation links.
 
 This is advisory, not automatically a defect.
@@ -106,16 +106,16 @@ This is advisory, not automatically a defect.
 Use low severity unless the note is clearly intended as generic or derived knowledge that should be
 connected.
 
-Recommended owner: usually `03-kb-obsidian-zettelize`; sometimes manual review.
+Recommended repair: add or restore a meaningful semantic relationship when evidence supports one.
 
 ## ZL009 broken-zettel-link
 
-A semantic wikilink inside a zettel points to an unresolved ordinary zettel identity.
+A semantic wikilink inside a zettel points to an unresolved configured zettel identity.
 
 Do not flag links intentionally targeting non-zettel resources, headings, attachments, or external
 material.
 
-Recommended owner: manual repair or the note-owning KB workflow.
+Recommended repair: correct the semantic link through the normal note-maintenance workflow.
 
 ## Rule Interaction
 

@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-ssrf
-description: Server-Side Request Forgery detection and exploitation. Internal host discovery, cloud metadata extraction, protocol switching, port scanning via SSRF, parser confusion, and redirect chains.
+description: "Assess an authorized server-side URL-fetch surface for SSRF using controlled endpoints, bounded callbacks, redirect/parser checks, and strict trust-boundary evidence without internal-network enumeration or metadata retrieval."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

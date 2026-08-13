@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-host-header-attack
 description: Authorized, marker-only assessment of Host-header trust boundaries, routing, and canonical-host validation.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

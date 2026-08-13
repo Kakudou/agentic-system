@@ -23,7 +23,7 @@ Confirm that phase decisions and suspected findings are evidence-grounded, in sc
 
 ## Evidence And Handoff
 
-Return the decision, checked references, unresolved issues, and required next owner. A report handoff includes only validated facts and minimized evidence.
+Return the decision, checked references, unresolved issues, and recommended next step or required decision. A report handoff includes only validated facts and minimized evidence.
 
 ## Authoritative Sources
 

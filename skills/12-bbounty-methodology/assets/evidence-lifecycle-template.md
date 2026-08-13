@@ -13,6 +13,6 @@ evidence_package:
   sensitive_data_present: false
   minimization_or_redaction: ""
   validation_decision: proceed | hold | stop
-  handoff_to: ""
+  authorized_recipient_or_channel: ""
   retention_or_disposal_note: ""
 ```

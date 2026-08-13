@@ -6,7 +6,7 @@ status: [draft, accepted, superseded, revoked]
 superseded_by:
 supersedes:
 Aliases:
-Author: カクドウ ~ Kakudou
+Author:
 Lang: EN
 
 layout: post

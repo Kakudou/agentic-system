@@ -27,7 +27,7 @@ finding_validation:
   uncertainties: []
   scope_limits: []
   evidence_that_could_change_decision: []
-  next_decision_owner: ""
+  required_decision: ""
 ```
 
 Attach evidence references or approved redactions only. Do not include payloads, credentials, unnecessary sensitive content, or unverified conclusions.

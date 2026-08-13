@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-finding-validation
 description: Assess already-collected, authorized finding evidence for scope, reproducibility, claim boundaries, and safe handoff without testing targets or assigning severity.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

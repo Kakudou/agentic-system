@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-http-discovery
 description: Perform low-impact, authorized HTTP identity and transport observation for explicitly in-scope web endpoints.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

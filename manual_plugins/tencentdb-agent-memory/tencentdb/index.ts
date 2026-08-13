@@ -70,8 +70,8 @@ import {
 /*
  * OpenCode V2 beta plugin entry.
  *
- * Deliberately uses the object ABI proven on next-16813 rather than
- * Plugin.define(), which belongs to newer V2 snapshots.
+ * The V2 contract is a default export containing a unique id and setup().
+ * Plugin.define() is a convenience helper, not required for this local plugin.
  */
 export default {
   id:
@@ -251,14 +251,15 @@ export default {
         )
 
       /*
-       * No ctx.session.hook(...) on next-16813.
-       * The proven event-only capture lifecycle remains untouched.
+       * Turn capture is intentionally event-driven: it waits for completed
+       * execution lifecycle events rather than mutating provider requests.
+       * Request hooks are used by other runtime plugins for different jobs.
        */
       trace.write(
-        "SESSION_HOOKS_DISABLED",
+        "CAPTURE_LIFECYCLE_EVENT_DRIVEN",
         {
           reason:
-            "event-only capture; request/context hooks are not used on next-16813",
+            "completed-turn capture consumes the public V2 event stream",
         },
       )
 
@@ -284,7 +285,8 @@ export default {
         trace,
       )
 
-      lifecycle.run(ctx)
+      const stopLifecycle =
+        lifecycle.run(ctx)
 
       await registerTools(
         ctx,
@@ -323,5 +325,10 @@ export default {
             "v4.0-ddd-dream",
         },
       )
+
+      return async () => {
+        await stopLifecycle()
+        capture.stop()
+      }
     },
 }

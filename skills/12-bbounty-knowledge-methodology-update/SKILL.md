@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-methodology-update
 description: Prepare controlled, evidence-bound documentation changes to an authorized bug bounty methodology without conducting or deploying security work.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -25,7 +25,7 @@ Document a proposed change to an existing methodology so a designated owner can 
 2. Record the observed lesson without generalizing beyond its support. State its population, conditions, exclusions, and confidence using the [applicability and limits guide](references/applicability-limits.md).
 3. Review compatibility, safety, and stop conditions before recommending adoption. Use the [compatibility and safety review](references/compatibility-safety-review.md) and its [safety checklist](assets/safety-stop-checklist.md).
 4. Prepare the approval, versioning, and rollback record. Do not represent a proposed version as approved. Follow the [approval, versioning, and rollback record](references/approval-version-rollback.md).
-5. Package the decision-ready materials and unresolved questions for the receiving owner using the [validation and handoff guide](references/validation-handoff.md) and [approved-change handoff template](assets/approved-change-handoff-template.md).
+5. Package the decision-ready materials and unresolved questions for the designated approval/review recipient using the [validation and handoff guide](references/validation-handoff.md) and [approved-change handoff template](assets/approved-change-handoff-template.md).
 
 ## Evidence
 
@@ -52,7 +52,6 @@ methodology_change_packet:
   approval_status: draft | approved | rejected | deferred
   approved_version: string | null
   rollback_reference: string | null
-  handoff_recipient: string
   unresolved_questions: [strings]
 ```
 

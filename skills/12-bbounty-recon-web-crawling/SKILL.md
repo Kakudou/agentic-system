@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-web-crawling
 description: Plan and document authorized, low-impact web crawl observations within an explicitly approved scope.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -55,7 +55,7 @@ Use [result validation](references/result-validation.md) and retain the matrix a
 
 Capture the minimum necessary evidence: approved scope reference, seed source, normalized URL, classification, observation time, status or visible behavior, and redacted notes. Do not retain credentials, tokens, personal data, or request bodies unnecessarily. Deliver the bounded inventory and unresolved decisions using the [recon handoff template](assets/recon-handoff-template.md).
 
-Use [evidence and handoff](references/result-validation.md) for interpretation and remediation routing.
+Use [evidence and handoff](references/result-validation.md) for interpretation and the recommended next step.
 
 ## Evidence
 

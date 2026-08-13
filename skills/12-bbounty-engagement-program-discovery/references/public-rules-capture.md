@@ -25,7 +25,7 @@ Capture public program rules as bounded evidence for downstream intake without e
 
 ## Evidence And Handoff
 
-Deliver excerpt-backed rule entries and a clear partition: documented scope, documented exclusions, documented restrictions, and unresolved items. The receiving intake owner must validate the current rules before authorization-dependent work.
+Deliver excerpt-backed rule entries and a clear partition: documented scope, documented exclusions, documented restrictions, and unresolved items. Current rules must be revalidated through the authorized intake or review channel before authorization-dependent work.
 
 ## Public Sources
 

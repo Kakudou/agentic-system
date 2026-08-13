@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-dns-recon
 description: Scope-bound DNS observation and ownership correlation for authorized reconnaissance.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

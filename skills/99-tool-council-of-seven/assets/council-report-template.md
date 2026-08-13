@@ -1,48 +1,30 @@
-# Council Report Template
-
-```markdown
-# Council of Seven Report
+# Council Report
 
 ## Verdict
 
-**{ACCEPT | ACCEPT WITH RESERVATIONS | REVISE | REJECT}**  
-Confidence: **{high | medium | low}**
+**Verdict:** ACCEPT | ACCEPT WITH RESERVATIONS | REVISE | REJECT  
+**Confidence:** high | medium | low
 
-{Two-to-four sentence executive judgment.}
+## Executive Summary
 
-## Consensus
-
-- {What most or all seats agree on.}
-- {...}
+<short evidence-grounded summary>
 
 ## Material Findings
 
-| ID | Severity | Seat | Finding | Evidence | Consequence | Confidence |
-|---|---|---|---|---|---|---|
-| C7-... | critical/major/minor | ... | ... | ... | ... | high/medium/low |
+- **[severity] <finding>** — <evidence and impact>
+
+## Consensus
+
+- <material agreement>
 
 ## Dissent
 
-- **{Seat A} vs {Seat B}:** {competing positions}.  
-  **Resolution:** {which claim prevailed and why, or why the conflict remains unresolved}.
+- **<topic>** — <positions and resolution, or unresolved>
 
 ## Alternatives
 
-1. **{Proposal}** — {rationale}. Tradeoff: {tradeoff}.
-2. {...}
+- <bounded improvement or simplification>
 
-## Ginshō's Resolution
+## Evidence Limits
 
-{Evidence-weighted explanation of why the verdict follows. Explicitly address any finding that materially determined the verdict.}
-
-## Stretch Observations
-
-- {Useful but non-blocking idea, preference, or future improvement.}
-
-<!-- Include only when invoked by gauntlet-loop -->
-## Gauntlet Routing
-
-| Finding | Contract mapping | Disposition | Owner hint | Retest |
-|---|---|---|---|---|
-| C7-... | CRIT-... / none | blocking/risk/stretch/dismissed | ... | ... |
-```
+- <important unavailable or unverified evidence>

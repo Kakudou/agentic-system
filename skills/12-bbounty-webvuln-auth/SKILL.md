@@ -1,8 +1,8 @@
 ---
 name: 12-bbounty-webvuln-auth
-description: Authentication testing. Session management, cookie theft, password reset races, MFA bypass, brute force, account takeover, and remember-me bugs.
+description: "Assess authorized authentication flows, session lifecycle, recovery, MFA, throttling, account binding, and persistent-login controls using program-approved test accounts and minimum-impact evidence."
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

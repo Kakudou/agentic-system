@@ -7,4 +7,4 @@
 - [ ] Sensitive data is redacted or excluded under the handling rules.
 - [ ] No active discovery, recheck, request, monitoring, or validation is needed to complete the analysis.
 - [ ] Ambiguous attribution, missing evidence, or scope conflict is marked `needs-review` or `stopped`.
-- [ ] Receiving owner and approved handoff channel are identified.
+- [ ] Authorized review recipient/channel is identified.

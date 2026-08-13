@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-clickjacking
 description: Assess authorized UI-redressing and frame-policy exposure without interaction-forcing proof content.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

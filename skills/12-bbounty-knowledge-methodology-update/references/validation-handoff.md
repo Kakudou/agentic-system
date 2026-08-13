@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Package a methodology-change decision so the receiving owner can verify documentation completeness, traceability, and outstanding constraints without interpreting it as an instruction to test or deploy.
+Package a methodology-change decision so the designated approval/review recipient can verify documentation completeness, traceability, and outstanding constraints without interpreting it as an instruction to test or deploy.
 
 ## Preconditions
 
@@ -26,7 +26,7 @@ Package a methodology-change decision so the receiving owner can verify document
 
 ## Evidence And Handoff
 
-The final packet contains the proposal, evidence/applicability matrix, safety checklist, approval/version/rollback record, and handoff acknowledgement status. The receiving owner decides any subsequent controlled action.
+The final packet contains the proposal, evidence/applicability matrix, safety checklist, approval/version/rollback record, and handoff acknowledgement status. Any subsequent controlled action requires its own authorized decision.
 
 ## Authoritative Sources
 

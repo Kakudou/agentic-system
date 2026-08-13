@@ -7,8 +7,8 @@
 - Discovery record:
 - Source/confidence matrix:
 - Eligibility/stop checklist:
-- Discovery owner:
-- Intake owner:
+- Prepared by:
+- Authorized intake/review recipient or channel:
 - Transferred at (UTC):
 
 ## Bounded Facts
@@ -27,6 +27,6 @@
 
 ## Receipt
 
-- Intake owner acknowledgement:
+- Receipt/review acknowledgement:
 - Accepted for documentation review / returned for escalation:
 - Date (UTC):

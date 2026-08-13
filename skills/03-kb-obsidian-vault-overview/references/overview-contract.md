@@ -1,11 +1,9 @@
-# ObsidianVaultOverview/v1 Contract
+# Vault Overview Contract
 
-`ObsidianVaultOverview/v1` is a normalized, read-only configuration descriptor.
+The overview is a normalized, read-only configuration descriptor.
 
-## Required Top-Level Fields
+## Semantic Fields
 
-- `kind`: literal `ObsidianVaultOverview/v1`
-- `version`: literal `v1`
 - `vault_id`
 - `is_default`
 - `type`
@@ -18,56 +16,46 @@
 - `conventions`
 - `safety`
 
+No `kind`, protocol version, caller, or routing field is required. Consumers should request the semantic data they actually need.
+
 ## Semantics
 
 ### `vault_root`
 
-Absolute configured root of the Obsidian vault.
-
-It is configuration, not proof of current filesystem existence.
+Absolute configured root of the Obsidian vault. Configuration is not proof of current filesystem existence.
 
 ### `config_root`
 
-Vault-relative path to Obsidian configuration, normally `.obsidian/`.
-
-Consumers must resolve it beneath `vault_root`; they must not treat it as an arbitrary external
-path.
+Vault-relative path to Obsidian configuration. Resolve it beneath `vault_root`; never treat it as an arbitrary external path.
 
 ### `top_level`
 
-Configured human description of the vault's top-level information architecture.
-
-Folder names and descriptions are authoritative configuration strings. Do not normalize spelling.
+Configured human description of the vault's top-level information architecture. Preserve folder names and spelling exactly.
 
 ### `named_roots`
 
 Mapping from stable semantic identifiers to absolute configured roots or `null`.
 
-A `null` value means unconfigured, not absent, optional-to-guess, or discoverable.
+`null` means unconfigured, not discoverable or safe to guess.
 
 ### `root_groups`
 
-Named groups composed from configured roots.
-
-A group member references a key from `named_roots`; consumers resolve the members individually.
+Named groups composed from configured root identifiers. Resolve group members through `named_roots`.
 
 ### `templates`
 
-Mapping from semantic template identifiers to vault-relative template paths or `null`.
+Mapping from semantic template identifiers to vault-relative paths or `null`.
 
-A non-null template path is still only configured location. A consumer that needs its contents must
-read that literal file under its own permissions.
+A configured path does not imply its file has been read or exists; a consumer that needs contents must read that exact resolved file under its own permissions.
 
 ### `conventions`
 
-Stable vault-model facts that help consumer skills reason without re-embedding the old system
-contract.
+Stable vault-model facts intended for reuse by consumers.
 
 ### `safety`
 
-Vault-wide boundaries that consumer skills must preserve.
+Vault-wide boundaries that consumers must preserve.
 
 ## Consumer Rule
 
-Consumers may narrow this contract for their own task, but they may not silently broaden it by
-scanning the vault for information the overview does not provide.
+Consumers may narrow the descriptor to their task, but must not broaden missing configuration through filesystem discovery.

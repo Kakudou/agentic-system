@@ -2,7 +2,7 @@
 
 Mark each item before handoff.
 
-| Check | Status | Evidence or question | Owner |
+| Check | Status | Evidence or question | Clarification authority/channel |
 | --- | --- | --- | --- |
 | Source issuer and applicability are identified | | | |
 | Source version or effective date is recorded | | | |
@@ -12,6 +12,6 @@ Mark each item before handoff.
 | Conflicting scope statements are escalated | | | |
 | Ambiguous identifier type or boundary is escalated | | | |
 | No expansion, discovery, resolution, or active validation occurred | | | |
-| Handoff recipient and follow-up owner are named | | | |
+| Handoff recipient and follow-up/clarification channel are named | | | |
 
 Any unknown or conflicting material item is `stop` until clarified by the authorized source owner.

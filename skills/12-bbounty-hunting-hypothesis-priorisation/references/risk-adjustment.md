@@ -7,7 +7,7 @@ Keep review order proportionate to what is observed, while identifying uncertain
 ## Preconditions
 
 - An admitted hypothesis with evidence references.
-- Written scope and a named planning owner.
+- Written scope and an authorized planning/review channel.
 
 ## Evidence-Led Method
 

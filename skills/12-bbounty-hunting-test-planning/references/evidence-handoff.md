@@ -2,14 +2,14 @@
 
 ## Purpose And Preconditions
 
-Prepare a bounded, reviewable handoff of authorized planning or validation evidence. Require an admitted scope record, plan ID, provenance for each observation, and a named receiving owner.
+Prepare a bounded, reviewable handoff of authorized planning or validation evidence. Require an admitted scope record, plan ID, provenance for each observation, and an authorized review recipient or channel.
 
 ## Planning Methodology
 
 1. Separate observed facts from interpretation and recommended next decision.
 2. Record asset identifier, timestamp, plan ID, authorized conditions, evidence locator, and collection limitations.
 3. State confidence, plausible benign explanations, and whether the result is unverified, inconclusive, or corroborated.
-4. Request a specific owner decision: close, clarify scope, approve limited retest, or begin the recipient's disclosure process.
+4. Request a specific decision: close, clarify scope, approve limited retest, or begin the recipient's disclosure process.
 
 ## Interpretation And Uncertainty
 

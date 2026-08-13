@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-target-bootstrap
 description: Establish an authorized bug-bounty target's identity, baseline web posture, boundaries, and evidence handoff before deeper reconnaissance.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -41,7 +41,7 @@ Stop and seek clarification if authorization expires; the target does not match 
 
 ## Output
 
-Deliver one bounded bootstrap packet: completed worksheets, a list of confirmed in-scope endpoints, observed redirect and TLS relationships, excluded or uncertain targets, collection limits used, and a recommended next owner or clarification request. Do not label observations as vulnerabilities without separate validation.
+Deliver one bounded bootstrap packet: completed worksheets, a list of confirmed in-scope endpoints, observed redirect and TLS relationships, excluded or uncertain targets, collection limits used, and a recommended next step or clarification request. Do not label observations as vulnerabilities without separate validation.
 
 ## Reference Index
 

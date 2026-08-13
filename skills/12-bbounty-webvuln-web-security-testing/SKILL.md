@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-web-security-testing
 description: Authorized, observation-first assessment of web transport, response posture, and browser-facing behavior.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

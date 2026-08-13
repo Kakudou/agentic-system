@@ -20,5 +20,5 @@ entries:
 excluded_records: []
 stop_decision: ""
 requested_follow_up: ""
-receiving_owner: ""
+authorized_review_recipient_or_channel: ""
 ```

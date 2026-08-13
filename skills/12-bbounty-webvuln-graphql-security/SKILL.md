@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-graphql-security
 description: Safely assess authorized GraphQL surfaces for schema exposure, authorization gaps, and bounded query-cost controls.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

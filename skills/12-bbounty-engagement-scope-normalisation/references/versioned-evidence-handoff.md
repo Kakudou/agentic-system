@@ -14,7 +14,7 @@ Do not represent the package as permission independent of its sources. Do not si
 
 ## Evidence and Handoff
 
-Use the engagement handoff template. Include recipient, version, effective date, source register, normalized matrix, restrictions, stop items, and required follow-up. Require the recipient to obtain owner clarification before acting on any `pending-owner` or `stop` item.
+Use the engagement handoff template. Include recipient, version, effective date, source register, normalized matrix, restrictions, stop items, and required follow-up. Require authoritative clarification before acting on any `pending-clarification` or `stop` item.
 
 ## Authoritative Sources
 

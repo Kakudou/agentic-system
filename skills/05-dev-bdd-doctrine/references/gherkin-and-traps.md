@@ -24,7 +24,7 @@ When an accepted requirements contract exists, scenarios derive from it rather t
 
 ## Scenario Approval
 
-Present behavior through Ōshō for explicit approval.
+Present newly defined behavior for explicit approval.
 
 Rejected scenarios remain visible as rejected work with rationale; do not silently delete them from
 the planning record.

@@ -8,7 +8,7 @@
 - [ ] Action, account, data, and third-party restrictions are excerpt-backed.
 - [ ] Reporting and disclosure terms are recorded.
 - [ ] Conflicts, missing terms, and stale evidence are listed.
-- [ ] A named intake owner and escalation route are recorded.
+- [ ] An authorized intake/review channel and escalation route are recorded.
 - [ ] No private access, test activity, or scope expansion occurred during discovery.
 
 ## Stop Conditions

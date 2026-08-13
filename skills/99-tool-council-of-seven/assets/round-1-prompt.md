@@ -1,42 +1,9 @@
-# Round 1 Prompt Template
+# Council Round 1 Prompt
 
-Use this template per seat.
+Review the supplied submission independently through this lens: **{{LENS}}**.
 
-```text
-Council of Seven — Round 1: Independent Critique
+Use only the supplied submission, context, requirements/bar, constraints, and evidence.
 
-Seat: {AGENT_NAME}
-Archetype: {ARCHETYPE_NAME}
+Return 1–5 high-signal findings. For each include severity, confidence, specific claim, concrete evidence, impact, and a bounded recommendation when useful.
 
-Your lens contract:
-{ARCHETYPE_CONTRACT}
-
-Submission:
-{SUBMISSION}
-
-Context:
-{CONTEXT_OR_NONE}
-
-Reference / bar:
-{REFERENCE_OR_NONE}
-
-Constraints:
-{CONSTRAINTS_OR_NONE}
-
-Evidence:
-{EVIDENCE_OR_NONE}
-
-Analyze from your assigned lens only. Do not infer or reference other Council members' views.
-Do not invent requirements. Distinguish verified evidence from inference and preference.
-
-Return 1–5 findings. For each finding provide:
-- severity: critical / major / minor / note
-- claim
-- concrete evidence or reference
-- consequence
-- confidence: high / medium / low
-
-Critical and major findings require explicit evidence and material consequence.
-End with one sentence summarizing your overall impression.
-Keep the response concise.
-```
+Do not assume what other reviewers will say. Do not issue the final Council verdict.

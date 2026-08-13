@@ -6,14 +6,14 @@ Purpose: define the observable behavior contract in domain language.
 
 Outputs:
 
-- Feature boundary.
-- Approved scenarios.
-- Observable outcomes.
-- Explicit actor/intent/value when meaningful.
+- feature boundary;
+- accepted scenarios;
+- observable outcomes;
+- actor/intent/value when meaningful.
 
-Do not include implementation identifiers in `Then`.
+Do not hide implementation assumptions in `Then` steps.
 
-The user owns behavior approval. Silence is not consent.
+Behavior approval must be explicit when new requirements are being defined.
 
 ## Phase 2 — Trap Analysis
 
@@ -21,58 +21,51 @@ Purpose: challenge the happy path before implementation.
 
 Interrogate all seven trap families from `gherkin-and-traps.md`.
 
-Critical/major approved traps become explicit constraint scenarios under:
+Critical/major accepted traps become explicit constraint scenarios under:
 
 ```text
 # ---- Constraints identified ----
 ```
 
-Do not convert an unapproved trap into a requirement.
+Do not convert an unapproved risk hypothesis into a requirement.
 
 ## Phase 3 — RED Tests
 
-Purpose: encode approved behavior as executable failure evidence.
+Purpose: encode accepted behavior as executable failure evidence.
 
 Rules:
 
 - use the repository's existing test stack;
-- for Python repositories using this doctrine's preferred convention, raw pytest with
-  `_given/_when/_then` helpers is valid;
-- do not introduce pytest-bdd merely because the behavior was expressed in Gherkin;
 - assertions must be real;
-- a failing test must fail because behavior is absent/wrong, not because the test cannot import.
+- a failing test must fail because behavior is absent/wrong, not because the test cannot import or collect;
+- test authoring and test execution are separate facts.
 
-Test authoring and test execution are separate operations.
-
-Phase 3 completes only with actual RED evidence.
+Phase 3 completes only with actual RED execution evidence.
 
 ## Phase 4 — GREEN Implementation
 
-Purpose: implement only enough behavior to satisfy the approved tests.
+Purpose: implement only enough behavior to satisfy the accepted tests.
 
 Rules:
 
-- one failing behavior at a time when practical;
-- no assertion weakening;
-- no unrelated architecture cleanup;
-- no unrequested dependencies;
+- implement one failing behavior at a time when practical;
+- do not weaken assertions;
+- do not perform unrelated architecture cleanup;
+- do not add unrequested dependencies;
 - respect established architecture and repository conventions.
 
-Implementation and GREEN test execution are separate operations.
-
-Phase 4 completes only with actual GREEN evidence.
+Implementation and GREEN execution evidence are separate facts.
 
 ## Phase 5 — Refactor
 
 Purpose: improve structure without behavior change.
 
-Sequence:
+For each atomic refactor:
 
-1. Keima performs one bounded preservation-risk challenge.
-2. Fuhyō performs one atomic refactor.
-3. Focused tests run.
-4. GREEN must remain.
-5. Repeat only for the next independent refactor.
+1. identify preservation risk and simplification objective;
+2. make one bounded structural change;
+3. run focused tests;
+4. require GREEN before another refactor.
 
 Allowed examples:
 
@@ -88,14 +81,14 @@ Forbidden:
 
 - public behavior change;
 - contract/API change;
-- new dependency;
-- weakening/modifying tests to accommodate the refactor.
+- new dependency unrelated to the accepted behavior;
+- weakening tests to accommodate the refactor.
 
 ## Phase 6 — Quality
 
-Purpose: close delivery with mechanical evidence and independent judgment.
+Purpose: close delivery with applicable mechanical evidence and an independent judgment.
 
-Mechanical evidence may include repository-relevant:
+Evidence may include repository-relevant:
 
 - lint;
 - formatting;
@@ -105,9 +98,6 @@ Mechanical evidence may include repository-relevant:
 - architecture rules;
 - build/package verification.
 
-Fuhyō produces the evidence.
+Missing tooling is unavailable evidence, not a pass.
 
-Ginshō independently judges whether the evidence meets the accepted bar.
-
-Remediation may loop, but do not hide endless cycles. After three material remediation cycles,
-escalate the remaining problem instead of pretending convergence.
+Avoid endless remediation loops. After repeated material failures, surface the blocker instead of pretending convergence.

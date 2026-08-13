@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-parameter-discovery
 description: Build an evidence-backed inventory of already observed HTTP inputs within an authorized bug-bounty scope. No guessing, fuzzing, mutation, or automation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

@@ -62,4 +62,4 @@ I walk into the room and look at you.
 
 If the character is locked to SMS, the response remains SMS.
 
-Only controller-level format edits change the contract.
+Only an explicit persona-format edit changes the contract.

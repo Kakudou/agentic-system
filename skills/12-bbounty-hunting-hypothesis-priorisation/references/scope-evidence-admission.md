@@ -22,7 +22,7 @@ Respect program rules, rate limits, account restrictions, data boundaries, and a
 
 ## Evidence And Handoff
 
-Provide the scope citation, evidence references, admission decision, and open questions to the planning owner.
+Provide the scope citation, evidence references, admission decision, and open questions in the planning handoff.
 
 ## Sources
 

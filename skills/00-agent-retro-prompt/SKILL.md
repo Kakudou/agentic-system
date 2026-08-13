@@ -1,12 +1,12 @@
 ---
 name: 00-agent-retro-prompt
-description: Retrospect a completed or inspectable task, feature, pipeline, artifact, or conversation and reconstruct a better natural-language starting prompt from what actually happened. Use to identify evidence-grounded friction, capture delivered scope and discovered constraints, score the improvement opportunity, or feed a downstream skill-authoring workflow.
+description: Retrospect a completed or inspectable task, feature, artifact, or conversation and reconstruct a better natural-language starting prompt from what actually happened. Use to identify evidence-grounded friction, capture delivered scope and discovered constraints, and score how much the improved prompt would have reduced avoidable rework.
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# Agent - Retro Prompt
+# Retro Prompt
 
 Reconstruct the prompt that would have reached the **delivered outcome** more directly, using only evidence from the work that actually occurred.
 
@@ -14,125 +14,105 @@ This is retrospective analysis, not speculative prompt ideation.
 
 ## Usage
 
-- `/00-agent-retro-prompt {feature-name}` — analyze an available feature/pipeline by name.
+- `/00-agent-retro-prompt {source}` — analyze the named completed or inspectable work.
 - `/00-agent-retro-prompt` — analyze the current task, conversation, files, or explicitly provided source.
 
 ## Hard Rules
 
-- MUST ground every friction point in an observable event or source artifact. Never invent friction to make the retrospective look useful.
-- MUST distinguish **delivered scope** from ideas that were discussed, attempted, deferred, or never completed.
-- MUST keep the improved prompt within delivered scope. Do not retroactively ask for work that was not delivered.
-- MUST preserve user-significant requirements and terminology that survived into the delivered result.
-- MUST write the improved prompt as self-contained natural language suitable for a fresh context.
-- MUST NOT include pipeline commands, stage numbers, internal tool choreography, or retrospective narration in the improved prompt unless the user's actual desired outcome was itself a workflow using those constructs.
-- MUST NOT treat mere effort, tool failure, or exploration as prompt friction unless a better starting prompt could reasonably have prevented or reduced it.
-- MUST report zero friction honestly when the original ask already contained what the successful execution needed.
-- MUST label material facts as `UNVERIFIED` when the available source cannot establish them.
-- MUST score **improvement magnitude**, not reward the original prompt for already being good.
-- MAY be invoked before formal pipeline closure if the available evidence is sufficient to reconstruct an outcome.
+- Ground every friction point in an observable event or source artifact.
+- Distinguish delivered scope from ideas that were discussed, attempted, deferred, rejected, or unresolved.
+- Keep the improved prompt within delivered scope. Do not retroactively ask for work that was not delivered.
+- Preserve user-significant requirements and terminology that survived into the delivered result.
+- Write the improved prompt as self-contained natural language suitable for a fresh context.
+- Do not include internal tool choreography, agent routing, or retrospective narration unless the desired outcome was itself that workflow.
+- Do not treat mere effort, exploration, or an unavoidable tool failure as prompt friction.
+- Report zero friction honestly when the original ask already contained what successful execution needed.
+- Mark material claims `UNVERIFIED` when available evidence cannot establish them.
+- Score improvement magnitude, not the quality of the final artifact.
 
 ## Resource Loading
 
-- For source selection and reconstruction: [references/reconstruction.md](references/reconstruction.md).
-- When deciding whether an event qualifies as friction and how to cite it: [references/evidence-model.md](references/evidence-model.md).
-- Before writing the improved prompt: [references/prompt-rewrite.md](references/prompt-rewrite.md).
-- Before scoring: [references/scoring.md](references/scoring.md).
-- Use [assets/retro-report-template.md](assets/retro-report-template.md) for the final report.
-- Use [assets/retro-packet-schema.md](assets/retro-packet-schema.md) as the canonical field contract for downstream callers such as `00-agent-create-skill`.
+- Source selection and reconstruction: [references/reconstruction.md](references/reconstruction.md)
+- Friction evidence: [references/evidence-model.md](references/evidence-model.md)
+- Improved prompt construction: [references/prompt-rewrite.md](references/prompt-rewrite.md)
+- Delta scoring: [references/scoring.md](references/scoring.md)
+- Final presentation: [assets/retro-report-template.md](assets/retro-report-template.md)
 
 ## Workflow
 
 ### 1. Resolve the Source
 
-Choose the strongest available evidence source.
+Use the strongest available evidence for the original intent and the delivered outcome.
 
-- **Feature-scoped:** inspect the named feature/specification, relevant decisions, implementation/test evidence, and completion records when available.
-- **Standalone:** inspect the current conversation/task, attached files, artifacts, and any explicitly stated original request.
+At minimum establish:
 
-Identify at minimum:
+- the original ask or its best evidence-grounded reconstruction;
+- the final delivered or inspectable result;
+- enough evidence to distinguish delivered work from proposed work.
 
-- original ask
-- final delivered result or current inspectable result
-- evidence sufficient to distinguish delivered work from proposed work
-
-If the original ask or outcome cannot be reconstructed with reasonable confidence, return `INSUFFICIENT_EVIDENCE` instead of guessing.
+If that cannot be reconstructed with reasonable confidence, return `INSUFFICIENT_EVIDENCE` instead of guessing.
 
 ### 2. Reconstruct Delivered Scope
 
-Build a compact factual reconstruction:
+Record only what the evidence supports:
 
-- behaviors/capabilities delivered
-- constraints discovered or confirmed
-- edge cases that materially changed the result
-- explicit exclusions or suppressed scope
-- corrections/rework and their triggers
-- unresolved items that remained unresolved
+- delivered behaviors or capabilities;
+- governing constraints;
+- edge cases that materially changed the result;
+- explicit exclusions;
+- corrections and rework triggers;
+- unresolved items.
 
-Do not count an idea as delivered merely because it appeared in discussion.
+Use the delivered-scope classifications in [references/reconstruction.md](references/reconstruction.md).
 
 ### 3. Identify Friction
 
 A friction point exists only when:
 
-1. an actual event shows avoidable ambiguity, missing context, missing boundary, contested assumption, or rework; and
-2. putting information into the original prompt would plausibly have reduced that cost.
+1. an observed event shows avoidable ambiguity, missing context, missing boundary, contested assumption, or rework; and
+2. information available at the start could plausibly have reduced that cost.
 
-For each friction point capture:
+For each retained friction point state:
 
-- `type`
-- `event`
-- `evidence_anchor`
-- `cost`
-- `preventive_instruction`
-- `confidence`
+- what happened;
+- the concrete evidence anchor;
+- the observed cost;
+- the preventive instruction that belonged in the starting prompt;
+- confidence.
 
-Prefer a few high-signal friction points over exhaustive commentary.
+Prefer a few high-signal points over exhaustive commentary.
 
 ### 4. Compose the Improved Prompt
 
-Write the prompt a fresh agent should have received at the beginning.
+Write the request a fresh agent should have received at the beginning.
 
 It should:
 
-- state the desired outcome directly
-- include only context proven necessary by the retrospective
-- include constraints/boundaries that prevented observed friction
-- define success where the delivered result established a meaningful bar
-- preserve actual delivered scope
-- remain natural language rather than a replay of the implementation process
+- state the desired outcome directly;
+- include only context proven materially useful;
+- include boundaries that prevent observed scope drift or rework;
+- define success where delivery established a meaningful bar;
+- preserve actual delivered scope;
+- remain natural user language rather than a pipeline log.
 
-Do not explain why each sentence was added inside the improved prompt.
-
-### 5. Score Improvement Magnitude
+### 5. Score Improvement
 
 Use [references/scoring.md](references/scoring.md).
 
-Score each dimension from `0–5`, where `0` means the improved prompt offers no meaningful gain over the original on that dimension and `5` means it removes substantial avoidable ambiguity/friction.
+Score `specificity`, `boundary coverage`, `context clarity`, and `scope discipline` from `0–5`, then give an overall score.
 
-Dimensions:
+A strong original prompt may correctly produce an overall `0/5`.
 
-- `specificity`
-- `boundary_coverage`
-- `context_clarity`
-- `scope_discipline`
-- `overall`
+### 6. Return the Report
 
-A clean run may legitimately score near zero because little improvement was needed.
+Use [assets/retro-report-template.md](assets/retro-report-template.md).
 
-### 6. Return the Canonical Report
-
-Render [assets/retro-report-template.md](assets/retro-report-template.md) and ensure every field required by [assets/retro-packet-schema.md](assets/retro-packet-schema.md) can be recovered unambiguously.
-
-If feature-scoped and an append-only logging mechanism is available, append:
-
-`retro-prompt.completed friction_points={n} overall_delta={n}`
-
-Do not fail the retrospective solely because logging is unavailable.
+The report is human-readable evidence. Downstream work should consume its semantic content—source, delivered scope, friction, improved prompt, and score—not rely on a hidden versioned packet schema.
 
 ## Completion States
 
 - `COMPLETE` — original ask and delivered outcome were reconstructed; report produced.
 - `COMPLETE_NO_FRICTION` — same, with zero evidence-grounded friction points.
-- `INSUFFICIENT_EVIDENCE` — cannot safely reconstruct the original ask or delivered outcome.
+- `INSUFFICIENT_EVIDENCE` — the original ask or delivered outcome cannot be reconstructed safely.
 
 Never convert `INSUFFICIENT_EVIDENCE` into a confident improved prompt.

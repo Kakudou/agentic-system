@@ -21,7 +21,7 @@ Use permitted public program context to identify duplicated effort, changed scop
 
 - Do not use target size, program age, issue category, or social activity as a proxy for likelihood or value.
 - Public disclosures can be incomplete, stale, or scoped differently. Prefer current official rules when sources conflict.
-- Do not let fear of duplication override direct, in-scope evidence; state the conflict for the planning owner.
+- Do not let fear of duplication override direct, in-scope evidence; preserve the conflict in the planning handoff.
 
 ## Scope And Privacy
 

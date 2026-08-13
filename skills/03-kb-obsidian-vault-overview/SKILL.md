@@ -1,63 +1,55 @@
 ---
 name: 03-kb-obsidian-vault-overview
-description: "Describe and resolve configured Obsidian vault topology from a canonical vault registry without scanning the vault. Use when another KB skill needs a vault root, config root, named note root, template path, top-level structure, safety convention, or normalized vault descriptor. Returns an ObsidianVaultOverview/v1 contract and never mutates vault state."
+description: "Describe and resolve configured Obsidian vault topology from a canonical vault registry without scanning the vault. Use when work needs a vault root, config root, named note root, root group, template path, top-level structure, convention, safety boundary, or normalized vault descriptor. Read-only and configuration-driven."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
-# KB Obsidian Vault Overview
+# Obsidian Vault Overview
 
 Provide the canonical description of a configured Obsidian vault.
 
-This skill is the **vault topology authority** for the KB skill family. Other skills should consume
-its normalized output instead of hardcoding vault paths, roots, template locations, top-level
-folders, or safety conventions.
+This skill is the topology/configuration authority for vault-aware capabilities. Consumers use its semantic fields instead of hardcoding vault paths, roots, template locations, top-level folders, or safety conventions.
 
-It is configuration-driven and read-only. It does not discover the vault by crawling the filesystem.
+It is configuration-driven and read-only. It does not discover missing configuration by crawling the filesystem.
 
 ## Usage
 
 - `/03-kb-obsidian-vault-overview`
 - `/03-kb-obsidian-vault-overview {vault-id}`
-- `/03-kb-obsidian-vault-overview {vault-id} --section structure`
-- `/03-kb-obsidian-vault-overview {vault-id} --section roots`
-- `/03-kb-obsidian-vault-overview {vault-id} --section templates`
-- `/03-kb-obsidian-vault-overview {vault-id} --section safety`
+- `/03-kb-obsidian-vault-overview {vault-id} --section structure|roots|templates|safety`
 - `/03-kb-obsidian-vault-overview resolve {vault-id}`
 
-When `{vault-id}` is omitted, resolve `default_vault` from the canonical registry.
+When `{vault-id}` is omitted, use `default_vault` from the registry.
 
 ## Canonical Source
 
 Always read:
 
-- [Vault registry](assets/vault-registry.yaml)
-- [Overview contract](references/overview-contract.md)
+- [vault registry](assets/vault-registry.yaml)
+- [overview contract](references/overview-contract.md)
 
 Read when needed:
 
-- [Resolution rules](references/resolution.md) when another skill needs a concrete root or template.
-- [Vault conventions and safety](references/conventions-and-safety.md) when work may read, write,
-  filter, link, generate, or edit vault material.
+- [resolution rules](references/resolution.md) for a concrete root/template selector;
+- [vault conventions and safety](references/conventions-and-safety.md) when downstream work may inspect or mutate vault material.
 
-Use [Overview output schema](assets/overview-schema.yaml) for machine-facing or embedded output.
+Use [overview schema](assets/overview-schema.yaml) when a normalized structured descriptor is useful.
 
 ## Hard Rules
 
-- MUST resolve vault identity from `assets/vault-registry.yaml`.
-- MUST NOT hardcode a vault path outside the registry.
-- MUST NOT scan, enumerate, grep, index, or infer the vault to fill missing configuration.
-- MUST NOT invent an unconfigured root, template, folder, tag, or frontmatter field.
-- MUST preserve configured spelling and casing exactly.
-- MUST treat `null` roots and templates as explicitly unconfigured.
-- MUST return a configuration error when a caller requires an unconfigured value.
-- MUST distinguish configured topology from filesystem existence. Registry presence does not prove
-  that a path currently exists on disk.
-- MUST NOT read memory content, zettel content, note bodies, or arbitrary vault files.
-- MUST NOT create, edit, move, rename, or delete any vault file.
-- MUST NOT mutate counters, registries, frontmatter, Graph View state, or Git.
-- MUST NOT transmit decrypted vault content.
+- Resolve vault identity only from `assets/vault-registry.yaml`.
+- Do not hardcode a vault path outside the registry.
+- Do not scan, enumerate, grep, index, or infer the vault to fill missing configuration.
+- Do not invent an unconfigured root, template, folder, tag, or frontmatter field.
+- Preserve configured spelling and casing exactly.
+- Treat `null` roots/templates as explicitly unconfigured.
+- Return a configuration error when required configuration is unavailable.
+- Distinguish configuration from filesystem existence; registry presence does not prove a path exists.
+- Do not read note bodies or arbitrary vault content.
+- Do not mutate vault files, Graph View state, counters, registries, or Git.
+- Do not transmit decrypted vault content.
 
 ## Workflow
 
@@ -65,72 +57,40 @@ Use [Overview output schema](assets/overview-schema.yaml) for machine-facing or 
 
 Read `default_vault` and `vaults` from the registry.
 
-If `{vault-id}` is omitted, use `default_vault`.
+Use the requested vault ID or the configured default. Reject unknown identifiers.
 
-Reject an unknown vault identifier.
+### 2. Normalize Configuration
 
-### 2. Build Normalized Descriptor
+Expose only configured semantic fields:
 
-Map the registry entry into `ObsidianVaultOverview/v1` using
-`assets/overview-schema.yaml`.
-
-The descriptor exposes:
-
-- vault identity and type;
-- `vault_root`;
-- relative `config_root`;
-- top-level structure;
-- named roots;
-- root groups such as `all_zettel_roots`;
-- template registry;
-- content-model conventions;
-- safety constraints;
-- known submodule boundaries.
-
-Do not add values that are absent from the registry.
-
-### 3. Resolve Requested Section or Selector
-
-For a human overview, render only the requested section or the compact full overview.
-
-For `resolve`, follow `references/resolution.md` and return the machine-facing descriptor.
-
-### 4. Report Configuration Gaps
-
-If a requested root/template is `null`, report it as unconfigured.
-
-Never convert `null` into a guessed path.
-
-## Inter-Skill Contract
-
-Consumer skills should depend on the normalized descriptor, not on this registry's current vault
-names or paths.
-
-A consumer may say:
-
-> resolve the active/default vault and return `ObsidianVaultOverview/v1`
-
-It should then use fields such as:
-
+- `vault_id`
+- `is_default`
+- `type`
 - `vault_root`
 - `config_root`
+- `top_level`
 - `named_roots`
 - `root_groups`
 - `templates`
-- `top_level`
+- `conventions`
 - `safety`
 
-If the descriptor lacks a required field, the consumer fails closed rather than discovering a
-replacement.
+Do not add values absent from the registry.
 
-## Completion
+### 3. Resolve Requested Selector
 
-A successful overview means configuration was resolved and described.
+For a human overview, render only the requested section or a compact full overview.
 
-It does not mean:
+For a machine/embedded use, return the normalized semantic descriptor and apply [resolution rules](references/resolution.md) to any requested selector.
 
-- paths were checked on disk;
-- templates were read;
-- vault contents were searched;
-- Obsidian was opened;
-- any mutation occurred.
+### 4. Report Gaps
+
+If a required root/template is `null`, report it as unconfigured. Never convert `null` into a guessed path.
+
+## Consumer Contract
+
+Consumers depend on semantic fields, not on a versioned orchestration envelope.
+
+If a consumer needs `vault_root`, `root_groups.all_zettel_roots`, or `templates.zettel_template`, it requests that field and fails closed when it is unavailable.
+
+A successful overview means configuration was resolved. It does not prove filesystem existence, read template contents, search vault contents, or perform mutation.

@@ -1,5 +1,6 @@
 import type {
   DreamRole,
+  DreamRoll,
   DreamSample,
   DreamSessionState,
 } from "../../domain/dream/model.ts"
@@ -9,6 +10,12 @@ function cloneState(
 ): DreamSessionState {
   return {
     ...state,
+    roll:
+      state.roll
+        ? {
+            ...state.roll,
+          }
+        : undefined,
     sample:
       state.sample
         ? {
@@ -132,6 +139,40 @@ export class DreamSessionRegistry {
       state &&
       state.generation ===
         generation,
+    )
+  }
+
+  attachRoll(
+    sessionID: string,
+    generation: number,
+    roll: DreamRoll,
+  ): DreamSessionState {
+    const state =
+      this.states.get(
+        sessionID,
+      )
+
+    if (
+      !state ||
+      state.generation !==
+        generation ||
+      state.role !== "worker"
+    ) {
+      throw new Error(
+        "TDAI_DREAM_SESSION_REQUIRED",
+      )
+    }
+
+    // First roll wins. Repeated calls return the same immutable result rather
+    // than creating a reroll path.
+    if (!state.roll) {
+      state.roll = {
+        ...roll,
+      }
+    }
+
+    return cloneState(
+      state,
     )
   }
 

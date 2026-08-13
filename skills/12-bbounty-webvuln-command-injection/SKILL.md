@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-command-injection
 description: Safely assess authorized server-side OS command injection using minimal differential evidence and strict impact limits.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

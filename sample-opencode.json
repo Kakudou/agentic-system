@@ -5,12 +5,18 @@
       "name": "llamacpp",
       "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
-        "baseURL": "http://llamacpp/v1",
-        "apiKey": "apiKey"
+        "baseURL": "http://192.168.1.148:4242/v1",
+        "apiKey": "otsumi"
       },
       "models": {
-        "modelname": {
-          "name": "modelname",
+        "otsumi": {
+          "name": "otsumi",
+          "limits": {
+            "context": 100000
+          }
+        },
+        "otsumi-rp": {
+          "name": "otsumi-rp",
           "limits": {
             "context": 100000
           }
@@ -18,8 +24,16 @@
       }
     }
   },
-  "model": "llamacpp/modelname",
+  "model": "llamacpp/otsumi",
+  "default_agent": "osho",
   "plugins":  [
+    { "package": "./plugins/mode-router-v2", "options": { "enabled": true } },
+    {
+      "package": "./plugins/response-gadgets-v2",
+      "options": {
+        "enabled": true
+      }
+    },
     {
       "package": "./manual_plugins/tencentdb-agent-memory/tencentdb/index.ts",
 
@@ -34,17 +48,15 @@
           "teamId": "team-",
           "userId": "usr-",
 
-          "defaultAgentId": "agt-",
-
           "agents": {
-            "osho": "",
-            "kyosha": "",
-            "kinsho": "",
-            "keima": "",
-            "kakugyo": "",
-            "hisha": "",
-            "ginsho": "",
-            "fuhyo": ""
+            "osho": "TENCENT_AGENT_ID_OSHO",
+            "kyosha": "TENCENT_AGENT_ID_KYOSHA",
+            "kinsho": "TENCENT_AGENT_ID_KINSHO",
+            "keima": "TENCENT_AGENT_ID_KEIMA",
+            "kakugyo": "TENCENT_AGENT_ID_KAKUGYO",
+            "hisha": "TENCENT_AGENT_ID_HISHA",
+            "ginsho": "TENCENT_AGENT_ID_GINSHO",
+            "fuhyo": "TENCENT_AGENT_ID_FUHYO"
           }
         },
 
@@ -60,12 +72,7 @@
           "defaultWikiIds": [],
           "defaultCodeGraphIds": [],
 
-          "agents": {
-            "build": {
-              "wikiIds": [],
-              "codeGraphIds": []
-            }
-          }
+          "agents": {}
         },
 
         "retrieval": {
@@ -97,13 +104,13 @@
           "enabled": true,
           "blockPublicWebOnPersonalMemory": true,
 
-          "outputLanguage": "English",
+          "outputLanguage": "user-language",
 
           "annotateTencentEvidence": true
         },
 
         "exposeAdminTools": false,
-        "traceFile": "/tmp/tencentdb-opencode.log",
+        "traceFile": "/tmp/tencentdb-opencode-v4.log",
 
         "timeouts": {
           "gatewayMs": 5000,

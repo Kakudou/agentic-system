@@ -19,7 +19,7 @@ Update an existing law instead of creating a new one when:
 - implementation evidence has evolved without changing the rule;
 - mutation triggers or resources need maintenance.
 
-Record the mutation in the caller result.
+Record the mutation in the operation result.
 
 ## Supersede
 

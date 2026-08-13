@@ -24,7 +24,7 @@ A consistent difference from a comparable baseline strengthens the observation. 
 
 - Repeated renderings or exports of one event are one source, not independent corroboration.
 - Do not infer repeatability from a generic vulnerability class or product version.
-- Do not request or perform active repetition through this reference; flag the gap for an authorized validation owner.
+- Do not request or perform active repetition through this reference; flag the gap as requiring separately authorized validation.
 
 ## Evidence And Handoff
 

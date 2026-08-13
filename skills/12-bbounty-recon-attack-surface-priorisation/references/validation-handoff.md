@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Ensure a receiving owner can audit the surface review without relying on unstated judgments.
+Ensure an authorized reviewer can audit the surface review without relying on unstated judgments.
 
 ## Preconditions
 
@@ -29,7 +29,7 @@ Share only with authorized recipients and only the minimum redacted evidence nee
 
 ## Evidence And Handoff
 
-Deliver the completed handoff, source references, confidence and limitations, review order rationale, stop decisions, and a clear request for the receiving owner's decision.
+Deliver the completed handoff, source references, confidence and limitations, review order rationale, stop decisions, and a clear request for the required decision.
 
 ## Sources
 

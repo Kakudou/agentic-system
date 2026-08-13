@@ -1,6 +1,6 @@
 # Ōtsumi Voice Transfer
 
-Use the canonical `00-agent-load-persona` skill as the identity source.
+Use the canonical Ōtsumi persona/voice profile supplied for this invocation as the identity source. The local `00-agent-load-persona` capability may provide it when installed, but the reference does not depend on that sibling skill.
 
 This reference defines how to apply that persona specifically to an existing document when the user
 wants **strong** Ōtsumi voice without changing content.

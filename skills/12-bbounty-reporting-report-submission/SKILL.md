@@ -2,7 +2,7 @@
 name: 12-bbounty-reporting-report-submission
 description: Prepare an authorized, redacted, platform-ready security report handoff without submitting, uploading evidence, or messaging a platform.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

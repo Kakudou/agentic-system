@@ -1,18 +1,16 @@
 ---
 name: 09-rp-chatbot-research-lore
-description: "Research public canon, lore, terminology, historical/current facts, locations, cultural detail, and other external grounding needed for a roleplay chatbot turn. Use when the user asks for verification/search, when lore accuracy materially matters, or when a factual claim may be stale. Return neutral evidence for the dialogue writer; never write dialogue or silently convert research into character canon."
+description: "Research public canon, lore, terminology, historical or current facts, locations, cultural detail, and other external grounding for roleplay. Use when verification is requested, freshness matters, or uncertain lore could break canon. Return neutral evidence and character-knowledge fit; never write dialogue or silently convert research into character canon."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
 # RP Chatbot Research Lore
 
-Research facts for roleplay without contaminating the character voice.
+Research facts for roleplay without contaminating character voice.
 
-The output is neutral evidence.
-
-Ōshō decides what the character could plausibly know and how to express it.
+The output is neutral evidence. The dialogue layer decides what the character can plausibly know and how to express it.
 
 ## Usage
 
@@ -22,95 +20,77 @@ The output is neutral evidence.
 
 Always read:
 
-- [Research method](references/research-method.md)
-- [Canon and character boundary](references/canon-boundary.md)
-
-Use:
-
-- [Research packet schema](assets/research-lore-schema.yaml)
+- [research method](references/research-method.md)
+- [canon and character boundary](references/canon-boundary.md)
 
 ## When to Use
 
-Research when:
+Use when:
 
-- the user explicitly asks to search, verify, browse, look up, or check a source;
+- the user asks to search, verify, browse, look up, or check a source;
 - current/latest information matters;
 - a lore claim is uncertain enough that guessing could break canon;
-- the dialogue turn depends on a specific location, historical event, terminology, institution, or
-  public-world detail;
-- the locked persona's `web_research_policy` requires it.
+- a roleplay turn depends on specific external historical, cultural, geographic, technical, or canon detail;
 
-Do not research every casual timeless turn under `auto`.
+Do not research every casual timeless turn under an automatic policy.
 
 ## Hard Rules
 
 - Read-only research only.
-- Never write the character's response.
-- Never imitate the character's voice.
-- Never fabricate a source or research result.
-- Never turn a public-web claim directly into locked persona canon.
-- Distinguish primary canon, official source, secondary source, community reference, inference, and
-  unresolved disagreement.
-- Prefer authoritative/primary sources where available.
+- Never write the character response or imitate character voice.
+- Never fabricate a source or result.
+- Never convert a public claim directly into locked persona canon.
+- Distinguish primary canon, official source, secondary source, community reference, inference, and unresolved disagreement.
+- Prefer primary/authoritative sources when available.
 - Current claims require current evidence.
-- Do not treat search snippets as sufficient when the underlying source can be inspected.
-- Do not perform authentication, posting, messaging, purchase, form submission, or other external
-  side effects.
+- Open useful underlying sources rather than relying only on snippets when possible.
+- Do not authenticate, post, message, purchase, submit forms, or cause external side effects.
 
 ## Workflow
 
-### 1. Form the Research Question
+### 1. Form the Question
 
-Translate the turn into one or more focused factual/lore questions.
-
-Preserve the actual setting/canon requested by the user.
-
-Do not broaden into generic fandom trivia.
+Translate the turn into focused factual/lore questions while preserving the exact setting, continuity, edition, or canon requested.
 
 ### 2. Gather Evidence
 
-Follow `references/research-method.md`.
+Follow [research method](references/research-method.md).
 
-For canon/lore, identify source authority.
-
-For current facts/news, verify publication/event dates and prefer current authoritative evidence.
+For current facts, verify event/publication dates. For lore, record source authority and continuity/version when relevant.
 
 ### 3. Separate Fact from Interpretation
 
-Each finding should distinguish:
+For each useful finding identify whether it is:
 
 - directly supported fact;
 - source-specific claim;
 - cross-source synthesis;
-- uncertainty;
-- conflict;
-- inference.
+- inference;
+- uncertain/conflicted.
 
 ### 4. Assess Character Knowledge Fit
 
-For each useful finding classify:
+Classify each useful finding:
 
-- `known` — clearly within locked native knowledge;
-- `plausible` — character could reasonably know it;
-- `unlikely` — true externally but implausible for the character to know without explanation;
-- `unknown` — contract does not establish enough.
+- `known` — clearly inside native knowledge;
+- `plausible` — reasonably knowable;
+- `unlikely` — externally true but implausible without explanation;
+- `unknown` — persona contract is insufficient to decide.
 
-This is advisory.
+This is advisory and does not rewrite the persona.
 
-Ōshō owns the final dialogue choice.
+### 5. Return Evidence
 
-### 5. Return Packet
+Return a concise evidence packet containing:
 
-Return one `RoleplayResearch/v1`.
+- research status: success/partial/failed;
+- neutral findings with confidence, freshness/canon scope, and knowledge fit;
+- source list with authority and locators;
+- conflicts;
+- gaps.
 
-Do not add roleplay prose.
+No versioned research envelope is required.
 
-## Research Failure
+## Failure
 
-When research is partial or fails:
-
-- state exactly what could and could not be established;
-- preserve uncertainty;
-- do not substitute model memory as verified evidence.
-
-A failed lookup is valid evidence of uncertainty, not permission to invent.
+If research is partial or fails, state what could and could not be established. Do not substitute model memory as verified evidence.

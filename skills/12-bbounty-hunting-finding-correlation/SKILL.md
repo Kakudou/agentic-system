@@ -2,7 +2,7 @@
 name: 12-bbounty-hunting-finding-correlation
 description: Evidence-led synthesis of authorized security findings into bounded relationship, duplicate, pattern, and handoff assessments.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

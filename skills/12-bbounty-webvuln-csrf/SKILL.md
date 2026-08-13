@@ -2,7 +2,7 @@
 name: 12-bbounty-webvuln-csrf
 description: Safely assess authorized CSRF defenses on controlled state-changing workflows.
 metadata:
-  version: 1.0
+  version: "1.0"
   opencode/slash: "true"
 ---
 

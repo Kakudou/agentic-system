@@ -1,183 +1,130 @@
 ---
-name: 99-toolcouncil-of-seven
-description: Run a rigorous seven-lens adversarial review of a submission such as code, writing, designs, images, research, plans, recipes, architectures, or other artifacts. Use when the user asks for a council review, critique, stress test, multi-angle review, or when an important submission benefits from independent scrutiny beyond a single-pass review. Can operate standalone or as the independent quality gate for gauntlet-loop.
+name: 99-tool-council-of-seven
+description: "Run an independent seven-lens adversarial review of a submission such as code, writing, designs, research, plans, architectures, or other artifacts. Use when one review is not enough and the submission benefits from blind first impressions, targeted cross-fire, concrete alternatives, and evidence-weighted synthesis."
 metadata:
-  version: 1.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
 # Council of Seven
 
-Seven bounded archetypes independently inspect a submission, challenge material disagreements, propose concrete alternatives, and deliver an evidence-weighted verdict through Ginshō.
+Review one submission through seven independent lenses, then reconcile the findings by evidence.
 
-The Council is a **review and judgment protocol**. It does not execute code, mutate files, make purchases, change external state, or replace domain-specific validators. It may inspect evidence produced by tools or other skills.
+The Council is read-only. It reviews; it does not execute repairs or mutate the submission.
 
-## Constitutional Principles
+## Usage
 
-1. **Independent first impressions.** Round 1 is blind between seats. No seat sees another seat's analysis before submitting its own findings.
-2. **Evidence outranks consensus.** Six weak opinions do not override one verified critical defect.
-3. **Role boundaries matter.** Each seat analyzes from its assigned lens and must not invent requirements merely because another design is possible.
-4. **Severity is evidence-backed.** Critical and major findings require a concrete claim, evidence, consequence, and confidence.
-5. **Critique is not scope expansion.** Suggestions outside the submission's stated purpose are non-blocking unless they expose a prerequisite necessary for that purpose to work.
-6. **Ginshō synthesizes; Ginshō does not erase dissent.** Material unresolved disagreements must remain visible in the report.
-7. **Standalone judgment is not Gauntlet acceptance.** The Council returns review judgments; `gauntlet-loop` owns contract-level PASS/FAIL when the Council is used as a gate.
+`/99-tool-council-of-seven {submission}`
 
-## The Seven Seats
+## Seven Lenses
 
-| Seat | Agent | Lens | Core question |
-|---|---|---|---|
-| 1 | Keima | Skeptic | How can this fail, contradict itself, or break under edge conditions? |
-| 2 | Kakugyō | Architect | Is the structure coherent, feasible, maintainable, and internally sound? |
-| 3 | Fuhyō | Minimalist | What is unnecessary, duplicated, overcomplicated, or insufficiently atomic? |
-| 4 | Kyōsha | Visionary | What outside evidence, precedent, pattern, or missing context changes the judgment? |
-| 5 | Hisha | Aesthetician | Does the submission communicate, feel, read, or operate as a finished artifact? |
-| 6 | Kinshō | Economist | Is the cost, scope, effort, complexity, and maintenance burden justified? |
-| 7 | Ginshō | Synthesizer | What survives evidence-weighted arbitration, and what should happen next? |
+1. **Skeptic** — failure modes, contradictions, edge cases, unsupported assumptions.
+2. **Architect** — structure, boundaries, dependencies, feasibility, maintainability.
+3. **Minimalist** — unnecessary complexity, duplication, accidental scope, simplification.
+4. **Context Scout** — external evidence, precedent, standards, missing context.
+5. **Aesthetician** — clarity, usability, coherence, presentation, finish.
+6. **Economist** — effort/value, operational burden, maintenance cost, practical scope.
+7. **Synthesizer** — evidence-weighted arbitration, dissent preservation, final verdict.
 
-Before Round 1, read [references/archetypes.md](references/archetypes.md). It defines the authority and anti-patterns of every seat.
+Read [references/archetypes.md](references/archetypes.md) before the first round.
 
 ## Inputs
 
-Use as much of the following as the user or calling skill provides:
+Use what is actually available:
 
-- **Submission** — the artifact, idea, plan, code, image, text, or candidate to review.
-- **Context** — intended audience, environment, objective, assumptions, or background.
-- **Reference / bar** — requirements, examples, benchmarks, rubrics, standards, or comparable artifacts.
-- **Evidence** — tests, measurements, screenshots, citations, runtime results, diffs, logs, or observations.
-- **Constraints** — time, budget, safety, compatibility, scope, format, or non-negotiables.
+- submission;
+- intended purpose and audience;
+- requirements or comparison bar;
+- constraints and non-goals;
+- tests, measurements, screenshots, citations, diffs, logs, or other evidence.
 
-Do not fabricate missing context. Review what exists and make uncertainty visible.
-
-If invoked by `gauntlet-loop`, also read [references/gauntlet-integration.md](references/gauntlet-integration.md) before any seat evaluates the candidate.
+Do not fabricate missing context. Make uncertainty visible.
 
 ## Workflow
 
-### Round 1 — Independent Critique
+### 1. Independent first round
 
-Run all seven seats independently and, where the host supports it, in parallel. Each seat receives the same submission packet plus only its own lens contract.
+Run all seven lenses independently. Do not expose one lens's findings to another before each has completed its first inspection.
 
-Use [assets/round-1-prompt.md](assets/round-1-prompt.md) as the prompt contract.
+Use [assets/round-1-prompt.md](assets/round-1-prompt.md).
 
-Each non-Ginshō seat returns 1–5 findings. Ginshō performs an independent synthesis-oriented inspection in Round 1 but **must not issue the final verdict yet**.
+Each lens should return only high-signal findings supported by the evidence standard in [references/evidence-and-severity.md](references/evidence-and-severity.md).
 
-Each finding uses the severity rules in [references/evidence-and-severity.md](references/evidence-and-severity.md).
+### 2. Neutral briefing
 
-### Round 1 Briefing
+Combine the first round into a neutral briefing containing:
 
-Ōshō or the orchestration layer compresses Round 1 into a neutral briefing containing:
+- material agreements;
+- material disagreements;
+- cited evidence;
+- unresolved uncertainty;
+- candidate topics for cross-fire.
 
-- material findings,
-- evidence cited,
-- agreements,
-- contradictions,
-- unresolved uncertainty,
-- candidate cross-fire topics.
+Do not frame the briefing toward a preferred answer.
 
-Do not editorialize the briefing toward a preferred outcome.
+### 3. Targeted cross-fire
 
-### Round 2 — Cross-Fire
+Challenge only material disagreements or findings whose severity is uncertain.
 
-Run targeted clashes on material disagreements.
+Dynamic pairings are preferred: pair the two lenses whose claims actually conflict.
 
-Default pairings when no stronger contradiction exists:
+Use [assets/cross-fire-prompt.md](assets/cross-fire-prompt.md) and [references/debate-protocol.md](references/debate-protocol.md).
 
-- Keima ↔ Kakugyō
-- Fuhyō ↔ Kyōsha
-- Hisha ↔ Kinshō
+Skip cross-fire when the first round is materially unanimous and no credible contradiction remains.
 
-If two seats directly conflict on the same material point, prefer that **dynamic pairing** over the static default. Read [references/debate-protocol.md](references/debate-protocol.md) for pairing and skip rules.
+### 4. Alternatives
 
-Use [assets/cross-fire-prompt.md](assets/cross-fire-prompt.md).
-
-Round 2 is for testing findings, not generating entirely new review scopes.
-
-### Round 3 — Alternatives
-
-Each seat proposes exactly one concrete improvement, alternative, mitigation, or simplification based on the debate.
+Ask the lenses for concrete improvements, mitigations, or simplifications that follow from the review.
 
 Use [assets/alternatives-prompt.md](assets/alternatives-prompt.md).
 
-Alternatives are proposals. They do not automatically become requirements.
+Alternatives are suggestions, not automatic requirements.
 
-### Synthesis — Ginshō
+### 5. Synthesis
 
-Ginshō receives the complete debate and resolves it using the evidence hierarchy in [references/conflict-resolution.md](references/conflict-resolution.md).
+The Synthesizer receives the complete review and resolves conflicts using [references/conflict-resolution.md](references/conflict-resolution.md).
 
-Use [assets/synthesis-prompt.md](assets/synthesis-prompt.md) and format the final result with [assets/council-report-template.md](assets/council-report-template.md).
+Use [assets/synthesis-prompt.md](assets/synthesis-prompt.md) and [assets/council-report-template.md](assets/council-report-template.md).
 
-Standalone Council verdicts are:
+Verdicts:
 
 - **ACCEPT** — no material defect remains.
-- **ACCEPT WITH RESERVATIONS** — usable as-is, but meaningful non-blocking risks remain.
-- **REVISE** — one or more material defects should be corrected before relying on the submission.
-- **REJECT** — the core approach is unsound, unsafe, unfit for purpose, or repair would require fundamental replacement.
+- **ACCEPT WITH RESERVATIONS** — usable as-is; meaningful non-blocking risk remains.
+- **REVISE** — material defects should be corrected before relying on the submission.
+- **REJECT** — the core approach is unsound, unsafe, or unfit for purpose.
 
-Use confidence: **high / medium / low**.
+Confidence: `high | medium | low`.
+
+## Evidence Rules
+
+- Evidence outranks vote count.
+- Consensus is not proof.
+- One verified critical defect can outweigh six unsupported positive opinions.
+- A preference is not a blocker without a material consequence.
+- Missing evidence remains unverified; do not convert uncertainty into confidence.
+- Findings outside the stated purpose are stretch observations unless they expose a necessary prerequisite for the purpose to work.
 
 ## Domain Adaptation
 
-When the submission requires domain-specific interpretation, read [references/domain-adaptation.md](references/domain-adaptation.md).
+Read [references/domain-adaptation.md](references/domain-adaptation.md) when the artifact requires domain-specific interpretation.
 
-The seven lenses stay constant; only what counts as relevant evidence changes.
+The seven lenses remain stable. Only the evidence and failure modes change.
 
-## Edge Conditions
+## Optional Gauntlet Integration
 
-### Tiny input
+When a consuming workflow uses the Council as a quality gate, read [references/gauntlet-integration.md](references/gauntlet-integration.md).
 
-For trivially small submissions where cross-fire adds no information, run Round 1 then Synthesis. State that cross-fire was skipped as unnecessary.
+The Council still returns its own review verdict. A consuming workflow may translate that verdict into its own acceptance state, but must not rewrite Council findings.
 
-### Near-unanimous or unanimous Round 1
+## Output
 
-If all seven independently reach materially the same conclusion and no credible contradiction exists, skip Round 2. Round 3 may also be skipped if the submission is already ACCEPT-worthy; Ginshō should include at most one stretch alternative.
+Return one concise Council Report containing:
 
-### Material conflict
+1. verdict and confidence;
+2. strongest consensus points;
+3. material findings with evidence;
+4. material dissent and its resolution or unresolved status;
+5. concrete alternatives;
+6. evidence limits.
 
-If seats disagree on the same material claim, do not average the opinions. Cross-fire the conflicting evidence and preserve unresolved dissent if evidence remains inconclusive.
-
-### Missing evidence
-
-Do not convert uncertainty into confidence. A claim that depends on unavailable evidence should be marked **unverified** or reduced in confidence.
-
-### External research
-
-Kyōsha may seek external context only when tools are available and the task permits research. External information must be attributable. Other seats may also use supplied research evidence but should not duplicate Kyōsha's contextual role without cause.
-
-### Images and media
-
-Review the actual artifact when available. Do not infer visual defects solely from a textual description if the image itself can be inspected.
-
-## Hard Rules
-
-- All seven seats participate in Round 1 unless the host environment cannot support seven independent calls. If degraded, disclose it.
-- Round 1 outputs must be independent.
-- Ginshō alone issues the final Council verdict.
-- A seat cannot promote personal preference into a critical or major defect without showing material consequence.
-- A verified fact can outweigh majority opinion.
-- Council consensus is not proof.
-- The Council may recommend edits or actions but does not perform mutations itself.
-- Do not claim a specialized validator, test, benchmark, or external source was used unless evidence shows that it was.
-- In Gauntlet mode, Council findings cannot rewrite the locked goal, reference/bar, or constraints.
-
-## Output Discipline
-
-The final Council Report should emphasize:
-
-1. verdict and confidence,
-2. consensus,
-3. material findings with evidence,
-4. dissent and its resolution,
-5. concrete alternatives,
-6. Ginshō's reasoning,
-7. stretch observations separately from blocking issues.
-
-Do not dump the raw transcript unless the user asks for it.
-
-## Resource Loading Map
-
-- Always before Round 1: [references/archetypes.md](references/archetypes.md)
-- When assigning severity or checking support: [references/evidence-and-severity.md](references/evidence-and-severity.md)
-- When coordinating rounds or pairing conflicts: [references/debate-protocol.md](references/debate-protocol.md)
-- When the artifact needs domain-specific interpretation: [references/domain-adaptation.md](references/domain-adaptation.md)
-- When material findings conflict: [references/conflict-resolution.md](references/conflict-resolution.md)
-- When called by `gauntlet-loop`: [references/gauntlet-integration.md](references/gauntlet-integration.md)
-- When producing round prompts or the final report: load the corresponding file in `assets/`
+Do not dump internal debate transcripts unless explicitly requested.

@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-evidence-capture
 description: Preserve minimal, authorized, reviewable evidence for an in-scope finding without collecting, replaying, or disclosing sensitive data.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

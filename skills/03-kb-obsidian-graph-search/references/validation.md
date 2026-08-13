@@ -1,53 +1,45 @@
 # Graph Validation
 
-## Overview
+## Configuration
 
-- descriptor is valid `ObsidianVaultOverview/v1`;
-- requested/default vault was resolved by the overview skill;
-- no hardcoded fallback entered the proposal;
-- all required semantic selectors are configured.
+- requested/default vault resolved through the overview;
+- no hardcoded fallback entered the operation;
+- every required semantic selector is configured.
 
 ## Scope
 
 - target is exactly `<vault_root>/<config_root>/graph.json`;
-- normalized target stays beneath `vault_root`;
-- Graph View is closed;
-- no alternate root entered the proposal.
+- normalized target remains beneath `vault_root`;
+- no alternate root or directory creation entered the operation.
 
 ## Current State
 
-- target exists;
-- current bytes came from the literal target;
-- current JSON parses;
-- no directory creation is required.
+- target exists as a regular file;
+- current JSON parses before mutation;
+- the approved proposal is based on the current state or mutation is stopped for drift.
 
 ## Proposal
 
-- only requested supported fields changed;
-- no unrequested field changed;
-- no group/path/tag came from vault crawling;
-- semantic paths came only from the overview;
-- template evidence came only from exact overview-resolved files;
+- only requested supported fields change;
+- semantic paths come only from overview configuration;
 - untouched values are preserved;
-- final bytes exist and parse;
-- exact changed fields and diff are available.
+- final proposed JSON parses;
+- exact changed fields are visible before approval.
 
-## Inventory
+## Execution
 
-- finite and ordered;
-- every future manifest file is already closed;
-- no discovery remains;
-- formal limits can be respected.
+- no mutation occurred before explicit approval;
+- the applied object equals the approved proposal;
+- no temp file, Git operation, unrelated vault file, or external side effect was introduced.
 
-## Execution Boundary
+## Read-Back
 
-Before activation, no write, move, temp file, command, test, Git operation, or external
-communication may have occurred.
+After write:
 
-## Reporting
+- file can be read;
+- JSON parses;
+- approved changed fields match;
+- untouched fields still match the pre-write object;
+- no additional field changed.
 
-Proposal says execution has not occurred.
-
-Successful execution is reported only from `FormalWorkflowReceipt/v1`.
-
-After success, remind controller to reopen Graph View.
+Only successful read-back verification supports a success claim.

@@ -23,7 +23,7 @@ Do not request or retain sensitive content merely to increase confidence. Stop w
 
 ## Evidence And Handoff
 
-Record the confidence basis, conflicting evidence, limitations, and the specific owner decision needed. A receiving owner may authorize a separate validation activity; this analysis does not do so.
+Record the confidence basis, conflicting evidence, limitations, and the specific decision needed. A separate validation activity requires separate authorization; this analysis does not provide it.
 
 ## Sources
 

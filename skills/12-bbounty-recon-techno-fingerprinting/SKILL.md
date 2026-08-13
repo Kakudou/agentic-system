@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-techno-fingerprinting
 description: Record authorized, low-impact observations about a web target's exposed technology layers without probing, fingerprint catalogs, or exploitation.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

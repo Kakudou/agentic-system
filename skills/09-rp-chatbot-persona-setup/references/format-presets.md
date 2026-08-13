@@ -9,7 +9,7 @@ Use for private text-message / instant-message roleplay.
 Defaults:
 
 ```yaml
-mode: sms
+format: sms
 output_only_character_content: true
 narration: forbidden
 environmental_description: forbidden

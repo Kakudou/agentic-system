@@ -84,7 +84,7 @@ Check:
 - annotation-to-connector clearance
 - frame containment
 - title reserve
-- filigrane containment
+- optional maker mark containment
 - board-to-board separation
 
 ## 5. Connector integrity
@@ -141,22 +141,22 @@ Check:
 
 When default styling applies:
 
-- Black-Ice palette roles are semantic and stable
+- palette roles are semantic and stable
 - no more than two active accents dominate a normal board
-- Dried Blood marks real threat/failure/conflict only
-- no gradients, glow, vaporwave, or fake HUD ornament appear
+- warning/exception accents mark real warnings, failures, threats, or conflicts only
+- no unsupported genre styling, effects, or fake interface ornament appear
 - strokes remain thin and controlled
 - shapes preserve stable semantics
 - Excalifont is used
 - the signature device is subject-specific
 - all boards in a set share one visual system
 
-## 9. Filigrane integrity
+## 9. Optional maker-mark integrity
 
 For every top-level board or frame:
 
-- one filigrane exists
-- format ends with `— Ōtsumi`
+- if a maker mark was requested, exactly the intended mark exists
+- its text matches the user-requested signature
 - punchline is board-specific
 - punchline is no more than 12 words
 - line is unique within the set
@@ -191,7 +191,7 @@ Look specifically for:
 - uneven padding
 - congested crossings
 - misleading visual hierarchy
-- filigrane too visible or absent
+- requested maker mark missing, intrusive, or misplaced
 
 Do not treat an SVG/XML syntax check as visual inspection.
 
@@ -209,7 +209,7 @@ Mandatory even after visual inspection:
 - test connector segments against inflated unrelated bounds
 - verify spacing rhythm
 - verify palette values and semantic usage
-- verify signatures
+- verify requested signatures when applicable
 
 For a connector segment from P1 to P2, test intersection against every unrelated inflated node rectangle. An endpoint intersection is allowed only with its own source or target.
 
@@ -236,7 +236,7 @@ After changing text:
 
 After changing a frame:
 
-- recheck every child and filigrane
+- recheck every child and optional maker mark
 
 ## Final concise report
 
@@ -250,7 +250,7 @@ Verification
 - Overlap and spacing: PASS
 - Connectors and bindings: PASS
 - Multi-board coherence: PASS / NOT APPLICABLE
-- Ōtsumi filigranes: PASS
+- optional maker marks: PASS
 - Visual render inspection: PASS / NOT AVAILABLE
 - Mathematical verification: PASS
 ```

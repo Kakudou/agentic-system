@@ -2,7 +2,7 @@
 name: 12-bbounty-findings-sensitive-data-handling
 description: Minimize, classify, contain, and hand off already-observed sensitive finding evidence without collecting, extracting, storing, or disclosing it.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

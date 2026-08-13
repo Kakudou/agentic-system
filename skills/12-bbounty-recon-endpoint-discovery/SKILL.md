@@ -2,7 +2,7 @@
 name: 12-bbounty-recon-endpoint-discovery
 description: Record authorized, observed endpoint and route behavior without guessing paths, fuzzing, or active protocol discovery.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

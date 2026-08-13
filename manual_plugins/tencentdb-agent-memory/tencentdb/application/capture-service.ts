@@ -57,7 +57,24 @@ const RETRY_DELAYS_MS = [
   60000,
 ]
 
+const EPHEMERAL_APPENDIX =
+  /<!--\s*otsumi-ephemeral:start\s*-->[\s\S]*?<!--\s*otsumi-ephemeral:end\s*-->/gi
+
+function stripEphemeralAppendices(
+  value: string,
+): string {
+  return value
+    .replace(
+      EPHEMERAL_APPENDIX,
+      "",
+    )
+    .trim()
+}
+
 export class CaptureService {
+  private disposed =
+    false
+
   private readonly captured =
     new Set<string>()
 
@@ -113,6 +130,10 @@ export class CaptureService {
   private scheduleRetry(
     turn: CompletedTurn,
   ) {
+    if (this.disposed) {
+      return
+    }
+
     const key =
       this.key(turn)
 
@@ -203,6 +224,49 @@ export class CaptureService {
     turn: CompletedTurn,
     retry = false,
   ): Promise<boolean> {
+    if (this.disposed) {
+      return false
+    }
+
+    const originalAssistantChars =
+      turn.assistantText.length
+
+    // Ambient response gadgets are display-only context. They must not become
+    // durable personal/project memory merely because they were appended to an
+    // otherwise useful answer. Explicit SRS vault writes remain separate
+    // knowledge artifacts and are unaffected by this sanitizer.
+    turn = {
+      ...turn,
+      assistantText:
+        stripEphemeralAppendices(
+          turn.assistantText,
+        ),
+      assistantMessageIDs: [
+        ...turn.assistantMessageIDs,
+      ],
+    }
+
+    if (
+      turn.assistantText.length !==
+      originalAssistantChars
+    ) {
+      this.trace.write(
+        "CAPTURE_EPHEMERAL_STRIPPED",
+        {
+          sessionID:
+            turn.sessionID,
+
+          generation:
+            turn.generation,
+
+          originalAssistantChars,
+
+          capturedAssistantChars:
+            turn.assistantText.length,
+        },
+      )
+    }
+
     if (
       !turn.userText.trim() ||
       !turn.assistantText.trim()
@@ -374,5 +438,17 @@ export class CaptureService {
     } finally {
       this.inFlight.delete(key)
     }
+  }
+
+  stop() {
+    this.disposed = true
+
+    for (const retry of this.retries.values()) {
+      if (retry.timer) {
+        clearTimeout(retry.timer)
+      }
+    }
+
+    this.retries.clear()
   }
 }

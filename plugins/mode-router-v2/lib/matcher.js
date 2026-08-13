@@ -68,6 +68,8 @@ function normalizeMode(entry) {
     extends: asStringArray(entry.extends, "extends", name),
     allow: asStringArray(entry.prefixes_allowed, "prefixes_allowed", name),
     deny: asStringArray(entry.prefixes_denied, "prefixes_denied", name),
+    agentsAllowed: asStringArray(entry.agents_allowed, "agents_allowed", name),
+    toolsDenied: asStringArray(entry.tools_denied, "tools_denied", name),
   }
 }
 
@@ -127,20 +129,28 @@ export function normalizeConfig(raw) {
 
     let allow = []
     let deny = []
+    let agentsAllowed = []
+    let toolsDenied = []
     for (const parentNameRaw of item.extends) {
       const parentName = aliases.get(parentNameRaw) ?? parentNameRaw
       const parent = resolveOne(parentName)
       allow.push(...parent.allow)
       deny.push(...parent.deny)
+      agentsAllowed.push(...parent.agentsAllowed)
+      toolsDenied.push(...parent.toolsDenied)
     }
 
     allow.push(...item.allow)
     deny.push(...item.deny)
+    agentsAllowed.push(...item.agentsAllowed)
+    toolsDenied.push(...item.toolsDenied)
 
     const effective = {
       ...item,
       allow: unique(allow),
       deny: unique(deny),
+      agentsAllowed: unique(agentsAllowed),
+      toolsDenied: unique(toolsDenied.map((value) => value.toLowerCase())),
     }
 
     resolving.delete(name)

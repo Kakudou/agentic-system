@@ -2,7 +2,7 @@
 name: 12-bbounty-vuln-sso-federation
 description: Authorization-first, observation-oriented assessment of in-scope SSO and federation boundaries.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

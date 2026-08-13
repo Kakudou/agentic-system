@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-failed-technique-extraction
 description: Document authorized failed security-assessment approaches as bounded, evidence-led learning records without retesting or attack guidance.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
@@ -52,7 +52,6 @@ failed_approach_learning_record:
   bounded_learning: string
   limitations_and_exclusions: [string]
   validation_status: reviewed | needs-clarification | stopped
-  handoff_recipient: string
 ```
 
 ## Supplemental Index

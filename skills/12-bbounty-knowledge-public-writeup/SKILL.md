@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-public-writeup
 description: Prepare a safe, evidence-bound public security writeup after explicit publication authorization. Produces a review-ready draft and handoff only; never publishes or provides exploitation instructions.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 

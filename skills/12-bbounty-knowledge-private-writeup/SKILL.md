@@ -2,7 +2,7 @@
 name: 12-bbounty-knowledge-private-writeup
 description: Create private, privacy-preserving security writeups from already-observed, authorized evidence without testing, reproducing, or publishing findings.
 metadata:
-  version: 2.0
+  version: "2.0"
   opencode/slash: "true"
 ---
 
