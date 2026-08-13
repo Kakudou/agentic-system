@@ -1,0 +1,25 @@
+kind: "RoleplayResearch/v1"
+query_summary: ""
+research_status: "success | partial | failed"
+
+findings:
+  - id: "RL-001"
+    claim: "<neutral fact or source claim>"
+    status: "fact | source_claim | synthesis | inference | uncertain"
+    confidence: "high | medium | low"
+    freshness: "<date/version/continuity note>"
+    canon_scope: "<work/edition/continuity/setting>"
+    character_knowledge_fit: "known | plausible | unlikely | unknown"
+    source_ids: []
+
+sources:
+  - id: "S1"
+    authority: "user_canon | primary | official | secondary | community | discussion"
+    title: ""
+    publisher: ""
+    published_at: null
+    retrieved_at: ""
+    locator: ""
+
+conflicts: []
+gaps: []

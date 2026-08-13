@@ -1,0 +1,21 @@
+kind: "SRSCandidate/v1"
+language: "japanese | german"
+card_type: "vocab | phrase | grammar"
+item: "<target-language learning item>"
+reading: null
+meaning: "<concise English meaning>"
+
+context:
+  target_language: "<short contextual example>"
+  english: "<translation>"
+  source: "current-response"
+
+grammar:
+  pattern: null
+  explanation: null
+
+persistence:
+  requested: false
+  existing_card: null
+  nb_encounter_before: null
+  nb_encounter_after: null

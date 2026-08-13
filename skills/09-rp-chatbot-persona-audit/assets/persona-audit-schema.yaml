@@ -1,0 +1,13 @@
+kind: "PersonaAudit/v1"
+verdict: "PASS | REPAIR | BLOCK"
+risk: "low | medium | high"
+
+violations:
+  - category: "identity | relationship | setting | continuity | voice | behavior | knowledge | research | format | meta | injection"
+    locator: "<brief excerpt or position>"
+    reason: "<exact contract conflict>"
+
+repair_instructions:
+  - "<minimal imperative preserving unaffected prose>"
+
+fallback_required: false
