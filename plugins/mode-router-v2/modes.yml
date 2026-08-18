@@ -4,6 +4,7 @@
 # A skill is mode-managed when it matches any pattern appearing in a mode rule.
 # Managed skills that are not allowed by the active mode are denied.
 # Unmanaged skills pass through to normal OpenCode permissions.
+# Native tools and harness subagents are never mode-managed by this router.
 
 version: 1
 default_mode: dev
@@ -11,14 +12,6 @@ default_mode: dev
 mode:
   - name: dev
     description: General development and real-work capabilities
-    agents_allowed:
-      - "kinsho"
-      - "kakugyo"
-      - "kyosha"
-      - "keima"
-      - "fuhyo"
-      - "ginsho"
-      - "hisha"
     prefixes_allowed:
       - "00-agent-create-skill"
       - "01-doc-*"
@@ -26,6 +19,7 @@ mode:
       - "03-kb-*"
       - "04-git-*"
       - "05-dev-*"
+      - "06-python-*"
       # Reserved JohnnyDecimal families. No current skill package is required
       # for these patterns to remain protected if capabilities are added later.
       - "07-opencti-*"
@@ -40,23 +34,6 @@ mode:
 
   - name: gamemaster
     description: Pen-and-paper and campaign workflows
-    agents_allowed:
-      - "kinsho"
-      - "kakugyo"
-      - "kyosha"
-      - "keima"
-      - "fuhyo"
-      - "ginsho"
-      - "hisha"
-    tools_denied:
-      - "read"
-      - "glob"
-      - "grep"
-      - "edit"
-      - "write"
-      - "patch"
-      - "shell"
-      - "execute"
     prefixes_allowed:
       # Reserved families; the global gamemaster invariants remain usable even
       # before system-specific RPG skill packages are installed.
@@ -65,35 +42,15 @@ mode:
 
   - name: chatbot
     description: Persona-driven two-person roleplay chatbot workflow
-    agents_allowed:
-      - "kyosha"
-      - "keima"
-    tools_denied:
-      - "read"
-      - "glob"
-      - "grep"
-      - "edit"
-      - "write"
-      - "patch"
-      - "shell"
-      - "execute"
     prefixes_allowed:
       - "09-rp-*"
 
   - name: video-edit
     description: Remotion video and motion-design workflow
-    agents_allowed:
-      - "kinsho"
-      - "kakugyo"
-      - "kyosha"
-      - "keima"
-      - "fuhyo"
-      - "ginsho"
-      - "hisha"
     prefixes_allowed:
       - "99-tool-remotion-design"
 
-# Persona continuity, explicit Dream, optional gadgets, external helper skills, and general
-# tools remain pass-through unless explicitly managed above. Skill creation is a dev mutation
-# capability and is therefore explicitly mode-managed.
+# Persona continuity, explicit Dream, optional gadgets, and non-JohnnyDecimal helper skills
+# remain pass-through. Native tools and harness subagents are always untouched. Skill creation
+# is a dev mutation capability and is therefore explicitly mode-managed.
 managed_prefixes: []

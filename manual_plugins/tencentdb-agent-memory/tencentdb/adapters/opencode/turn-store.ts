@@ -87,14 +87,36 @@ export class TurnStore {
     )
   }
 
-  setUserText(
+  appendUserText(
     sessionID: string,
     text: string,
-  ) {
-    this.stateFor(
-      sessionID,
-    ).userText =
-      text
+  ): TurnState | null {
+    if (
+      !this.activeExecutions.has(
+        sessionID,
+      )
+    ) {
+      return null
+    }
+
+    const state =
+      this.stateFor(
+        sessionID,
+      )
+
+    const userText =
+      text.trim()
+
+    if (!userText) {
+      return state
+    }
+
+    state.userText =
+      state.userText
+        ? `${state.userText}\n\n${userText}`
+        : userText
+
+    return state
   }
 
   openExecution(
@@ -116,6 +138,7 @@ export class TurnStore {
 
     state.generation += 1
     state.openCodeAgent = ""
+    state.userText = ""
     state.assistantText = ""
     state.sawTextDelta = false
     state.assistantMessageIDs

@@ -1,6 +1,4 @@
-import { posix } from "node:path"
-import { modeDecision, isManagedSkill } from "./matcher.js"
-import { disableTools } from "./catalog.js"
+import { modeDecision } from "./matcher.js"
 
 export function sessionIDOf(event) {
   const direct = (
@@ -75,7 +73,7 @@ export function lastUserText(messages) {
   return messages.length ? textFrom(messages[messages.length - 1]) : ""
 }
 
-const SKILL_SLASH_RE = /^\/([a-z0-9]+(?:-[a-z0-9]+)*)(?=\s|$)/
+const SKILL_SLASH_RE = /^\/(\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*)(?=\s|$)/i
 
 export function explicitSkillSlash(text) {
   if (typeof text !== "string") return null
@@ -84,9 +82,10 @@ export function explicitSkillSlash(text) {
 }
 
 const MODE_COMMAND_RE = /<opencode-mode-router\s+action="([^"]*)"\s*\/>/i
+const RAW_MODE_COMMAND_RE = /^\/mode(?:[ \t]+([^\r\n]*))?$/
 
-export function requestedModeAction(event) {
-  // V2 request hooks expose provider-ready model messages, not necessarily the
+export function requestedModeAction(event, admittedInputText) {
+  // V2 context hooks expose provider-ready model messages, not necessarily the
   // durable { info, parts } session shape. Search from newest to oldest and
   // tolerate either representation.
   const messages = Array.isArray(event?.messages) ? event.messages : []
@@ -97,7 +96,13 @@ export function requestedModeAction(event) {
 
   // Last-resort compatibility for beta event-shape drift.
   const match = MODE_COMMAND_RE.exec(textFrom(event?.messages))
-  return match ? match[1].trim() : null
+  if (match) return match[1].trim()
+
+  const rawMatch =
+    typeof admittedInputText === "string"
+      ? RAW_MODE_COMMAND_RE.exec(admittedInputText.trim())
+      : null
+  return rawMatch ? (rawMatch[1] ?? "").trim() : null
 }
 
 function replaceTextPayload(value, payload, depth = 0) {
@@ -180,11 +185,10 @@ export function neutralizeBlockedSkillSlash(event, { skillID, mode, reason }) {
     `session mode is '${mode ?? "unresolved"}'.${reason ? ` ${reason}` : ""}`
 
   // V2 currently expands slash-selected skills before the model resumes. The
-  // request hook is the last authoritative model-dispatch boundary, so remove
-  // the executable tool surface and replace the newest prompt payload we can
-  // safely identify. The system block below remains authoritative even if a
-  // beta build represents the injected skill message in an unfamiliar shape.
-  disableTools(event)
+  // context hook is the last authoritative model-dispatch boundary. Replace
+  // only the selected skill prompt; native tool definitions remain untouched.
+  // The system block below remains authoritative even if a beta build
+  // represents the injected skill message in an unfamiliar shape.
 
   const messages = Array.isArray(event?.messages) ? event.messages : []
   for (let i = messages.length - 1; i >= 0; i--) {
@@ -249,42 +253,6 @@ export function appendSystem(event, text) {
   }
 }
 
-export function enforceModeToolSurface(event, mode, config) {
-  const rules = config.modes.get(mode)
-  if (!rules || !event?.tools || typeof event.tools !== "object") return
-  if (!rules.toolsDenied?.length) return
-
-  const denied = new Set(rules.toolsDenied.map((name) => String(name).toLowerCase()))
-  for (const key of Object.keys(event.tools)) {
-    if (denied.has(key.toLowerCase())) delete event.tools[key]
-  }
-}
-
-export function modeToolDenied(toolName, mode, config) {
-  const rules = config.modes.get(mode)
-  if (!rules || typeof toolName !== "string") return false
-  const tool = toolName.toLowerCase()
-  return rules.toolsDenied?.some((name) => String(name).toLowerCase() === tool) ?? false
-}
-
-export function subagentTarget(event) {
-  const tool = String(event?.tool ?? "").toLowerCase()
-  if (!["subagent", "task"].includes(tool)) return null
-  const input = event?.input && typeof event.input === "object" ? event.input : {}
-  for (const key of ["agent", "agentID", "agentId", "subagent", "type", "name"]) {
-    if (typeof input[key] === "string" && input[key].trim()) return input[key].trim()
-  }
-  return null
-}
-
-export function modeAllowsSubagent(target, mode, config) {
-  if (!target) return false
-  const rules = config.modes.get(mode)
-  if (!rules) return false
-  if (!rules.agentsAllowed?.length) return true
-  return rules.agentsAllowed.includes(target)
-}
-
 export function buildStatus({
   mode,
   agent,
@@ -305,7 +273,7 @@ export function buildStatus({
     else filtered.push(skill)
   }
 
-  const rules = config.modes.get(mode) ?? { allow: [], deny: [], agentsAllowed: [], toolsDenied: [] }
+  const rules = config.modes.get(mode) ?? { allow: [], deny: [] }
   const health = configError ? "DEGRADED (last-known-good config)" : "HEALTHY"
 
   return [
@@ -323,8 +291,6 @@ export function buildStatus({
     ...(rules.deny.length
       ? rules.deny.map((x) => `  DENY  ${x}`)
       : []),
-    `  SUBAGENTS ${rules.agentsAllowed?.length ? rules.agentsAllowed.join(", ") : "(unrestricted by mode)"}`,
-    `  TOOLS DENIED ${rules.toolsDenied?.length ? rules.toolsDenied.join(", ") : "(none)"}`,
     "",
     "Mode-visible managed skills:",
     ...(managedVisible.length
@@ -338,12 +304,12 @@ export function buildStatus({
     ...(filtered.length ? filtered.map((x) => `  ${x}`) : ["  (none)"]),
     "",
     "Runtime checks:",
-    "  V2 request hook ............ ACTIVE",
+    "  V2 context hook ............ ACTIVE",
     "  per-session mode state ..... ACTIVE",
-    "  model catalog filter ....... ACTIVE",
-    "  mode tool surface .......... ACTIVE",
-    "  mode subagent guard ........ ACTIVE",
-    "  skill execution guard ...... ACTIVE",
+    "  system skill ad filter ..... ACTIVE",
+    "  managed JD execution guard . ACTIVE",
+    "  Native tools ............... UNTOUCHED",
+    "  Harness subagents .......... UNTOUCHED",
   ].join("\n")
 }
 
@@ -360,124 +326,11 @@ export function buildModeList(config) {
     if (mode.deny.length) {
       lines.push(`    deny:  ${mode.deny.join(", ")}`)
     }
-    if (mode.agentsAllowed?.length) {
-      lines.push(`    subagents: ${mode.agentsAllowed.join(", ")}`)
-    }
-    if (mode.toolsDenied?.length) {
-      lines.push(`    tools denied: ${mode.toolsDenied.join(", ")}`)
-    }
   }
 
   lines.push("")
   lines.push(`Default: ${config.defaultMode}`)
   lines.push(`Managed patterns: ${config.managedPatterns.join(", ")}`)
+  lines.push("Native tools and harness subagents are untouched in every mode.")
   return lines.join("\n")
-}
-
-// Protect normal OpenCode file-tool access to mode-managed skill sources.
-// This is deliberately scoped to the read/glob/grep tool family; it is not a
-// shell/filesystem sandbox and must not be described as one.
-function skillPathScope(raw) {
-  if (typeof raw !== "string") return null
-
-  // Normalize before classifying so dot segments cannot disguise the real
-  // skill directory (for example skills/x/../<inactive-skill>/SKILL.md). This is
-  // lexical normalization only; symlink/filesystem containment remains a
-  // host-permission concern, not something this router pretends to sandbox.
-  const path = posix.normalize(raw.replaceAll("\\", "/"))
-
-  if (path === "skills" || path.endsWith("/skills")) {
-    return { broad: true, skillID: null }
-  }
-
-  // Accept both absolute (.../skills/<id>/...) and repository-relative
-  // (skills/<id>/...) paths. Use the last skills/ component so a parent path
-  // containing the word "skills" cannot confuse the resolver.
-  const marker = "skills/"
-  const pos = path.lastIndexOf(marker)
-  if (pos < 0) return null
-
-  const tail = path.slice(pos + marker.length)
-  const parts = tail.split("/").filter(Boolean)
-  if (!parts.length) return { broad: true, skillID: null }
-
-  const first = parts[0]
-  if (["*", "**"].includes(first) || first.includes("*") || first.includes("?")) {
-    return { broad: true, skillID: null }
-  }
-
-  // Flat skill: skills/example-skill.md
-  if (first.endsWith(".md")) {
-    return { broad: false, skillID: first.slice(0, -3) }
-  }
-
-  return { broad: false, skillID: first }
-}
-
-function pathStringsFromInput(input) {
-  if (!input || typeof input !== "object") return []
-  const values = []
-
-  for (const key of [
-    "filePath",
-    "filepath",
-    "path",
-    "directory",
-    "dir",
-    "root",
-    "cwd",
-  ]) {
-    if (typeof input[key] === "string") values.push(input[key])
-  }
-
-  return values
-}
-
-export function deniedManagedSkillFile(event, mode, config) {
-  const tool = String(event?.tool ?? "").toLowerCase()
-  if (!["read", "glob", "grep"].includes(tool)) return null
-
-  const candidatePaths = pathStringsFromInput(event?.input)
-  if (tool === "glob" && typeof event?.input?.pattern === "string") {
-    candidatePaths.push(event.input.pattern)
-  }
-  if (tool === "grep" && typeof event?.input?.include === "string") {
-    candidatePaths.push(event.input.include)
-  }
-
-  for (const path of candidatePaths) {
-    const scope = skillPathScope(path)
-    if (!scope) continue
-
-    // A broad glob/grep rooted at skills/ could reveal every inactive managed
-    // skill. Block that source-level bypass whenever this mode excludes any
-    // managed skill. Callers should use the already-filtered skill catalog or
-    // address an allowed skill directory explicitly.
-    if (scope.broad) {
-      const deniedExists = config.managed.some(({ pattern, regex }) => {
-        // Find one advertised/configured pattern that this mode does not
-        // allow. Patterns are sufficient here: broad source access is denied
-        // if the current mode does not own the complete managed universe.
-        const candidate = pattern.replace(/[?*].*$/, "probe")
-        const decision = modeDecision(candidate, mode, config)
-        return regex.test(candidate) && decision.managed && !decision.allowed
-      })
-      if (deniedExists) {
-        return {
-          skillID: "<managed-skill-tree>",
-          path,
-          tool,
-          decision: { managed: true, allowed: false, reason: "broad-skill-source-access" },
-        }
-      }
-      continue
-    }
-
-    const skillID = scope.skillID
-    if (!skillID || !isManagedSkill(skillID, config)) continue
-    const decision = modeDecision(skillID, mode, config)
-    if (!decision.allowed) return { skillID, path, tool, decision }
-  }
-
-  return null
 }

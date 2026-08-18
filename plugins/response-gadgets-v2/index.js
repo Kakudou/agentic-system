@@ -201,10 +201,10 @@ export default {
     // Selection happens before model dispatch so the gadget can execute
     // inside the same assistant turn. TencentDB therefore still observes one
     // ordinary completed turn rather than a synthetic follow-up turn.
-    // OpenCode V2 beta: ambient selection runs in the model `request` hook so
+    // OpenCode V2 beta: ambient selection runs in the model `context` hook so
     // it can influence the same assistant turn without creating a synthetic
     // follow-up turn. This is intentionally not the legacy V1 plugin API.
-    await ctx.session.hook("request", async (event) => {
+    await ctx.session.hook("context", async (event) => {
       try {
         const bridge = globalThis[MODE_BRIDGE]
         if (!bridge && options.requireModeRouter) return
@@ -217,7 +217,7 @@ export default {
 
         // Ambient behavior belongs only to the primary user-facing agent.
         // The mode-router correlates the V2 public lifecycle stream when the
-        // request event itself omits identity metadata. Unknown identity fails
+        // context event itself omits identity metadata. Unknown identity fails
         // safe by suppressing gadgets.
         const activeAgent =
           identity?.agent ??
@@ -274,7 +274,7 @@ export default {
         appendSystem(event, directive(state.mode, state))
       } catch (error) {
         // Optional ambient behavior must never break the actual user response.
-        console.error("[kakudou.response-gadgets] request hook failed open:", error)
+        console.error("[kakudou.response-gadgets] context hook failed open:", error)
       }
     })
 

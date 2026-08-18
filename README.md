@@ -77,7 +77,7 @@ Bad: declares the host runtime mode inside the skill
 Bad: consumes an opaque versioned envelope only another local skill can produce
 ```
 
-Runtime mode availability belongs to the mode-router plugin.
+Availability and execution of configured mode-managed JohnnyDecimal skills belong to the mode-router plugin.
 
 ### JohnnyDecimal layout
 
@@ -102,13 +102,13 @@ Runtime mode availability belongs to the mode-router plugin.
 
 ## Runtime modes
 
-Runtime mode capability availability is enforced by `plugins/mode-router-v2`.
+Persisted session mode and the availability and execution of configured managed JohnnyDecimal skills are enforced by `plugins/mode-router-v2`.
 
-The router owns the mode names, inheritance, managed skill patterns, allowed board subagents, denied local/process tools, session state, and `/mode` command. Skills and agent contracts do not duplicate those rules.
+The router owns the mode names, child-session inheritance, managed skill patterns, persisted session state, and `/mode` command. Native/system/harness tools and board-subagent availability are outside its authority and remain governed by host permissions and agent contracts. Skills and agent contracts do not duplicate managed skill-mode rules.
 
 Edit `plugins/mode-router-v2/modes.yml` when the runtime skill families change.
 
-The router targets the OpenCode V2 beta model-request hook and enforces the active mode before every model dispatch, not merely when a `/mode` command is issued. It also guards managed skill execution (including explicit `/skill-id` invocation), blocks disallowed subagent targets, strips denied tools from the model request, and fails closed when a session cannot be identified. Child subagent sessions inherit their parent session's mode.
+The router targets the OpenCode V2 beta pre-model `context` hook and enforces configured managed JohnnyDecimal skill policy before every model dispatch, not merely when a `/mode` command is issued. It filters those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board subagents remain untouched by the router. Child subagent sessions inherit their parent session's mode.
 
 ## Ambient response gadgets
 

@@ -2,8 +2,8 @@ import { createHash } from "node:crypto"
 import { agentOf, lastUserText, sessionIDOf } from "./runtime.js"
 
 const SESSION_EVENT_TYPES = new Set([
-  "session.input.admitted",
-  "session.input.promoted",
+  "session.inbox.enqueued",
+  "session.inbox.delivered",
 ])
 
 const SESSION_END_TYPES = new Set([
@@ -50,6 +50,7 @@ function publicSessionID(value) {
 
 function inputObject(event) {
   const data = eventData(event)
+  if (SESSION_EVENT_TYPES.has(event?.type)) return asObject(data?.item?.payload) ?? {}
   return asObject(data?.input) ?? asObject(data?.message) ?? asObject(data?.info) ?? data
 }
 
@@ -117,7 +118,18 @@ function textDeep(value, keyHint = "", depth = 0) {
 
 function inputText(event) {
   const data = eventData(event)
+  if (SESSION_EVENT_TYPES.has(event?.type)) return textDeep(data?.item?.payload)
   return textDeep(data?.input ?? data?.message ?? data)
+}
+
+function inputID(event) {
+  const data = eventData(event)
+  if (SESSION_EVENT_TYPES.has(event?.type)) {
+    return typeof data?.inboxID === "string" && data.inboxID.trim()
+      ? data.inboxID.trim()
+      : null
+  }
+  return null
 }
 
 function digest(text) {
@@ -125,11 +137,11 @@ function digest(text) {
 }
 
 /**
- * Correlates the public V2 lifecycle stream with model-request hooks.
+ * Correlates the public V2 lifecycle stream with pre-model context hooks.
  *
- * Current V2 docs guarantee that request hooks can mutate system/messages/tools,
+ * Current V2 docs guarantee that context hooks can mutate system/messages/tools,
  * but do not promise session/agent metadata on that hook event itself. The
- * public event stream does carry session-scoped input lifecycle records, so the
+ * public event stream carries session-scoped inbox lifecycle records, so the
  * router uses those as a fallback. Ambiguous correlation fails closed.
  */
 export class RequestIdentityTracker {
@@ -161,6 +173,8 @@ export class RequestIdentityTracker {
       return
     }
 
+    if (SESSION_EVENT_TYPES.has(event.type) && eventData(event)?.item?.type !== "user") return
+
     const agent = inputAgent(event)
     if (agent) this.agentBySession.set(sessionID, agent)
 
@@ -171,6 +185,7 @@ export class RequestIdentityTracker {
 
     this.pending.set(sessionID, {
       sessionID,
+      inputID: inputID(event),
       agent: agent ?? this.agentBySession.get(sessionID) ?? null,
       digest: digest(text),
       text,
@@ -217,9 +232,9 @@ export class RequestIdentityTracker {
 
     if (matches.length === 0) {
       // V2 slash skill selection may replace the raw `/skill-id ...` user
-      // input with the expanded skill body before the model-request hook. In
+      // input with the expanded skill body before the pre-model context hook. In
       // that case text equality is impossible. Correlate only when there is
-      // exactly one fresh admitted slash input across all tracked sessions;
+      // exactly one fresh inbox slash input across all tracked sessions;
       // concurrent/ambiguous candidates remain unresolved and fail closed.
       const now = Date.now()
       const slashMatches = [...this.pending.values()].filter(

@@ -17,8 +17,6 @@ import {
 import {
   assistantMessageIDFrom,
   eventData,
-  inputShape,
-  inputTextFromEvent,
   normalizeEvent,
   sessionIDFrom,
 } from "./event-codec.ts"
@@ -29,9 +27,10 @@ import {
 
 const LOGGED_EVENT_TYPES =
   new Set([
-    "session.input.admitted",
+    "session.inbox.enqueued",
+    "session.inbox.delivered",
+    "session.inbox.cancelled",
     "session.execution.started",
-    "session.input.promoted",
     "session.step.started",
     "session.text.started",
     "session.text.ended",
@@ -44,6 +43,12 @@ const LOGGED_EVENT_TYPES =
   ])
 
 export class OpenCodeLifecycle {
+  private readonly pendingUserText =
+    new Map<
+      string,
+      Map<string, string>
+    >()
+
   private turns:
     TurnStore
 
@@ -144,66 +149,230 @@ export class OpenCodeLifecycle {
 
     if (
       type ===
-        "session.input.admitted" ||
-      type ===
-        "session.input.promoted"
+      "session.inbox.enqueued"
     ) {
-      if (!sessionID) {
+      const inboxID =
+        data?.inboxID
+
+      const item =
+        data?.item
+
+      const text =
+        item?.payload?.text
+
+      if (
+        !sessionID ||
+        typeof inboxID !==
+          "string" ||
+        !inboxID ||
+        item?.type !== "user" ||
+        typeof text !== "string" ||
+        !text.trim()
+      ) {
+        this.trace.write(
+          "USER_INBOX_ENQUEUE_IGNORED",
+          {
+            sessionID:
+              sessionID || null,
+            inboxID:
+              typeof inboxID ===
+                "string"
+                ? inboxID
+                : null,
+            hasUserType:
+              item?.type ===
+              "user",
+            textType:
+              typeof text,
+            nonblank:
+              typeof text ===
+                "string"
+                ? Boolean(
+                    text.trim(),
+                  )
+                : false,
+          },
+        )
+
         return
       }
 
-      const inputText =
-        inputTextFromEvent(
-          event,
+      let pending =
+        this.pendingUserText.get(
+          sessionID,
         )
 
-      if (inputText) {
-        this.turns
-          .setUserText(
-            sessionID,
-            inputText,
-          )
-
-        this.trace.write(
-          "USER_FROM_INPUT_EVENT",
-          {
-            source:
-              type,
-
-            sessionID,
-
-            userChars:
-              inputText.length,
-          },
-        )
-      } else {
-        if (
-          type ===
-          "session.input.admitted"
-        ) {
-          this.trace.write(
-            "INPUT_TEXT_UNRESOLVED",
-            {
-              sessionID,
-
-              shape:
-                inputShape(
-                  data?.input,
-                ),
-            },
-          )
-        }
-
-        this.trace.write(
-          "USER_INPUT_EMPTY",
-          {
-            source:
-              type,
-
-            sessionID,
-          },
+      if (!pending) {
+        pending =
+          new Map<
+            string,
+            string
+          >()
+        this.pendingUserText.set(
+          sessionID,
+          pending,
         )
       }
+
+      const userText =
+        text.trim()
+
+      pending.set(
+        inboxID,
+        userText,
+      )
+
+      this.trace.write(
+        "USER_INBOX_PENDING",
+        {
+          sessionID,
+          inboxID,
+          userChars:
+            userText.length,
+        },
+      )
+
+      return
+    }
+
+    if (
+      type ===
+      "session.inbox.delivered"
+    ) {
+      const inboxID =
+        data?.inboxID
+
+      const pending =
+        sessionID
+          ? this.pendingUserText.get(
+              sessionID,
+            )
+          : undefined
+
+      const userText =
+        typeof inboxID ===
+          "string"
+          ? pending?.get(
+              inboxID,
+            )
+          : undefined
+
+      if (
+        !sessionID ||
+        !userText
+      ) {
+        this.trace.write(
+          "USER_INBOX_DELIVERY_UNRESOLVED",
+          {
+            sessionID:
+              sessionID || null,
+            inboxID:
+              typeof inboxID ===
+                "string"
+                ? inboxID
+                : null,
+            reason:
+              typeof inboxID ===
+                "string"
+                ? "not-pending"
+                : "missing-id",
+          },
+        )
+
+        return
+      }
+
+      const state =
+        this.turns
+          .appendUserText(
+            sessionID,
+            userText,
+          )
+
+      if (!state) {
+        this.trace.write(
+          "USER_INBOX_DELIVERY_UNRESOLVED",
+          {
+            sessionID,
+            inboxID,
+            reason:
+              "no-active-execution",
+          },
+        )
+
+        return
+      }
+
+      pending?.delete(
+        inboxID,
+      )
+
+      if (!pending?.size) {
+        this.pendingUserText.delete(
+          sessionID,
+        )
+      }
+
+      this.trace.write(
+        "USER_FROM_INBOX_DELIVERY",
+        {
+          sessionID,
+          inboxID,
+          generation:
+            state.generation,
+          userChars:
+            userText.length,
+        },
+      )
+
+      return
+    }
+
+    if (
+      type ===
+      "session.inbox.cancelled"
+    ) {
+      const inboxID =
+        data?.inboxID
+
+      const pending =
+        sessionID
+          ? this.pendingUserText.get(
+              sessionID,
+            )
+          : undefined
+
+      const removed =
+        typeof inboxID ===
+          "string"
+          ? pending?.delete(
+              inboxID,
+            ) ?? false
+          : false
+
+      if (
+        sessionID &&
+        pending &&
+        !pending.size
+      ) {
+        this.pendingUserText.delete(
+          sessionID,
+        )
+      }
+
+      this.trace.write(
+        "USER_INBOX_CANCELLED",
+        {
+          sessionID:
+            sessionID || null,
+          inboxID:
+            typeof inboxID ===
+              "string"
+              ? inboxID
+              : null,
+          removed,
+        },
+      )
 
       return
     }
@@ -693,6 +862,10 @@ export class OpenCodeLifecycle {
         sessionID,
       )
 
+      this.pendingUserText.delete(
+        sessionID,
+      )
+
       this.dreams.delete(
         sessionID,
       )
@@ -714,6 +887,22 @@ export class OpenCodeLifecycle {
   ): () => Promise<void> {
     let iterator: AsyncIterator<any> | null =
       null
+
+    let stopGateResolve:
+      (() => void) |
+      null =
+        null
+
+    const stopGate =
+      new Promise<void>(
+        (resolve) => {
+          stopGateResolve =
+            resolve
+        },
+      )
+
+    let stopped =
+      false
 
     const task =
       (async () => {
@@ -740,11 +929,27 @@ export class OpenCodeLifecycle {
             )
           }
 
-          while (true) {
+          while (!stopped) {
             const item =
-              await iterator.next()
+              await Promise.race(
+                [
+                  iterator.next(),
 
-            if (item?.done) {
+                  stopGate.then(
+                    () =>
+                      ({
+                        done: true,
+                        value:
+                          undefined,
+                      }),
+                  ),
+                ],
+              )
+
+            if (
+              stopped ||
+              item?.done
+            ) {
               break
             }
 
@@ -774,19 +979,64 @@ export class OpenCodeLifecycle {
       })()
 
     return async () => {
-      try {
-        await iterator?.return?.()
-      } catch (error) {
-        this.trace.write(
-          "EVENT_UNSUBSCRIBE_FAILED",
-          {
-            error:
-              String(error),
-          },
-        )
+      if (stopped) {
+        return
       }
 
-      await task
+      stopped =
+        true
+
+      stopGateResolve?.()
+
+      /*
+       * The host's iterator return() may never settle at all (observed live:
+       * neither resolves nor rejects). Bound it so cleanup always completes;
+       * the stop gate above has already terminated the run loop.
+       */
+      await Promise.race(
+        [
+          (async () => {
+            try {
+              await iterator?.return?.()
+            } catch (error) {
+              this.trace.write(
+                "EVENT_UNSUBSCRIBE_FAILED",
+                {
+                  error:
+                    String(error),
+                  },
+                )
+            }
+          })(),
+
+          new Promise<void>(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                2000,
+              ),
+          ),
+        ],
+      )
+
+      await Promise.race(
+        [
+          task,
+
+          new Promise<void>(
+            (resolve) =>
+              setTimeout(
+                resolve,
+                2000,
+              ),
+          ),
+        ],
+      )
+
+      this.trace.write(
+        "EVENT_LIFECYCLE_STOPPED",
+        {},
+      )
     }
   }
 }

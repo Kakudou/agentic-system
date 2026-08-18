@@ -20,7 +20,7 @@ services:
       TDAI_DATA_DIR: "/data"
 
     volumes:
-      - ./data/data-v3:/data
+      - /home/kakudou/Arcology/tencentdb/data/data-v3:/data
 
 
   tdai-memory-hub:
@@ -47,4 +47,4 @@ services:
       LLM_MODEL: "${TDAI_LLM_MODEL}"
 
     volumes:
-      - ./data/panel-data:/data/knowledge
+      - /home/kakudou/Arcology/tencentdb/data/panel-data:/data/knowledge

@@ -12,7 +12,7 @@ curl -sS \
         '{username:$username,user_key:$key}')" \
   | jq
 
-printf '%s' "$ADMIN_KEY" > ./data/.admin-key
+printf '%s' "$ADMIN_KEY" > .admin-key
 chmod 600 .admin-key
 
 curl -sS \

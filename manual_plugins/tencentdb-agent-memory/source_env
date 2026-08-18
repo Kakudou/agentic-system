@@ -1,8 +1,8 @@
 export TDAI_GATEWAY_URL=http://127.0.0.1:8420
-export TDAI_MEMORY_USER_ID='username'
+export TDAI_MEMORY_USER_ID='kakudou'
 export OPENCODE_SERVER_URL=http://127.0.0.1:49374
 
-export TDAI_GATEWAY_API_KEY='PUT_A_LONG_RANDOM_SECRET_HERE'
-export TDAI_LLM_BASE_URL=http://provider
-export TDAI_LLM_API_KEY=api_key
-export TDAI_LLM_MODEL=model
+export TDAI_GATEWAY_API_KEY='4403e93c-880d-4dfb-a6ec-7ed417781015'
+export TDAI_LLM_BASE_URL=http://192.168.1.148:4242/v1
+export TDAI_LLM_API_KEY=otsumi
+export TDAI_LLM_MODEL=qwen38

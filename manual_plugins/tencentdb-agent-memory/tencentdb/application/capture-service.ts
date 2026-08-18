@@ -71,15 +71,47 @@ function stripEphemeralAppendices(
     .trim()
 }
 
+const PROCESS_REGISTRY_KEY =
+  "__kakudou_tencentdb_memory_capture__"
+
+type CaptureProcessState = {
+  captured: Set<string>
+  inFlight: Set<string>
+}
+
+/*
+ * OpenCode V2 may re-run a plugin's setup() within one server process.
+ * Each setup() constructs a fresh CaptureService, so instance-local dedup
+ * sets would let every live instance POST the same turn again. Sharing the
+ * sets process-wide keeps capture idempotent no matter how many plugin
+ * instances stay alive in the process.
+ */
+function captureProcessState(): CaptureProcessState {
+  const globalScope =
+    globalThis as any
+
+  if (!globalScope[PROCESS_REGISTRY_KEY]) {
+    globalScope[PROCESS_REGISTRY_KEY] = {
+      captured:
+        new Set<string>(),
+
+      inFlight:
+        new Set<string>(),
+    }
+  }
+
+  return globalScope[PROCESS_REGISTRY_KEY]
+}
+
 export class CaptureService {
   private disposed =
     false
 
   private readonly captured =
-    new Set<string>()
+    captureProcessState().captured
 
   private readonly inFlight =
-    new Set<string>()
+    captureProcessState().inFlight
 
   private readonly retries =
     new Map<
@@ -167,6 +199,33 @@ export class CaptureService {
     }
 
     if (retry.timer) {
+      return
+    }
+
+    if (
+      retry.attempt >=
+        RETRY_DELAYS_MS.length
+    ) {
+      this.retries.delete(key)
+
+      this.trace.write(
+        "CAPTURE_GIVE_UP",
+        {
+          sessionID:
+            turn.sessionID,
+
+          generation:
+            turn.generation,
+
+          openCodeAgent:
+            turn.openCodeAgent ||
+            null,
+
+          attempts:
+            retry.attempt,
+        },
+      )
+
       return
     }
 

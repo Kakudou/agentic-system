@@ -39,6 +39,7 @@ Always read:
 
 - Use the standard-library `venv` module.
 - Default to `.venv` in the project root.
+- never look for parent folders the root is the actual path
 - Never use `--system-site-packages` unless explicitly requested.
 - Never use `--clear`, delete, or recreate an existing `.venv` automatically.
 - Never install or upgrade project dependencies merely because the environment was created.

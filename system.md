@@ -12,7 +12,7 @@ It does not duplicate agent identities, skill procedures, runtime mode configura
 system.md       → global law and routing
 agents/*.md     → role and authority boundaries
 skills/*        → portable capability procedures
-plugins/*       → runtime enforcement and mode availability
+plugins/*       → runtime enforcement and managed skill-mode routing
 host/tools      → actual capability
 TencentDB       → durable memory infrastructure
 Obsidian        → configured knowledge base
@@ -23,8 +23,8 @@ Rules:
 - `system.md` owns cross-cutting invariants.
 - The active agent file owns role boundaries.
 - The active skill owns only the procedure for its capability.
-- Runtime plugins own mode selection and mode-specific skill, subagent, and tool availability.
-- The host decides which tools and effects actually exist.
+- The mode-router plugin owns persisted session mode and the mode-specific availability and execution of configured managed JohnnyDecimal skills.
+- The host decides which tools and effects actually exist; host permissions and agent contracts govern native/system/harness tools and board-subagent availability.
 - A prompt, agent, or skill never creates a capability by describing one.
 - Keep detail in the narrowest layer that can own it.
 
@@ -71,17 +71,17 @@ One agent must not silently absorb another agent's authority.
 
 ## Runtime Modes
 
-Runtime mode selection and mode-specific capability availability are enforced by the mode-router plugin.
+Persisted session mode and the mode-specific availability and execution of configured managed JohnnyDecimal skills are enforced by the mode-router plugin.
 
 Therefore:
 
-- agents honor the active runtime mode but do not define mode allowlists;
+- agents honor the active runtime mode but do not define managed skill allowlists;
 - skills do not declare, infer, switch, or route by Otsumi runtime mode;
 - `system.md` does not duplicate the plugin's mode names or skill patterns;
-- a skill unavailable in the active mode is unavailable, even if its instructions describe a useful procedure;
-- changing runtime mode changes availability and context, not the eight agent identities.
+- a managed JohnnyDecimal skill unavailable in the active mode is unavailable, even if its instructions describe a useful procedure;
+- changing runtime mode changes configured managed skill availability and context, not native tools, board-subagent availability, or the eight agent identities.
 
-In the OpenCode V2 host, `kakudou.mode-router` enforces the active mode on every model-request dispatch. It filters the managed skill catalog, guards both model-driven and explicit slash skill invocation, constrains which board subagents may be launched, and removes or blocks local/process tools that the mode does not permit. Child sessions inherit the parent session's authoritative mode. If session identity cannot be resolved, mode-managed skills and the tool surface fail closed. The plugin's persisted per-session mode is authoritative; ordinary prose does not switch it.
+In the OpenCode V2 host, `kakudou.mode-router` persists the authoritative per-session mode and enforces configured managed JohnnyDecimal skill policy on every model-request dispatch. It filters only those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. Child sessions inherit the parent session's authoritative mode. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board-subagent availability are otherwise untouched by the mode-router and remain governed by host permissions and agent contracts. Ordinary prose does not switch the persisted mode.
 
 Domain words such as a file mode, rendering mode, test mode, or engagement mode remain valid when they are intrinsic to the capability and unrelated to Otsumi runtime routing.
 
@@ -327,7 +327,7 @@ The `97-gadget-*` skills are optional appendages to an already-complete answer.
 
 The gadgets themselves do not own invocation probability or response-finalization policy.
 
-In the OpenCode V2 host, `kakudou.response-gadgets` owns ambient selection. For each eligible ordinary Ōshō user turn it evaluates each configured gadget gate independently exactly once, caches that selection across continuation/tool requests for the same turn, and authorizes only the selected appendages for that turn. The controller performs any selected skill invocation inside the same assistant execution. The mode-router remains authoritative for whether a selected gadget is available.
+In the OpenCode V2 host, `kakudou.response-gadgets` owns ambient selection. For each eligible ordinary Ōshō user turn it evaluates each configured gadget gate independently exactly once, caches that selection across continuation/tool requests for the same turn, and authorizes only the selected appendages for that turn. The controller performs any selected skill invocation inside the same assistant execution. The mode-router remains authoritative for a selected gadget's availability only if that gadget is configured as a managed JohnnyDecimal skill.
 
 Ambient selection must never override a stricter presentation contract. The default runtime therefore suppresses random appendages in locked character-chat and gamemaster modes, where an unrelated out-of-character appendix could violate persona, narration, or immersion rules. Explicit/manual gadget invocation remains a normal capability when the user actually asks for it, and plugin configuration may opt additional modes in deliberately.
 

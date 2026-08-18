@@ -1,4 +1,9 @@
 const MODE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const JOHNNY_DECIMAL_PREFIX = /^\d{2}-/
+
+export function isJohnnyDecimalIdentifier(value) {
+  return typeof value === "string" && JOHNNY_DECIMAL_PREFIX.test(value)
+}
 
 function unique(values) {
   return [...new Set(values)]
@@ -68,8 +73,6 @@ function normalizeMode(entry) {
     extends: asStringArray(entry.extends, "extends", name),
     allow: asStringArray(entry.prefixes_allowed, "prefixes_allowed", name),
     deny: asStringArray(entry.prefixes_denied, "prefixes_denied", name),
-    agentsAllowed: asStringArray(entry.agents_allowed, "agents_allowed", name),
-    toolsDenied: asStringArray(entry.tools_denied, "tools_denied", name),
   }
 }
 
@@ -129,28 +132,20 @@ export function normalizeConfig(raw) {
 
     let allow = []
     let deny = []
-    let agentsAllowed = []
-    let toolsDenied = []
     for (const parentNameRaw of item.extends) {
       const parentName = aliases.get(parentNameRaw) ?? parentNameRaw
       const parent = resolveOne(parentName)
       allow.push(...parent.allow)
       deny.push(...parent.deny)
-      agentsAllowed.push(...parent.agentsAllowed)
-      toolsDenied.push(...parent.toolsDenied)
     }
 
     allow.push(...item.allow)
     deny.push(...item.deny)
-    agentsAllowed.push(...item.agentsAllowed)
-    toolsDenied.push(...item.toolsDenied)
 
     const effective = {
       ...item,
       allow: unique(allow),
       deny: unique(deny),
-      agentsAllowed: unique(agentsAllowed),
-      toolsDenied: unique(toolsDenied.map((value) => value.toLowerCase())),
     }
 
     resolving.delete(name)
@@ -183,6 +178,15 @@ export function normalizeConfig(raw) {
     throw new Error(
       "mode-router config: no managed patterns exist; add prefixes_allowed/prefixes_denied",
     )
+  }
+
+  for (const pattern of allPatterns) {
+    if (!isJohnnyDecimalIdentifier(pattern)) {
+      throw new Error(
+        `mode-router config: managed pattern '${pattern}' must use the ` +
+          "JohnnyDecimal namespace (two digits and a hyphen, for example '05-dev-*')",
+      )
+    }
   }
 
   const managed = allPatterns.map((pattern) => ({
@@ -223,7 +227,7 @@ export function resolveModeName(input, config) {
 }
 
 export function isManagedSkill(skillID, config) {
-  if (typeof skillID !== "string") return false
+  if (!isJohnnyDecimalIdentifier(skillID)) return false
   return config.managed.some(({ regex }) => regex.test(skillID))
 }
 

@@ -67,6 +67,35 @@ import {
   TencentMemoryV3Client,
 } from "./infrastructure/tencent/memory-v3-client.ts"
 
+const PLUGIN_ID =
+  "kakudou.tencentdb-memory"
+
+const PROCESS_REGISTRY_KEY =
+  "__kakudou_tencentdb_memory__"
+
+type LiveInstance = {
+  stop: () => Promise<void>
+}
+
+/*
+ * OpenCode V2 may re-run a plugin's setup() within a single server process,
+ * and re-imports may even produce fresh module instances. A process-wide
+ * registry lets each new setup() stop the previous live instance instead of
+ * leaking another event loop. globalThis is shared across re-imports; a
+ * module-level variable would not be.
+ */
+function liveInstanceRegistry():
+  Record<string, LiveInstance> {
+  const globalScope =
+    globalThis as any
+
+  if (!globalScope[PROCESS_REGISTRY_KEY]) {
+    globalScope[PROCESS_REGISTRY_KEY] = {}
+  }
+
+  return globalScope[PROCESS_REGISTRY_KEY]
+}
+
 /*
  * OpenCode V2 beta plugin entry.
  *
@@ -75,7 +104,7 @@ import {
  */
 export default {
   id:
-    "kakudou.tencentdb-memory",
+    PLUGIN_ID,
 
   setup:
     async (
@@ -288,6 +317,62 @@ export default {
       const stopLifecycle =
         lifecycle.run(ctx)
 
+      const entry:
+        LiveInstance =
+          {
+            stop:
+              async () => {
+                await stopLifecycle()
+
+                capture.stop()
+
+                const registry =
+                  liveInstanceRegistry()
+
+                if (
+                  registry[PLUGIN_ID] ===
+                    entry
+                ) {
+                  delete registry[PLUGIN_ID]
+                }
+              },
+          }
+
+      const previous =
+        liveInstanceRegistry()[PLUGIN_ID]
+
+      liveInstanceRegistry()[PLUGIN_ID] =
+        entry
+
+      /*
+       * Register this instance immediately so a re-setup can stop it even if
+       * a later install step fails. The new lifecycle is already running, so
+       * stopping the previous live instance now leaves no uncovered event
+       * window; any overlap is harmless because the process-wide capture
+       * dedup in CaptureService suppresses a second POST for the same turn.
+       */
+      if (previous) {
+        trace.write(
+          "SETUP_REPLACE_PREVIOUS",
+          {
+            id:
+              PLUGIN_ID,
+          },
+        )
+
+        try {
+          await previous.stop()
+        } catch (error) {
+          trace.write(
+            "SETUP_PREVIOUS_STOP_FAILED",
+            {
+              error:
+                String(error),
+            },
+          )
+        }
+      }
+
       await registerTools(
         ctx,
         {
@@ -326,9 +411,6 @@ export default {
         },
       )
 
-      return async () => {
-        await stopLifecycle()
-        capture.stop()
-      }
+      return entry.stop
     },
 }

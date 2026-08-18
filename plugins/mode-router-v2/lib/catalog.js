@@ -79,11 +79,6 @@ export function collectAdvertisedFromContext(event) {
     chunks.push(event.system)
   }
 
-  for (const key of ["skill", "Skill"]) {
-    const description = event?.tools?.[key]?.description
-    if (typeof description === "string") chunks.push(description)
-  }
-
   return [...new Set(chunks.flatMap(extractAdvertisedSkillIDs))].sort()
 }
 
@@ -102,19 +97,4 @@ export function filterContext(event, mode, config) {
     event.system = filterSkillAdvertisement(event.system, mode, config)
   }
 
-  for (const key of ["skill", "Skill"]) {
-    const tool = event?.tools?.[key]
-    if (tool && typeof tool.description === "string") {
-      tool.description = filterSkillAdvertisement(
-        tool.description,
-        mode,
-        config,
-      )
-    }
-  }
-}
-
-export function disableTools(event) {
-  if (!event?.tools || typeof event.tools !== "object") return
-  for (const key of Object.keys(event.tools)) delete event.tools[key]
 }
