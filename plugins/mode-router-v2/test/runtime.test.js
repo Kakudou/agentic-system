@@ -5,6 +5,7 @@ import {
   buildModeList,
   buildStatus,
   explicitSkillSlash,
+  replaceModeCommandPrompt,
   requestedModeAction,
 } from "../lib/runtime.js"
 import { normalizeConfig } from "../lib/matcher.js"
@@ -30,6 +31,34 @@ test("does not treat ordinary prose mentioning /mode as a command", () => {
     requestedModeAction({ messages: [] }, "Please explain how /mode dev-python works."),
     null,
   )
+})
+
+test("ignores historical mode markers and stale admitted commands behind a newer user message", () => {
+  const event = {
+    messages: [
+      { role: "user", content: '<opencode-mode-router action="dev-python" />' },
+      { role: "assistant", content: "Mode switched to: dev-python" },
+      { role: "user", content: "continue with the ordinary request" },
+    ],
+  }
+
+  assert.equal(requestedModeAction(event, "/mode dev-python"), null)
+})
+
+test("uses a current raw mode command without rewriting an older marker", () => {
+  const historicalMarker = '<opencode-mode-router action="dev-python" />'
+  const event = {
+    messages: [
+      { role: "user", content: historicalMarker },
+      { role: "assistant", content: "Mode switched to: dev-python" },
+      { role: "user", content: "/mode status" },
+    ],
+  }
+
+  assert.equal(requestedModeAction(event, "/mode status"), "status")
+  assert.equal(replaceModeCommandPrompt(event, "CURRENT STATUS"), true)
+  assert.equal(event.messages[0].content, historicalMarker)
+  assert.match(event.messages[2].content, /CURRENT STATUS/)
 })
 
 test("recognizes only JohnnyDecimal explicit skill slashes", () => {

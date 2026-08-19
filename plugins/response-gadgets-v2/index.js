@@ -1,50 +1,19 @@
 import { createHash, randomInt } from "node:crypto"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { ConfigManager } from "./lib/config.js"
 
 const PLUGIN_ID = "kakudou.response-gadgets"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
+const PLUGIN_DIR = dirname(fileURLToPath(import.meta.url))
+const DEFAULT_CONFIG = resolve(PLUGIN_DIR, "config.yml")
+const GADGET_COMMAND_RE = /<opencode-response-gadget\s+action="([^"]*)"\s*\/>/i
+const RAW_GADGET_COMMAND_RE = /^\/gadget(?:[ \t]+([^\r\n]*))?$/
 
-const DEFAULT_GADGETS = [
-  { skill: "97-gadget-random-srs", probability: 0.15 },
-  { skill: "97-gadget-random-news", probability: 0.05 },
-  { skill: "97-gadget-random-fun-facts", probability: 0.05 },
-]
-
-// Ambient appendices must not silently violate a locked roleplay/narration
-// format. Keep them on by default for ordinary work modes; callers may opt
-// additional modes in explicitly through plugin options.
-const DEFAULT_MODES = new Set([
-  "dev",
-  "dev-python",
-  "video-edit",
-])
-
-function asProbability(value, fallback) {
-  const number = Number(value)
-  if (!Number.isFinite(number) || number < 0 || number > 1) return fallback
-  return number
-}
-
-function optionsOf(ctx) {
-  const raw = ctx.options && typeof ctx.options === "object" ? ctx.options : {}
-  const overrides =
-    raw.probabilities && typeof raw.probabilities === "object"
-      ? raw.probabilities
-      : {}
-
-  return {
-    primaryAgent:
-      typeof raw.primaryAgent === "string" && raw.primaryAgent.trim()
-        ? raw.primaryAgent.trim()
-        : "osho",
-    modes: Array.isArray(raw.modes)
-      ? new Set(raw.modes.filter((value) => typeof value === "string" && value))
-      : DEFAULT_MODES,
-    gadgets: DEFAULT_GADGETS.map((entry) => ({
-      ...entry,
-      probability: asProbability(overrides[entry.skill], entry.probability),
-    })),
-    requireModeRouter: raw.requireModeRouter !== false,
-  }
+function configPathOf(ctx) {
+  return typeof ctx.options?.config === "string" && ctx.options.config.trim()
+    ? resolve(ctx.options.config)
+    : DEFAULT_CONFIG
 }
 
 function textFrom(value, depth = 0) {
@@ -83,6 +52,7 @@ function latestUser(messages) {
     return {
       text,
       key: `${id || `index-${index}`}:${digest}`,
+      message,
     }
   }
 
@@ -91,8 +61,8 @@ function latestUser(messages) {
 
 function turnKey(identity, providerUser, rawText) {
   const digest = createHash("sha256").update(rawText).digest("hex").slice(0, 16)
-  if (Number.isFinite(identity?.inputAt)) return `admitted-${identity.inputAt}:${digest}`
   if (providerUser?.key) return `${providerUser.key}:${digest}`
+  if (Number.isFinite(identity?.inputAt)) return `admitted-${identity.inputAt}:${digest}`
   return `raw:${digest}`
 }
 
@@ -154,10 +124,148 @@ function isControlTurn(text) {
   const value = text.trim()
   if (!value) return true
   if (value.includes("<opencode-mode-router ")) return true
+  if (value.includes("<opencode-response-gadget ")) return true
+  if (value.includes("<otsumi-progression-command ")) return true
   // Explicit slash commands already have a primary purpose. Ambient gadgets
   // should never decorate controller/status or explicit-skill command turns.
   if (/^\/[A-Za-z0-9_-]+(?:\s|$)/.test(value)) return true
   return false
+}
+
+function requestedGadgetAction(event, admittedInputText) {
+  const providerUser = latestUser(event?.messages)
+  if (providerUser) {
+    const markerMatch = GADGET_COMMAND_RE.exec(providerUser.text)
+    if (markerMatch) return markerMatch[1].trim()
+
+    const currentRawMatch = RAW_GADGET_COMMAND_RE.exec(providerUser.text)
+    return currentRawMatch ? (currentRawMatch[1] ?? "").trim() : null
+  }
+
+  const rawMatch =
+    typeof admittedInputText === "string"
+      ? RAW_GADGET_COMMAND_RE.exec(admittedInputText.trim())
+      : null
+  return rawMatch ? (rawMatch[1] ?? "").trim() : null
+}
+
+function replaceTextPayload(value, payload, depth = 0) {
+  if (depth > 8 || value == null) return false
+  if (Array.isArray(value)) {
+    for (let index = value.length - 1; index >= 0; index--) {
+      if (replaceTextPayload(value[index], payload, depth + 1)) return true
+    }
+    return false
+  }
+  if (typeof value !== "object") return false
+
+  if (
+    typeof value.text === "string" &&
+    (GADGET_COMMAND_RE.test(value.text) || RAW_GADGET_COMMAND_RE.test(value.text.trim()))
+  ) {
+    value.text = payload
+    return true
+  }
+  if (
+    typeof value.content === "string" &&
+    (GADGET_COMMAND_RE.test(value.content) || RAW_GADGET_COMMAND_RE.test(value.content.trim()))
+  ) {
+    value.content = payload
+    return true
+  }
+  for (const key of ["content", "parts", "message", "value"]) {
+    if (replaceTextPayload(value[key], payload, depth + 1)) return true
+  }
+  return false
+}
+
+function replaceGadgetCommandPrompt(event, commandResult) {
+  const payload = [
+    "The response-gadgets runtime already executed this control command.",
+    "Return the following result verbatim, with no commentary:",
+    "",
+    commandResult,
+  ].join("\n")
+  const providerUser = latestUser(event?.messages)
+  return providerUser ? replaceTextPayload(providerUser.message, payload) : false
+}
+
+function buildStatus(configManager) {
+  const config = configManager.current
+  const health = configManager.lastError
+    ? "DEGRADED (last-known-good config)"
+    : "HEALTHY"
+  return [
+    `Response Gadgets: ${health}`,
+    `Config: ${configManager.path}`,
+    `Config revision: ${configManager.revision ?? "unknown"}`,
+    ...(configManager.lastError
+      ? [`Config reload error: ${configManager.lastError}`]
+      : []),
+    `Primary agent: ${config.primaryAgent}`,
+    `Require mode-router: ${config.requireModeRouter}`,
+    `Allowed modes: ${config.modeList.join(", ")}`,
+    "Gadgets:",
+    ...config.gadgets.map(
+      (gadget) =>
+        `  ${gadget.name} -> ${gadget.skill} probability=${gadget.probability}`,
+    ),
+  ].join("\n")
+}
+
+function invalidProbability(value) {
+  const probability = Number(value)
+  return Number.isFinite(probability) && probability >= 0 && probability <= 1
+    ? null
+    : `Invalid probability '${value}'. Expected a number from 0 through 1.`
+}
+
+async function executeGadgetCommand(action, configManager) {
+  if (!action || action === "status") return buildStatus(configManager)
+
+  if (action === "reload") {
+    const result = await configManager.refresh({ force: true })
+    return result.ok
+      ? `Gadget configuration reloaded. Revision: ${configManager.revision}`
+      : [
+          "Gadget configuration reload FAILED.",
+          "Continuing with the last-known-good configuration.",
+          `Error: ${result.error}`,
+        ].join("\n")
+  }
+
+  const parts = action.split(/\s+/)
+  if (parts.length !== 2) {
+    return [
+      `Invalid gadget command '${action}'.`,
+      "Usage: /gadget [status|reload|<name> <probability 0..1>]",
+    ].join("\n")
+  }
+
+  const [name, rawProbability] = parts
+  if (!configManager.current.gadgetByName.has(name)) {
+    return [
+      `Unknown gadget '${name}'.`,
+      `Available gadgets: ${configManager.current.gadgets.map((gadget) => gadget.name).join(", ")}`,
+    ].join("\n")
+  }
+
+  const error = invalidProbability(rawProbability)
+  if (error) return error
+
+  const probability = Number(rawProbability)
+  const result = await configManager.setProbability(name, probability)
+  return result.ok
+    ? [
+        `Gadget probability updated: ${name} = ${probability}`,
+        `Config: ${configManager.path}`,
+        `Config revision: ${configManager.revision}`,
+      ].join("\n")
+    : [
+        "Gadget probability update FAILED.",
+        "Continuing with the last-known-good configuration.",
+        `Error: ${result.error}`,
+      ].join("\n")
 }
 
 function selected(probability) {
@@ -195,8 +303,17 @@ export default {
   id: PLUGIN_ID,
 
   async setup(ctx) {
-    const options = optionsOf(ctx)
+    const configManager = new ConfigManager(configPathOf(ctx))
+    await configManager.initialize()
     const turns = new Map()
+
+    await ctx.command.transform((commands) => {
+      commands.update("gadget", (command) => {
+        command.description =
+          "Inspect or change global response-gadget probabilities: /gadget [status|reload|<name> <0..1>]"
+        command.template = '<opencode-response-gadget action="$ARGUMENTS" />'
+      })
+    })
 
     // Selection happens before model dispatch so the gadget can execute
     // inside the same assistant turn. TencentDB therefore still observes one
@@ -206,12 +323,48 @@ export default {
     // follow-up turn. This is intentionally not the legacy V1 plugin API.
     await ctx.session.hook("context", async (event) => {
       try {
+        // The file is authoritative across plugin setups and sessions. Refresh
+        // on every model context while retaining the last-known-good value if
+        // an external edit is missing or invalid.
+        await configManager.refresh()
+        const config = configManager.current
         const bridge = globalThis[MODE_BRIDGE]
-        if (!bridge && options.requireModeRouter) return
 
         const identity = bridge?.resolveRequest
           ? bridge.resolveRequest(event)
           : { sessionID: sessionIDOf(event), agent: agentOf(event) }
+        const providerUser = latestUser(event?.messages)
+        const admittedInputText =
+          typeof identity?.inputText === "string" ? identity.inputText.trim() : ""
+        const commandAction = requestedGadgetAction(event, admittedInputText)
+
+        if (commandAction !== null) {
+          const commandResult = await executeGadgetCommand(
+            commandAction.trim(),
+            configManager,
+          )
+          const replaced = replaceGadgetCommandPrompt(event, commandResult)
+          appendSystem(
+            event,
+            [
+              "<response-gadget-command>",
+              "The response-gadgets runtime control operation is complete.",
+              "Return the exact result below verbatim and do not call tools:",
+              commandResult,
+              "</response-gadget-command>",
+            ].join("\n"),
+          )
+          if (!replaced) {
+            console.warn(
+              "[kakudou.response-gadgets] command marker detected but prompt could not be rewritten; using system result only",
+            )
+          }
+          // A /gadget control turn never participates in ambient selection.
+          // In particular, leave event.tools structurally and deeply untouched.
+          return
+        }
+
+        if (!bridge && config.requireModeRouter) return
         const sessionID = identity?.sessionID ?? null
         if (!sessionID) return
 
@@ -223,25 +376,23 @@ export default {
           identity?.agent ??
           bridge?.agentFor?.(sessionID) ??
           agentOf(event)
-        if (activeAgent !== options.primaryAgent) return
+        if (activeAgent !== config.primaryAgent) return
 
-        const user = latestUser(event?.messages)
+        const user = providerUser
         const rawUserText =
-          typeof identity?.inputText === "string" && identity.inputText.trim()
-            ? identity.inputText.trim()
-            : user?.text?.trim() ?? ""
+          user?.text?.trim() || admittedInputText
         if (!rawUserText || isControlTurn(rawUserText)) return
         const userTurnKey = turnKey(identity, user, rawUserText)
 
         const mode = bridge?.modeFor ? await bridge.modeFor(sessionID) : null
-        if (!mode && options.requireModeRouter) return
-        if (mode && !options.modes.has(mode)) return
+        if (!mode && config.requireModeRouter) return
+        if (mode && !config.modes.has(mode)) return
 
         let state = turns.get(sessionID)
         if (!state || state.turnKey !== userTurnKey) {
           const chosen = []
 
-          for (const gadget of options.gadgets) {
+          for (const gadget of config.gadgets) {
             // Every gate is independent and is evaluated exactly once per user turn.
             if (!selected(gadget.probability)) continue
 

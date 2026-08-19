@@ -42,6 +42,7 @@ const root = await mkdtemp(join(tmpdir(), "otsumi-progression-test-"))
 const stateFile = join(root, "state.json")
 const stream = new AsyncQueue()
 const tools = new Map()
+const commands = new Map()
 const hooks = new Map()
 let requestHook = null
 
@@ -79,6 +80,17 @@ const ctx = {
       return stream
     },
   },
+  command: {
+    async transform(callback) {
+      await callback({
+        update(name, mutate) {
+          const command = {}
+          mutate(command)
+          commands.set(name, command)
+        },
+      })
+    },
+  },
   session: {
     async hook(name, callback) {
       if (name !== "context") throw new Error(`unsupported hook ${name}`)
@@ -101,6 +113,7 @@ const ctx = {
 
 const cleanup = await plugin.setup(ctx)
 assert.equal(typeof requestHook, "function")
+assert.equal(commands.get("otsumi")?.template, '<otsumi-progression-command action="$ARGUMENTS" />')
 assert.equal(tools.size, 4)
 assert.equal(typeof hooks.get("execute.after"), "function")
 

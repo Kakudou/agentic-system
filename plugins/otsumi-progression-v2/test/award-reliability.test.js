@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdtemp, readFile, rm } from "node:fs/promises"
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import test from "node:test"
@@ -91,8 +91,13 @@ async function createRuntime(stateFile) {
         return stream
       },
     },
+    command: {
+      async transform() {},
+    },
     session: {
-      async hook() {},
+      async hook(name, callback) {
+        hooks.set(`session:${name}`, callback)
+      },
     },
     tool: {
       async transform() {},
@@ -106,6 +111,9 @@ async function createRuntime(stateFile) {
     cleanup,
     emit(event) {
       stream.push(event)
+    },
+    async context(event) {
+      await hooks.get("session:context")(event)
     },
     async meaningfulWork(sessionID) {
       await hooks.get("execute.after")({
@@ -267,4 +275,148 @@ test("delivered non-user work disqualifies an interrupted user's award context",
     },
     "a delivered non-user item must not complete the prior interrupted user award",
   )
+})
+
+test("context-only input awards once and remains deduplicated across continuation and reload", { concurrency: false }, async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "otsumi-progression-context-test-"))
+  const stateFile = join(root, "state.json")
+  const sessionID = "session-context-only"
+  const request = {
+    sessionID,
+    agent: "osho",
+    messages: [
+      {
+        id: "message-context-only",
+        role: "user",
+        content: "complete this context-only request",
+      },
+    ],
+    system: [{ text: "base" }],
+    tools: {},
+  }
+  let runtime = null
+
+  installModeBridge()
+  t.after(async () => {
+    await runtime?.cleanup()
+    delete globalThis[bridgeKey]
+    await rm(root, { recursive: true, force: true })
+  })
+
+  runtime = await createRuntime(stateFile)
+  runtime.emit({ type: "session.execution.started", data: { sessionID } })
+  await sleep(20)
+  await runtime.context(request)
+  await runtime.meaningfulWork(sessionID)
+
+  // A continuation dispatch contains the same latest provider user message.
+  // Reconciliation must retain one input identity rather than creating a
+  // second award-ledger entry.
+  await runtime.context({
+    ...request,
+    messages: [
+      ...request.messages,
+      { role: "assistant", content: "continuing after a tool result" },
+    ],
+  })
+  runtime.emit({ type: "session.execution.succeeded", data: { sessionID } })
+  await sleep()
+
+  let state = JSON.parse(await readFile(stateFile, "utf8"))
+  assert.equal(state.xp, 5)
+  assert.equal(Object.keys(state.awardComponents).length, 1)
+  assert.deepEqual(state.awardComponents["id:message-context-only"], {
+    interaction: true,
+    completion: true,
+    effectiveWork: true,
+    interrupted: false,
+  })
+  assert.doesNotMatch(JSON.stringify(state), /complete this context-only request/)
+
+  await runtime.cleanup()
+  runtime = await createRuntime(stateFile)
+  runtime.emit({ type: "session.execution.started", data: { sessionID } })
+  await sleep(20)
+  await runtime.context(request)
+  runtime.emit({ type: "session.execution.succeeded", data: { sessionID } })
+  await sleep()
+
+  state = JSON.parse(await readFile(stateFile, "utf8"))
+  assert.equal(state.xp, 5, "reloading the plugin must not re-award the same provider input")
+  assert.equal(Object.keys(state.awardComponents).length, 1)
+})
+
+test("historical otsumi commands and stale raw tracking do not block ordinary XP", { concurrency: false }, async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "otsumi-progression-history-test-"))
+  const stateFile = join(root, "state.json")
+  const sessionID = "session-after-historical-command"
+  let runtime = null
+
+  await writeFile(stateFile, JSON.stringify({
+    version: 2,
+    identity: "otsumi",
+    level: 1,
+    xp: 0,
+    counters: {
+      interactions: 0,
+      successfulTurns: 0,
+      effectiveWorkTurns: 0,
+      interruptedTurns: 0,
+    },
+    awardComponents: {},
+    pendingEvolution: null,
+    evolutions: [],
+    updatedAt: "2026-08-19T00:00:00.000Z",
+  }, null, 2) + "\n")
+
+  installModeBridge()
+  globalThis[bridgeKey].resolveRequest = (event) => ({
+    sessionID: event.sessionID,
+    agent: "osho",
+    inputText: "/otsumi status",
+    inputAt: 1_723_000_000_000,
+  })
+  t.after(async () => {
+    await runtime?.cleanup()
+    delete globalThis[bridgeKey]
+    await rm(root, { recursive: true, force: true })
+  })
+
+  runtime = await createRuntime(stateFile)
+  runtime.emit({ type: "session.execution.started", data: { sessionID } })
+  await sleep(20)
+
+  const historicalMarker = '<otsumi-progression-command action="status" />'
+  const request = {
+    sessionID,
+    agent: "osho",
+    messages: [
+      { id: "old-command-user", role: "user", content: historicalMarker },
+      { role: "assistant", content: "# Ōtsumi — GameMaster / PNJ Character Sheet" },
+      {
+        id: "ordinary-user-after-otsumi-command",
+        role: "user",
+        content: "continue with ordinary processing",
+      },
+    ],
+    system: [{ text: "base" }],
+    tools: {},
+  }
+
+  await runtime.context(request)
+  await runtime.meaningfulWork(sessionID)
+  runtime.emit({ type: "session.execution.succeeded", data: { sessionID } })
+  await sleep()
+
+  const state = JSON.parse(await readFile(stateFile, "utf8"))
+  assert.equal(request.messages[0].content, historicalMarker)
+  assert.doesNotMatch(request.system[0].text, /otsumi-progression-command-result/)
+  assert.equal(state.xp, 5)
+  assert.deepEqual(state.awardComponents["id:ordinary-user-after-otsumi-command"], {
+    interaction: true,
+    completion: true,
+    effectiveWork: true,
+    interrupted: false,
+  })
+  assert.equal(Object.keys(state.awardComponents).length, 1)
 })

@@ -13,6 +13,7 @@ test("registers the current mutable pre-model context hook directly", async (t) 
   t.after(() => rm(root, { recursive: true, force: true }))
 
   const modelHooks = []
+  const commands = []
   const tools = []
   const ctx = {
     options: {
@@ -20,6 +21,17 @@ test("registers the current mutable pre-model context hook directly", async (t) 
     },
     event: {
       subscribe: () => emptyEvents(),
+    },
+    command: {
+      async transform(callback) {
+        callback({
+          update(name, mutate) {
+            const command = {}
+            mutate(command)
+            commands.push({ name, command })
+          },
+        })
+      },
     },
     session: {
       async hook(name) {
@@ -42,6 +54,15 @@ test("registers the current mutable pre-model context hook directly", async (t) 
   t.after(cleanup)
 
   assert.deepEqual(modelHooks, ["context"])
+  assert.deepEqual(commands, [
+    {
+      name: "otsumi",
+      command: {
+        description: "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
+        template: '<otsumi-progression-command action="$ARGUMENTS" />',
+      },
+    },
+  ])
   assert.equal(tools.length, 4)
   for (const tool of tools) {
     assert.deepEqual(

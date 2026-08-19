@@ -5,6 +5,8 @@ import { homedir } from "node:os"
 
 const PLUGIN_ID = "kakudou.otsumi-progression"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
+const OTSUMI_COMMAND_RE = /<otsumi-progression-command\s+action="([^"]*)"\s*\/>/i
+const RAW_OTSUMI_COMMAND_RE = /^\/otsumi(?:[ \t]+([^\r\n]*))?$/i
 
 const DEFAULT_ELIGIBLE_MODES = new Set([
   "dev",
@@ -289,6 +291,36 @@ function inputTextOf(event) {
   return deepText(data?.input ?? data?.message ?? data).trim()
 }
 
+function latestProviderUser(messages) {
+  if (!Array.isArray(messages)) return null
+
+  for (let index = messages.length - 1; index >= 0; index--) {
+    const message = messages[index]
+    const role = message?.role ?? message?.info?.role
+    if (role !== "user") continue
+
+    const text = deepText(message).trim()
+    const idCandidates = [
+      message?.id,
+      message?.info?.id,
+      message?.messageID,
+      message?.messageId,
+      message?.metadata?.id,
+      message?.metadata?.messageID,
+      message?.metadata?.messageId,
+    ]
+    const id = idCandidates.find((value) => typeof value === "string" && value.trim())
+
+    return {
+      text,
+      id: typeof id === "string" ? id.trim() : null,
+      message,
+    }
+  }
+
+  return null
+}
+
 function inputAgentOf(event) {
   const data = dataOf(event)
   if (event?.type === "session.inbox.enqueued" || event?.type === "session.inbox.delivered") {
@@ -330,15 +362,40 @@ function inputIDOf(event) {
   return null
 }
 
-function fallbackInputKey(sessionID, serial, text) {
+function fallbackInputKey(sessionID, text) {
   const digest = createHash("sha256")
     .update(sessionID)
-    .update("\0")
-    .update(String(serial))
     .update("\0")
     .update(text)
     .digest("hex")
   return `digest:${digest}`
+}
+
+function identityInputID(identity) {
+  for (const value of [
+    identity?.inputID,
+    identity?.inputId,
+    identity?.inboxID,
+    identity?.inboxId,
+    identity?.messageID,
+    identity?.messageId,
+  ]) {
+    if (typeof value === "string" && value.trim()) return value.trim()
+  }
+  return null
+}
+
+function inputTextsConsistent(providerText, admittedText) {
+  if (!providerText || !admittedText) return false
+  if (providerText === admittedText) return true
+
+  const markerMatch = OTSUMI_COMMAND_RE.exec(providerText)
+  const rawMatch = RAW_OTSUMI_COMMAND_RE.exec(admittedText)
+  return Boolean(
+    markerMatch &&
+    rawMatch &&
+    markerMatch[1].trim() === (rawMatch[1] ?? "").trim(),
+  )
 }
 
 function isMeaningfulTool(tool) {
@@ -384,17 +441,33 @@ function nextLevelAt(state, options) {
   return totalXPForLevel(state.level + 1, options)
 }
 
-function renderSheet(state, options, historyLimit = options.historyLimit) {
+function yesNo(value) {
+  return value ? "yes" : "no"
+}
+
+function renderSheet(state, options, diagnostics = {}, historyLimit = options.historyLimit) {
   const nextAt = nextLevelAt(state, options)
+  const levelStart = totalXPForLevel(state.level, options)
+  const levelRequirement = requirementForLevel(state.level, options)
+  const progress = Math.max(0, state.xp - levelStart)
+  const remaining = Math.max(0, nextAt - state.xp)
+  const percentage = Math.floor((progress / levelRequirement) * 100)
   const pending = state.pendingEvolution
   const recent = state.evolutions.slice(-historyLimit).reverse()
+  const runtime = diagnostics.runtime ?? null
+  const currentAgent = runtime?.agent ?? diagnostics.agent ?? "unknown"
+  const currentMode = diagnostics.mode ?? runtime?.mode ?? null
+  const userCharacterCount = runtime?.userText
+    ? Array.from(runtime.userText).length
+    : 0
 
   const lines = [
-    "# Ōtsumi — Progression Sheet",
+    "# Ōtsumi — GameMaster / PNJ Character Sheet",
     "",
     `**Level:** ${state.level}`,
     `**XP:** ${state.xp}`,
-    `**Next level:** ${nextAt} XP${pending ? " (locked until the current evolution resolves)" : ""}`,
+    `**Next threshold:** ${nextAt} XP (Level ${state.level + 1}${pending ? "; locked until the current evolution resolves" : ""})`,
+    `**Progress:** ${progress} / ${levelRequirement} XP (${percentage}%; ${remaining} XP remaining)`,
     "",
     "## Activity",
     `- Interactions: ${state.counters.interactions}`,
@@ -402,22 +475,44 @@ function renderSheet(state, options, historyLimit = options.historyLimit) {
     `- Effective-work turns: ${state.counters.effectiveWorkTurns}`,
     `- Interrupted/failed turns: ${state.counters.interruptedTurns}`,
     "",
-    "## Current Evolution",
+    "## Pending Evolution",
   ]
 
   if (!pending) {
     lines.push("No evolution is currently pending.")
   } else {
     lines.push(`**Level ${pending.level} evolution:** pending`)
+    lines.push(`**Unlocked:** ${pending.unlockedAt ?? "unknown"}`)
+    lines.push(`**Announcement delivered:** ${yesNo(pending.announcementDelivered)}`)
     if (pending.proposal) {
-      lines.push(`**Chosen:** ${pending.proposal.title}`)
-      lines.push(`**Desire:** ${pending.proposal.desire}`)
+      lines.push("", "### Current Proposal")
+      lines.push(`- **Title:** ${pending.proposal.title}`)
+      lines.push(`- **Desire:** ${pending.proposal.desire}`)
+      lines.push(`- **Rationale:** ${pending.proposal.rationale ?? "not recorded"}`)
+      lines.push(`- **Changes:** ${pending.proposal.changes ?? "not recorded"}`)
+      lines.push(`- **Required effects:** ${pending.proposal.requiredEffects ?? "not recorded"}`)
+      lines.push(`- **Risks:** ${pending.proposal.risks ?? "not recorded"}`)
+      lines.push(`- **Success evidence:** ${pending.proposal.successEvidence ?? "not recorded"}`)
+      lines.push(`- **Proposed:** ${pending.proposal.proposedAt ?? "unknown"}`)
       lines.push("**State:** proposed; implementation still requires normal user approval and runtime authorization.")
     } else {
       lines.push("Ōtsumi has earned one self-directed evolution choice and has not locked a proposal yet.")
     }
-    if (pending.rejections?.length) {
-      lines.push(`**Rejected/reconsidered proposals:** ${pending.rejections.length}`)
+
+    const rejections = Array.isArray(pending.rejections) ? pending.rejections : []
+    lines.push(
+      `**Rejected/reconsidered proposals:** ${rejections.length}`,
+      "",
+      `### Rejections (${rejections.length})`,
+    )
+    if (!rejections.length) {
+      lines.push("No rejected or reconsidered proposals for this level.")
+    } else {
+      for (const rejection of rejections.slice().reverse()) {
+        lines.push(
+          `- **${rejection.title ?? "Untitled proposal"}** — ${rejection.reason ?? "No reason recorded."} (rejected ${rejection.rejectedAt ?? "at an unknown time"})`,
+        )
+      }
     }
   }
 
@@ -426,11 +521,101 @@ function renderSheet(state, options, historyLimit = options.historyLimit) {
     lines.push("No completed evolutions yet.")
   } else {
     for (const entry of recent) {
-      lines.push(`- **Level ${entry.level}: ${entry.title}** — ${entry.result}`)
+      lines.push(
+        `- **Level ${entry.level}: ${entry.title}** — ${entry.result} (completed ${entry.completedAt ?? "at an unknown time"})`,
+      )
     }
   }
 
+  lines.push(
+    "",
+    "## Runtime & Persistence",
+    `- Durable award-ledger entries: ${Object.keys(state.awardComponents).length}`,
+    `- State schema version: ${state.version}`,
+    `- State path: ${options.stateFile}`,
+    `- Configured primary agent: ${options.primaryAgent}`,
+    `- Eligible modes: ${[...options.eligibleModes].sort().join(", ") || "none"}`,
+    `- Tracked runtime sessions: ${diagnostics.trackedSessions ?? 0}`,
+    "",
+    "## Current-Session Diagnostics",
+    `- Session: ${diagnostics.sessionID ?? "unresolved"}`,
+    `- Agent: ${currentAgent}`,
+    `- Mode: ${currentMode ?? "unavailable"}`,
+    `- Input tracked: ${yesNo(Boolean(runtime?.inputKey))}`,
+    `- User-text characters: ${userCharacterCount}`,
+    `- Generation: ${runtime?.generation ?? 0}`,
+    `- Meaningful work: ${yesNo(Boolean(runtime?.meaningfulWork))}`,
+    `- Gadget phase: ${yesNo(Boolean(runtime?.ambientGadgetPhase))}`,
+    `- Last lifecycle event: ${runtime?.lastLifecycleEvent ?? "none observed"}`,
+    `- Last lifecycle time: ${runtime?.lastLifecycleAt ?? "unavailable"}`,
+  )
+
   return lines.join("\n")
+}
+
+function requestedOtsumiAction(event, admittedInputText) {
+  const providerUser = latestProviderUser(event?.messages)
+  if (providerUser) {
+    const markerMatch = OTSUMI_COMMAND_RE.exec(providerUser.text)
+    if (markerMatch) return markerMatch[1].trim()
+
+    const currentRawMatch = RAW_OTSUMI_COMMAND_RE.exec(providerUser.text)
+    return currentRawMatch ? (currentRawMatch[1] ?? "").trim() : null
+  }
+
+  const rawMatch =
+    typeof admittedInputText === "string"
+      ? RAW_OTSUMI_COMMAND_RE.exec(admittedInputText.trim())
+      : null
+  return rawMatch ? (rawMatch[1] ?? "").trim() : null
+}
+
+function isOtsumiControlText(text) {
+  if (typeof text !== "string" || !text.trim()) return false
+  const normalized = text.trim()
+  return RAW_OTSUMI_COMMAND_RE.test(normalized) || OTSUMI_COMMAND_RE.test(normalized)
+}
+
+function replaceCommandText(value, payload, depth = 0) {
+  if (depth > 8 || value == null) return false
+  if (Array.isArray(value)) {
+    for (let index = value.length - 1; index >= 0; index--) {
+      if (replaceCommandText(value[index], payload, depth + 1)) return true
+    }
+    return false
+  }
+  if (typeof value !== "object") return false
+
+  if (
+    typeof value.text === "string" &&
+    (OTSUMI_COMMAND_RE.test(value.text) || RAW_OTSUMI_COMMAND_RE.test(value.text.trim()))
+  ) {
+    value.text = payload
+    return true
+  }
+  if (
+    typeof value.content === "string" &&
+    (OTSUMI_COMMAND_RE.test(value.content) || RAW_OTSUMI_COMMAND_RE.test(value.content.trim()))
+  ) {
+    value.content = payload
+    return true
+  }
+  for (const key of ["content", "parts", "message", "value"]) {
+    if (replaceCommandText(value[key], payload, depth + 1)) return true
+  }
+  return false
+}
+
+function replaceOtsumiCommandPrompt(event, commandResult) {
+  const payload = [
+    "The Ōtsumi progression runtime already executed this read-only control command.",
+    "Return the following result verbatim, with no commentary:",
+    "",
+    commandResult,
+  ].join("\n")
+
+  const providerUser = latestProviderUser(event?.messages)
+  return providerUser ? replaceCommandText(providerUser.message, payload) : false
 }
 
 function toolResult(text) {
@@ -520,20 +705,125 @@ export default {
         state = {
           generation: 0,
           userText: "",
-          inputSerial: 0,
           inputKey: null,
+          providerMessageID: null,
           agent: null,
+          mode: null,
           meaningfulWork: false,
           ambientGadgetPhase: false,
+          controlTurn: false,
+          lastLifecycleEvent: null,
+          lastLifecycleAt: null,
         }
         executions.set(sessionID, state)
       }
       return state
     }
 
+    function clearRuntimeInput(runtime) {
+      runtime.userText = ""
+      runtime.inputKey = null
+      runtime.providerMessageID = null
+      runtime.meaningfulWork = false
+      runtime.ambientGadgetPhase = false
+      runtime.controlTurn = false
+    }
+
+    function reconcileInput(
+      runtime,
+      { text, key, agent = null, providerMessageID = null, authoritativeKey = false },
+    ) {
+      const normalizedText = typeof text === "string" ? text.trim() : ""
+      if (!normalizedText || !key) {
+        if (agent) runtime.agent = agent
+        return false
+      }
+
+      const keyChanged = Boolean(runtime.inputKey && runtime.inputKey !== key)
+      const providerChanged = Boolean(
+        providerMessageID &&
+        runtime.providerMessageID &&
+        providerMessageID !== runtime.providerMessageID,
+      )
+      const sameText = runtime.userText === normalizedText
+      const startsNewInput =
+        !runtime.inputKey ||
+        providerChanged ||
+        (authoritativeKey && keyChanged) ||
+        (keyChanged && !sameText)
+
+      if (startsNewInput) {
+        runtime.inputKey = key
+        runtime.meaningfulWork = false
+        runtime.ambientGadgetPhase = false
+        runtime.controlTurn = false
+      }
+
+      // When the public inbox path already established an input key, retain it
+      // across provider continuations even if the provider message uses a
+      // different stable ID. This preserves the durable inbox-ledger identity.
+      runtime.userText = normalizedText
+      if (isOtsumiControlText(normalizedText)) runtime.controlTurn = true
+      if (providerMessageID) runtime.providerMessageID = providerMessageID
+      if (agent) runtime.agent = agent
+      return startsNewInput
+    }
+
+    function reconcileContextInput(sessionID, runtime, identity, event) {
+      const providerUser = latestProviderUser(event?.messages)
+      const providerText = providerUser?.text?.trim() ?? ""
+      const identityText =
+        typeof identity?.inputText === "string" && identity.inputText.trim()
+          ? identity.inputText.trim()
+          : ""
+      const identityConsistent =
+        !providerUser || inputTextsConsistent(providerText, identityText)
+      const text = providerUser
+        ? (identityConsistent ? identityText || providerText : providerText)
+        : identityText
+      if (!text) return
+
+      const identityID = identityConsistent ? identityInputID(identity) : null
+      const stableID = providerUser?.id ?? identityID ?? null
+      const key = stableID ? `id:${stableID}` : fallbackInputKey(sessionID, text)
+      reconcileInput(runtime, {
+        text,
+        key,
+        agent: identity?.agent ?? agentOf(event),
+        providerMessageID: providerUser?.id ?? null,
+        authoritativeKey: Boolean(identityID),
+      })
+    }
+
+    async function modeForDiagnostics(sessionID) {
+      const bridge = globalThis[MODE_BRIDGE]
+      if (!bridge?.modeFor || !sessionID) return null
+      try {
+        const mode = await bridge.modeFor(sessionID)
+        return typeof mode === "string" && mode ? mode : null
+      } catch (error) {
+        console.warn("[kakudou.otsumi-progression] diagnostic mode lookup unavailable:", error)
+        return null
+      }
+    }
+
+    async function sheetFor(sessionID, fallbackAgent = null) {
+      await store.load()
+      const runtime = sessionID ? executions.get(sessionID) ?? null : null
+      const mode = runtime?.mode ?? (sessionID ? await modeForDiagnostics(sessionID) : null)
+      return renderSheet(store.snapshot(), options, {
+        sessionID,
+        runtime,
+        agent: runtime?.agent ?? fallbackAgent,
+        mode,
+        trackedSessions: executions.size,
+      })
+    }
+
     async function awardTerminal(sessionID, outcome) {
       const runtime = executions.get(sessionID)
       if (!runtime?.inputKey) return
+      if (runtime.controlTurn) return
       const inputKey = runtime.inputKey
       const meaningfulWork = runtime.meaningfulWork
 
@@ -591,6 +881,14 @@ export default {
       })
     }
 
+    await ctx.command.transform((commands) => {
+      commands.update("otsumi", (command) => {
+        command.description =
+          "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]"
+        command.template = '<otsumi-progression-command action="$ARGUMENTS" />'
+      })
+    })
+
     await ctx.tool.transform((tools) => {
       addDirectTool(tools, {
         name: "otsumi_progression_status",
@@ -604,9 +902,8 @@ export default {
         },
         output: { type: "string" },
         execute: async (_args, toolCtx) => {
-          requirePrimary(toolCtx, options)
-          await store.load()
-          return toolResult(renderSheet(store.snapshot(), options))
+          const sessionID = requirePrimary(toolCtx, options)
+          return toolResult(await sheetFor(sessionID, options.primaryAgent))
         },
       })
 
@@ -750,16 +1047,56 @@ export default {
     const hookName = await registerModelHook(ctx, async (event) => {
       try {
         const bridge = globalThis[MODE_BRIDGE]
-        if (!bridge && options.requireModeRouter) return
-
         const identity = bridge?.resolveRequest
           ? bridge.resolveRequest(event)
-          : { sessionID: sessionIDOf(event), agent: agentOf(event) }
+          : {
+              sessionID: sessionIDOf(event),
+              agent: agentOf(event),
+              inputText: latestProviderUser(event?.messages)?.text ?? "",
+            }
 
         const sessionID = identity?.sessionID ?? sessionIDOf(event)
         if (!sessionID) return
 
+        const runtime = executionFor(sessionID)
+        reconcileContextInput(sessionID, runtime, identity, event)
         const agent = identity?.agent ?? bridge?.agentFor?.(sessionID) ?? agentOf(event)
+        if (agent) runtime.agent = agent
+        runtime.mode = await modeForDiagnostics(sessionID)
+
+        const commandAction = requestedOtsumiAction(event, identity?.inputText)
+        if (commandAction !== null) {
+          // Slash controllers are read-only runtime turns. They remain tracked
+          // for diagnostics, but terminal lifecycle events may never create XP
+          // or durable award-ledger entries for them.
+          runtime.controlTurn = true
+
+          const action = commandAction.trim()
+          const commandResult =
+            !action || action === "status"
+              ? await sheetFor(sessionID, agent)
+              : `Ōtsumi Progression ERROR: unknown action '${action}'. Supported actions: status.`
+
+          const replaced = replaceOtsumiCommandPrompt(event, commandResult)
+          appendSystem(
+            event,
+            [
+              "<otsumi-progression-command-result>",
+              "The read-only runtime control operation is complete.",
+              "Return the exact result below verbatim and do not call tools:",
+              commandResult,
+              "</otsumi-progression-command-result>",
+            ].join("\n"),
+          )
+          if (!replaced) {
+            console.warn(
+              "[kakudou.otsumi-progression] command detected but provider prompt could not be replaced; using system result only",
+            )
+          }
+          return
+        }
+
+        if (!bridge && options.requireModeRouter) return
         if (agent !== options.primaryAgent) return
         if (!(await modeAllowed(sessionID, options))) return
 
@@ -826,26 +1163,25 @@ export default {
             const sessionID = sessionIDOf(event)
             if (!sessionID) continue
             const runtime = executionFor(sessionID)
+            runtime.lastLifecycleEvent = event.type
+            runtime.lastLifecycleAt = new Date().toISOString()
 
             if (event.type === "session.inbox.enqueued" || event.type === "session.inbox.delivered") {
               if (dataOf(event)?.item?.type !== "user") {
                 if (event.type === "session.inbox.delivered") {
-                  runtime.userText = ""
-                  runtime.inputKey = null
+                  clearRuntimeInput(runtime)
                 }
                 continue
               }
               const text = inputTextOf(event)
               if (text) {
                 const explicitID = inputIDOf(event)
-                const changedText = runtime.userText !== text
-                if (explicitID) {
-                  runtime.inputKey = `id:${explicitID}`
-                } else if (!runtime.inputKey || changedText) {
-                  runtime.inputSerial += 1
-                  runtime.inputKey = fallbackInputKey(sessionID, runtime.inputSerial, text)
-                }
-                runtime.userText = text
+                reconcileInput(runtime, {
+                  text,
+                  key: explicitID ? `id:${explicitID}` : fallbackInputKey(sessionID, text),
+                  agent: inputAgentOf(event),
+                  authoritativeKey: Boolean(explicitID),
+                })
               }
               const agent = inputAgentOf(event)
               if (agent) runtime.agent = agent

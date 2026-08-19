@@ -84,20 +84,31 @@ export function explicitSkillSlash(text) {
 const MODE_COMMAND_RE = /<opencode-mode-router\s+action="([^"]*)"\s*\/>/i
 const RAW_MODE_COMMAND_RE = /^\/mode(?:[ \t]+([^\r\n]*))?$/
 
-export function requestedModeAction(event, admittedInputText) {
-  // V2 context hooks expose provider-ready model messages, not necessarily the
-  // durable { info, parts } session shape. Search from newest to oldest and
-  // tolerate either representation.
-  const messages = Array.isArray(event?.messages) ? event.messages : []
+function latestUserMessage(messages) {
+  if (!Array.isArray(messages)) return null
   for (let i = messages.length - 1; i >= 0; i--) {
-    const match = MODE_COMMAND_RE.exec(textFrom(messages[i]))
-    if (match) return match[1].trim()
+    const message = messages[i]
+    const role = message?.role ?? message?.info?.role
+    if (role === "user") return message
+  }
+  return null
+}
+
+export function requestedModeAction(event, admittedInputText) {
+  // Durable provider history may contain earlier slash-command markers. Only
+  // the latest provider user input can authorize a command on this dispatch.
+  const providerUser = latestUserMessage(event?.messages)
+  if (providerUser) {
+    const currentText = textFrom(providerUser).trim()
+    const markerMatch = MODE_COMMAND_RE.exec(currentText)
+    if (markerMatch) return markerMatch[1].trim()
+
+    const currentRawMatch = RAW_MODE_COMMAND_RE.exec(currentText)
+    return currentRawMatch ? (currentRawMatch[1] ?? "").trim() : null
   }
 
-  // Last-resort compatibility for beta event-shape drift.
-  const match = MODE_COMMAND_RE.exec(textFrom(event?.messages))
-  if (match) return match[1].trim()
-
+  // Raw inbox tracking is a beta-shape fallback only when no provider user is
+  // available. It must never override a newer ordinary provider user message.
   const rawMatch =
     typeof admittedInputText === "string"
       ? RAW_MODE_COMMAND_RE.exec(admittedInputText.trim())
@@ -118,13 +129,19 @@ function replaceTextPayload(value, payload, depth = 0) {
   if (typeof value !== "object") return false
 
   // AI SDK ModelMessage text part / OpenCode text part.
-  if (typeof value.text === "string" && MODE_COMMAND_RE.test(value.text)) {
+  if (
+    typeof value.text === "string" &&
+    (MODE_COMMAND_RE.test(value.text) || RAW_MODE_COMMAND_RE.test(value.text.trim()))
+  ) {
     value.text = payload
     return true
   }
 
   // Some provider-ready message shapes use string content directly.
-  if (typeof value.content === "string" && MODE_COMMAND_RE.test(value.content)) {
+  if (
+    typeof value.content === "string" &&
+    (MODE_COMMAND_RE.test(value.content) || RAW_MODE_COMMAND_RE.test(value.content.trim()))
+  ) {
     value.content = payload
     return true
   }
@@ -144,11 +161,8 @@ export function replaceModeCommandPrompt(event, commandResult) {
     commandResult,
   ].join("\n")
 
-  const messages = Array.isArray(event?.messages) ? event.messages : []
-  for (let i = messages.length - 1; i >= 0; i--) {
-    if (replaceTextPayload(messages[i], payload)) return true
-  }
-  return false
+  const providerUser = latestUserMessage(event?.messages)
+  return providerUser ? replaceTextPayload(providerUser, payload) : false
 }
 
 function replaceNewestPromptText(value, payload, depth = 0) {

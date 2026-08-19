@@ -376,6 +376,28 @@ test("keeps native tool definitions exactly untouched on every context path", as
   }
 })
 
+test("does not replay a historical mode command on a later ordinary user turn", async (t) => {
+  const { contextHook } = await setupHarness(t)
+  const historicalMarker = '<opencode-mode-router action="dev" />'
+  const event = {
+    sessionID: "session-historical-mode-command",
+    agent: "osho",
+    system: [{ text: "base" }],
+    messages: [
+      { role: "user", content: historicalMarker },
+      { role: "assistant", content: "Mode switched to: dev" },
+      { role: "user", content: "continue with ordinary processing" },
+    ],
+    tools: {},
+  }
+
+  await contextHook(event)
+
+  assert.equal(event.messages[0].content, historicalMarker)
+  assert.match(event.system[0].text, /mode="chatbot"/)
+  assert.doesNotMatch(event.system[0].text, /<mode-router-command>/)
+})
+
 test("passes native execute.before calls before identity or legacy mode restrictions", async (t) => {
   const { executeBefore } = await setupHarness(t)
   assert.equal(typeof executeBefore, "function")

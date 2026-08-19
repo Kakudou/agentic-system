@@ -1,0 +1,26 @@
+# OpenCode V2 global response-gadget configuration.
+#
+# This file is authoritative for every plugin setup and session. Use /gadget
+# to inspect or atomically update probabilities without restarting OpenCode.
+
+version: 1
+primary_agent: osho
+require_mode_router: true
+
+modes:
+  - dev
+  - dev-python
+  - video-edit
+
+gadgets:
+  - name: random-srs
+    skill: 97-gadget-random-srs
+    probability: 0.15
+
+  - name: random-news
+    skill: 97-gadget-random-news
+    probability: 0.05
+
+  - name: random-fun-facts
+    skill: 97-gadget-random-fun-facts
+    probability: 0.05
