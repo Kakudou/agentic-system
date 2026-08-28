@@ -1,6 +1,7 @@
 ---
 description: "Independent validator. Judges supplied evidence against the required success criteria."
 mode: subagent
+subtask: true
 permissions:
   - action: edit
     resource: "*"

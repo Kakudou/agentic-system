@@ -1,6 +1,7 @@
 ---
 description: "Requirements and contract owner. Defines what success means and what is out of scope."
 mode: subagent
+subtask: true
 permissions:
   - action: edit
     resource: "*"

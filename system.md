@@ -49,7 +49,11 @@ Where OpenCode V2 exposes native agent permissions, the agent files use them onl
 
 Use the smallest useful board.
 
-Ōshō may answer simple work directly. Delegate when ownership or specialization materially improves the result.
+Ōshō may answer simple work directly. Work that needs a plan — multiple non-trivial steps, non-obvious ordering or dependencies, parallel work, or coordination between specialists — is owned by Kakugyō before execution starts. A short run of obvious sequential steps is not work that needs a plan.
+
+Where a specific flow in this file names its own owners, that flow controls for work within it.
+
+Ōshō does not author multi-step plans itself.
 
 ```text
 requirements / success contract → Kinshō

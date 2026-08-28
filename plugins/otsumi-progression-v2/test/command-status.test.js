@@ -151,6 +151,9 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
         assert.equal(name, "context")
         contextHook = callback
       },
+      async get() {
+        return { data: {} }
+      },
     },
     tool: {
       async transform() {},
@@ -317,4 +320,137 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
   assert.match(currentRawRequest.messages[2].content, /GameMaster \/ PNJ Character Sheet/)
   assert.doesNotMatch(currentRawRequest.messages[2].content, /unknown action 'dance'/)
   assert.deepEqual(JSON.parse(await readFile(stateFile, "utf8")), initial)
+})
+
+test("renders an honest announcement state line for confirmed, in-flight, and pending announcements", { concurrency: false }, async (t) => {
+  const cases = [
+    {
+      name: "confirmed",
+      pending: {
+        level: 2,
+        unlockedAt: "2026-08-01T00:00:00.000Z",
+        announcementDelivered: true,
+        announcedAt: "2026-08-05T10:00:00.000Z",
+        proposal: null,
+        rejections: [],
+      },
+    },
+    {
+      name: "in-flight",
+      pending: {
+        level: 2,
+        unlockedAt: "2026-08-01T00:00:00.000Z",
+        announcementDelivered: false,
+        announcementInFlight: { sessionID: "sess-sheet-inflight", at: "2026-08-06T09:30:00.000Z" },
+        proposal: null,
+        rejections: [],
+      },
+    },
+    {
+      name: "pending (fresh)",
+      pending: {
+        level: 2,
+        unlockedAt: "2026-08-01T00:00:00.000Z",
+        announcementDelivered: false,
+        proposal: null,
+        rejections: [],
+      },
+    },
+    {
+      name: "pending (legacy delivered without announcedAt)",
+      pending: {
+        level: 2,
+        unlockedAt: "2026-08-01T00:00:00.000Z",
+        announcementDelivered: true,
+        proposal: null,
+        rejections: [],
+      },
+    },
+  ]
+
+  for (const { name, pending } of cases) {
+    await t.test(name, async (sub) => {
+      const root = await mkdtemp(join(tmpdir(), "otsumi-progression-announce-sheet-"))
+      const stateFile = join(root, "state.json")
+      const initial = {
+        version: 2,
+        identity: "otsumi",
+        level: 2,
+        xp: 42,
+        counters: {
+          interactions: 9,
+          successfulTurns: 7,
+          effectiveWorkTurns: 4,
+          interruptedTurns: 2,
+        },
+        awardComponents: {},
+        pendingEvolution: pending,
+        evolutions: [],
+        updatedAt: "2026-08-02T00:00:00.000Z",
+      }
+      await writeFile(stateFile, JSON.stringify(initial, null, 2) + "\n")
+
+      const stream = new AsyncQueue()
+      const capturedTools = new Map()
+      globalThis[bridgeKey] = {
+        async modeFor() {
+          return "dev"
+        },
+        agentFor() {
+          return "osho"
+        },
+      }
+
+      const cleanup = await plugin.setup({
+        options: { stateFile },
+        event: {
+          subscribe() {
+            return stream
+          },
+        },
+        command: {
+          async transform() {},
+        },
+        session: {
+          async hook() {},
+        },
+        tool: {
+          async transform(callback) {
+            await callback({
+              add(definition) {
+                capturedTools.set(definition.name, definition)
+              },
+            })
+          },
+          async hook() {},
+        },
+      })
+
+      sub.after(async () => {
+        await cleanup()
+        delete globalThis[bridgeKey]
+        await rm(root, { recursive: true, force: true })
+      })
+
+      const statusTool = capturedTools.get("otsumi_progression_status")
+      const result = await statusTool.execute({}, { sessionID: `sess-sheet-${name}`, agent: "osho" })
+      const sheet = result.output
+      const line = sheet.split("\n").find((candidate) => /nnouncement/i.test(candidate))
+      assert.ok(line, `the sheet must render an announcement line (${name})`)
+
+      if (name === "confirmed") {
+        assert.match(line, /confirmed/i)
+        assert.match(line, /2026-08-05T10:00:00\.000Z/)
+      } else if (name === "in-flight") {
+        assert.match(line, /in-flight/i)
+        assert.match(line, /sess-sheet-inflight/)
+        assert.match(line, /2026-08-06T09:30:00\.000Z/)
+      } else {
+        assert.match(line, /pending/i)
+      }
+
+      // The /otsumi status path must remain state-neutral.
+      assert.deepEqual(JSON.parse(await readFile(stateFile, "utf8")), initial)
+    })
+  }
 })

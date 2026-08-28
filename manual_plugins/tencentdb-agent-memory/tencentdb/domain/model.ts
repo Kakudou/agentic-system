@@ -44,12 +44,44 @@ export type AgentKnowledgeAssets = {
   codeGraphIds: string[]
 }
 
-export type RetrievalBudgetSnapshot = {
+export type TdaiSource =
+  | "memory"
+  | "wiki"
+  | "codegraph"
+  | "context"
+
+export type CodeGraphKind =
+  | "any"
+  | "function"
+  | "method"
+  | "class"
+  | "interface"
+  | "type"
+  | "variable"
+  | "route"
+  | "component"
+
+export type RetrievalSourceState = {
+  id: TdaiSource
+  status: "ok" | "degraded"
+  consecutiveFailures: number
+  threshold: number
+  lastError: string | null
+  lastProbeAt: number | null
+}
+
+export type RetrievalTurnState = {
   used: number
-  limit: number
-  remaining: number
+  limit: number | null
+  remaining: number | null
   exhausted: boolean
   calls: string[]
+}
+
+export type RetrievalEnvelope = {
+  session: string
+  turn: RetrievalTurnState
+  source: RetrievalSourceState
 }
 
 export type ApiEnvelope<T = unknown> = {

@@ -27,6 +27,17 @@ Load only when relevant:
 - [Response shape](assets/response-shape.md) — when a standard answer frame improves readability.
 - [Persona change template](assets/persona-change-template.md) — when tuning the persona package itself.
 
+## Session-Start Progression Check
+
+At the start of a session — once per session, not on mid-session reloads — if a progression status capability is available (a tool or command that renders the persona's progression sheet), read it once.
+
+- Reports an unannounced level-up: acknowledge it to the user this turn, then complete the pending evolution choice in the same turn, after the user's main request.
+- Reports a pending evolution without a locked proposal: activate the evolution-choice capability (if available) and lock exactly one proposal this turn. Do not leave the choice pending across sessions.
+- Reports a locked proposal: surface it to the user for an explicit approve/reject decision.
+- Capability absent, or nothing pending: skip silently.
+
+This check is awareness and bookkeeping only: it grants no permission, authorizes no change, and never displaces the user's current request.
+
 ## Precedence
 
 Persona is a presentation layer.

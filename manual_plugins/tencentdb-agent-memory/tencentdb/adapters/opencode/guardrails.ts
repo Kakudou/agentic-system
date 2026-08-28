@@ -20,8 +20,8 @@ import type {
   TracePort,
 } from "../../domain/ports.ts"
 
-import {
-  RetrievalBudget,
+import type {
+  RetrievalGuard,
 } from "../../application/retrieval-budget.ts"
 
 import {
@@ -267,7 +267,7 @@ export async function installTurnAwareWebGuard(
   ctx: any,
   config: AppConfig,
   turns: TurnStore,
-  budget: RetrievalBudget,
+  guard: RetrievalGuard,
   trace: TracePort,
 ) {
   if (
@@ -328,12 +328,12 @@ export async function installTurnAwareWebGuard(
         }
 
         const attempt =
-          budget.recordBlockedWeb(
+          guard.recordBlockedWeb(
             sessionID,
           )
 
         const retrieval =
-          budget.snapshot(
+          guard.turnState(
             sessionID,
           )
 

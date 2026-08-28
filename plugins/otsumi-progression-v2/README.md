@@ -27,7 +27,7 @@ Per eligible primary-agent user input, at most:
 - `+1` successful-completion XP;
 - `+3` effective-work XP when at least one meaningful tool/delegated-work action succeeds.
 
-Retries can earn only components not already awarded to the same input. The component ledger is durable and is not evicted, so plugin restarts and old retries cannot silently re-enable XP. It stores only stable inbox/provider-message IDs or privacy-safe SHA-256 keys plus award booleans—never user text. Skill loading, TencentDB tools, progression bookkeeping, and work performed only for a `97-gadget-*` appendix do not create the effective-work bonus.
+Retries can earn only components not already awarded to the same input. The component ledger is durable and is not evicted, so plugin restarts and old retries cannot silently re-enable XP. It stores only stable inbox/provider-message IDs or privacy-safe SHA-256 keys plus award booleans—never user text. Skill loading, host RNG rolls (`otsumi_rng`), TencentDB tools, progression bookkeeping, and work performed only for a `97-gadget-*` appendix do not create the effective-work bonus.
 
 The public `session.inbox.*` lifecycle path remains authoritative when available. On every pre-model context hook, the plugin also reconciles the current runtime input from the mode-router request identity and the latest provider user message. This fallback repairs turns whose inbox event was missed by this plugin, while stable message IDs (or deterministic privacy-safe hashes when no ID exists) preserve continuation/reload deduplication.
 
@@ -50,6 +50,10 @@ When `XDG_STATE_HOME` is unset:
 ```
 
 Writes use a temporary sibling file followed by rename.
+
+The store is convergence-safe across instances: it re-reads the state file before every read and write, and merges the durable award ledger, XP, counters, level, and evolution state monotonically (union of per-input components; max of totals). Multiple OpenCode server processes sharing the default state path therefore converge to the union of their grants instead of one silently clobbering the other. A concurrent in-flight write from another process is an edge case; the ledger merge recovers it on the next write from an instance that observed the grant.
+
+The evolution slot carries three additive announcement-lifecycle fields. A fresh unlock writes `announcementDelivered: false` alongside `announcedAt: null` (ISO timestamp) and `announcementInFlight: null` (advisory `{sessionID, at}` marker); state written before the feature may omit the keys entirely, and that is the normal unconfirmed shape. Across instances the fields merge monotonically with the rest of the pending state: `announcementDelivered` is the OR of both sides, `announcedAt` is the surviving string value (disk first, then memory; absent when neither survives), and `announcementInFlight` is advisory with the later `at` winning (disk wins ties). Malformed values of the new fields—wrong types or a missing `at`—read as absent/unconfirmed and never crash, and the one-side-only pending rules are unchanged.
 
 ## Options
 
@@ -96,7 +100,7 @@ Both forms render a GameMaster/PNJ character sheet containing:
 
 - level, lifetime XP, next threshold, and current-level progress;
 - all activity counters;
-- the pending evolution, current proposal, and rejected/reconsidered proposals;
+- the pending evolution, current proposal, and rejected/reconsidered proposals, with an honest announcement line—confirmed (with `announcedAt`), in-flight (with session and since), or pending when unconfirmed (including legacy);
 - recent completed evolution history;
 - durable award-ledger entry count, schema version, and state path;
 - configured primary agent and eligible modes;
@@ -105,6 +109,22 @@ Both forms render a GameMaster/PNJ character sheet containing:
 Unknown actions return an explicit error. The context hook replaces the command marker prompt with the already-computed result and appends an exact-result/no-tools instruction without changing `event.tools`.
 
 `/otsumi` is a slash control turn, so the response-gadget runtime suppresses ambient gadgets through its normal slash-command rule. The progression runtime also marks the input XP-neutral: success, interruption, lifecycle reordering, or continuation cannot add interaction, completion, effective-work, interrupted, or ledger state. Reading the sheet does not deliver a pending-evolution announcement or otherwise mutate durable state.
+
+## Evolution announcement lifecycle
+
+A pending level-up is announced through the pre-model directive, and the durable state tracks that announcement across session executions so it is announced once, confirmed once, and never silently lost.
+
+The announcement counts as confirmed only when `announcementDelivered === true` and `announcedAt` is a string. `announcementDelivered` alone is unconfirmed, including legacy state written before `announcedAt` existed.
+
+`announcementDelivered` means the announcing execution succeeded, not that a directive was injected. Injection marks `announcementInFlight`—a level-scoped, advisory `{sessionID, at}` marker—and never sets `delivered`. Within the automatic lifecycle, confirmation happens only on `session.execution.succeeded` of the in-flight session: `delivered` becomes true, `announcedAt` is stamped, and the in-flight marker is cleared. `session.execution.interrupted`, `session.execution.failed`, and `session.error` of the in-flight session roll back instead (in-flight cleared, `delivered` untouched) on the instance holding the binding—its in-memory snapshot skip means an instance whose memory predates the binding ignores the event—and either way the next eligible request rebinds the marker; re-injecting over an orphaned in-flight marker from another session logs an orphan-rebind. A recorded rejection likewise marks the announcement confirmed (`announcedAt` stamped when absent), because the user has already seen the proposal. The marker is advisory: it may outlive confirmation until the bound session's next failure-class terminal event (interrupted, failed, or `session.error`) or until the pending evolution resolves—reachable via a rejection recorded while the marker is in flight, or a cross-instance `succeeded` that the instance already reads as confirmed.
+
+While a pending evolution has no locked proposal and the announcement is confirmed, every eligible top-level request carries a directive mandating that the evolution choice be made and recorded in the same turn—there is no "natural breakpoint" deferment—and the directive re-injects until a proposal exists. While a proposal exists, the announcement lifecycle is frozen: no re-announce injection occurs (a still-present in-flight marker still finalizes on that session's `succeeded`), and the proposal-pending directive is injected instead.
+
+A state with `announcementDelivered: true` but no `announcedAt` (the pre-feature shape) self-heals without manual surgery: it reads as unconfirmed, is re-announced on the next eligible request, and confirms on that session's `succeeded` through the same code path as a fresh unlock.
+
+Directive injection is top-level-only: it is skipped for child sessions (a non-empty OpenCode V2 `Session.Info.parentID`—subagent children (and forks when they carry a parentID)) and fails closed for the one dispatch when the session lookup fails; the announcement simply re-injects on the next eligible top-level request. The gate affects injection only; state mutation (XP awards and terminal-event confirmation/rollback) is unaffected.
+
+The pre-model hook's slash-command path retains its pre-existing behavior: `/otsumi` turns never receive an announcement directive (see the `/otsumi` command section above).
 
 ## Beta API seam
 
@@ -128,3 +148,5 @@ Run both as a combined local suite with:
 node --test plugins/otsumi-progression-v2/test/*.test.js && \
   node plugins/otsumi-progression-v2/test-runtime.mjs
 ```
+
+Equivalent from the plugin directory: `npm test`.

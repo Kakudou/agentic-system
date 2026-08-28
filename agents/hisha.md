@@ -1,6 +1,7 @@
 ---
 description: "Presentation specialist. Turns accepted material and evidence into clear user-ready writing."
 mode: subagent
+subtask: true
 permissions:
   - action: edit
     resource: "*"

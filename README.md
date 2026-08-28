@@ -49,8 +49,8 @@ flowchart LR
 
 | Role | Responsibility |
 | --- | --- |
-| **Ōshō — King** | Sole user-facing controller. Preserves constraints, delegates when useful, and synthesizes grounded results. |
-| **Kakugyō — Bishop** | Planning, decomposition, dependency ordering, and orchestration when sequencing adds value. |
+| **Ōshō — King** | Sole user-facing controller. Preserves constraints, routes work to its owning specialist, and synthesizes grounded results. |
+| **Kakugyō — Bishop** | Planning, decomposition, dependency ordering, and orchestration for any work that needs a plan. |
 | **Kinshō — Gold General** | Requirements, scope, acceptance criteria, constraints, and definition of done. |
 | **Ginshō — Silver General** | Independent evidence-based validation using PASS / FAIL / UNVERIFIED. |
 | **Hisha — Rook** | Clear presentation of accepted, evidence-grounded material. |
@@ -163,7 +163,7 @@ The `plugins/` symlink provides the hard runtime plugins. Configure manual integ
 
 Set OpenCode V2's `default_agent` to `osho` (as in the sample configuration) so ordinary sessions enter through the repository's sole user-facing controller rather than the host's built-in primary agent.
 
-Set `subagent_depth` to `2`. OpenCode V2 defaults to depth `1`, which lets a primary agent launch a subagent but would prevent Kakugyō from delegating bounded specialist work from its child session. Depth `2` permits exactly the Ōshō → Kakugyō → specialist shape used by this board; ordered per-agent `subagent` permission rules allow only the required Shōgi board IDs, so built-in/general agents are not a bypass around Fuhyō or the other ownership boundaries.
+Set `experimental.subagent_depth` to `2`. OpenCode V2 defaults to depth `1`, which lets a primary agent launch a subagent but would prevent Kakugyō from delegating bounded specialist work from its child session. Depth `2` permits exactly the Ōshō → Kakugyō → specialist shape used by this board; ordered per-agent `subagent` permission rules allow only the required Shōgi board IDs, so built-in/general agents are not a bypass around Fuhyō or the other ownership boundaries.
 
 For TencentDB memory, map each Shogi agent to its own Tencent `agent_id`. Leave an agent unmapped rather than using a shared fallback unless shared memory identity is explicitly intended.
 

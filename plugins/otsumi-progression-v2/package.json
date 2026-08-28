@@ -5,6 +5,6 @@
   "type": "module",
   "exports": "./index.js",
   "scripts": {
-    "test": "node ./test-runtime.mjs"
+    "test": "node --test test/ && node ./test-runtime.mjs"
   }
 }

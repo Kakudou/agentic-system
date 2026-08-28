@@ -1,6 +1,7 @@
 ---
 description: "Atomic executor. Performs bounded operations and reports what actually happened."
 mode: subagent
+subtask: true
 permissions:
   - action: subagent
     resource: "*"

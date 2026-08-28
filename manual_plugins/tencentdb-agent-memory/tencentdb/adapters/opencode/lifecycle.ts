@@ -7,7 +7,7 @@ import {
 } from "../../application/capture-service.ts"
 
 import {
-  RetrievalBudget,
+  RetrievalGuard,
 } from "../../application/retrieval-budget.ts"
 
 import {
@@ -55,8 +55,8 @@ export class OpenCodeLifecycle {
   private capture:
     CaptureService
 
-  private budget:
-    RetrievalBudget
+  private guard:
+    RetrievalGuard
 
   private dreams:
     DreamSessionRegistry
@@ -71,8 +71,8 @@ export class OpenCodeLifecycle {
     capture:
       CaptureService,
 
-    budget:
-      RetrievalBudget,
+    guard:
+      RetrievalGuard,
 
     dreams:
       DreamSessionRegistry,
@@ -82,7 +82,7 @@ export class OpenCodeLifecycle {
   ) {
     this.turns = turns
     this.capture = capture
-    this.budget = budget
+    this.guard = guard
     this.dreams = dreams
     this.trace = trace
   }
@@ -391,9 +391,7 @@ export class OpenCodeLifecycle {
             sessionID,
           )
 
-      this.budget.reset(
-        sessionID,
-      )
+      this.guard.resetAllTurns()
 
       this.dreams.onExecutionStarted(
         sessionID,
@@ -411,8 +409,13 @@ export class OpenCodeLifecycle {
           userChars:
             state.userText.length,
 
-          retrievalBudget:
-            this.budget.limit,
+          failureThreshold:
+            this.guard
+              .failureThreshold,
+
+          maxCallsPerTurn:
+            this.guard
+              .maxCallsPerTurn,
         },
       )
 
@@ -625,7 +628,7 @@ export class OpenCodeLifecycle {
             sessionID,
           )
 
-      this.budget.clear(
+      this.guard.clearTurn(
         sessionID,
       )
 
@@ -669,12 +672,12 @@ export class OpenCodeLifecycle {
             sessionID,
           )
 
-      const budget =
-        this.budget.snapshot(
+      const turnState =
+        this.guard.turnState(
           sessionID,
         )
 
-      this.budget.clear(
+      this.guard.clearTurn(
         sessionID,
       )
 
@@ -711,7 +714,7 @@ export class OpenCodeLifecycle {
             turn.assistantMessageIDs,
 
           retrieval:
-            budget,
+            turnState,
         },
       )
 
@@ -854,7 +857,7 @@ export class OpenCodeLifecycle {
         }
       }
 
-      this.budget.clear(
+      this.guard.clearTurn(
         sessionID,
       )
 

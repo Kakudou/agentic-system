@@ -96,6 +96,9 @@ const ctx = {
       if (name !== "context") throw new Error(`unsupported hook ${name}`)
       requestHook = callback
     },
+    async get() {
+      return { data: {} }
+    },
   },
   tool: {
     async transform(callback) {
@@ -180,6 +183,46 @@ await requestHook(request)
 assert.match(request.system[0].text, /otsumi-progression/)
 assert.match(request.system[0].text, /00-agent-evolution/)
 
+// The first eligible request announces the level-up and binds this session as
+// in-flight. Confirmation may only come from the in-flight session's
+// successful execution, never from injection time.
+assert.match(request.system[0].text, /<otsumi-progression level="2" state="level-up-announcing" announce="yes">/)
+assert.match(request.system[0].text, /choose exactly one self-directed evolution/)
+assert.match(request.system[0].text, /otsumi_progression_propose/)
+let announcement = JSON.parse(await readFile(stateFile, "utf8"))
+assert.equal(announcement.pendingEvolution.announcementInFlight?.sessionID, "s1")
+assert.equal(typeof announcement.pendingEvolution.announcementInFlight?.at, "string")
+assert.equal(announcement.pendingEvolution.announcementDelivered, false)
+assert.ok(!("announcedAt" in announcement.pendingEvolution))
+
+// The in-flight session's successful execution confirms the announcement.
+// This turn still only awards its own XP, and no second level may unlock yet
+// even after crossing the Level 3 threshold (10 XP) while the Level 2
+// evolution remains unresolved.
+await successfulTurn({ work: true, text: "more work" })
+announcement = JSON.parse(await readFile(stateFile, "utf8"))
+assert.equal(announcement.pendingEvolution.announcementDelivered, true)
+assert.equal(typeof announcement.pendingEvolution.announcedAt, "string")
+assert.ok(announcement.pendingEvolution.announcementInFlight == null)
+status = await statusTool.execute({}, { sessionID: "s1", agent: "osho" })
+assert.match(status.output, /\*\*Level:\*\* 2/)
+assert.match(status.output, /\*\*XP:\*\* 10/)
+
+// Confirmed but unresolved: every eligible request now carries the forced
+// lock until a proposal is recorded.
+const lockRequest = {
+  sessionID: "s1",
+  agent: "osho",
+  system: [{ text: "base" }],
+  messages: [{ role: "user", content: "next" }],
+  tools: {},
+}
+await requestHook(lockRequest)
+assert.match(lockRequest.system[0].text, /state="choice-unlocked"/)
+assert.match(lockRequest.system[0].text, /evolution choice is still open/i)
+assert.match(lockRequest.system[0].text, /choose exactly one self-directed evolution/)
+assert.match(lockRequest.system[0].text, /otsumi_progression_propose/)
+
 const propose = tools.get("otsumi_progression_propose")
 const reject = tools.get("otsumi_progression_reject")
 const complete = tools.get("otsumi_progression_complete")
@@ -215,13 +258,6 @@ await propose.execute(
   },
   { sessionID: "s1", agent: "osho" },
 )
-
-// Accumulate XP while the Level 2 evolution remains unresolved. No second
-// level may unlock yet even after crossing the Level 3 threshold (10 XP).
-await successfulTurn({ work: true, text: "more work" })
-status = await statusTool.execute({}, { sessionID: "s1", agent: "osho" })
-assert.match(status.output, /\*\*Level:\*\* 2/)
-assert.match(status.output, /\*\*XP:\*\* 10/)
 
 const completion = await complete.execute(
   {

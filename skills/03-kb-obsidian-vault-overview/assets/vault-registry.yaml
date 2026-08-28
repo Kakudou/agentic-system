@@ -34,8 +34,8 @@ vaults:
       feedback_daily_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/020-Feedbacks/024-Daily/"
       event_root: null
       recurring_event_root: null
-      srs_japanese_root: null
-      srs_german_root: null
+      srs_japanese_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/100-Personal/200-Projects/201-SRS_learning/201.001-Japanese/deck/"
+      srs_german_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/100-Personal/200-Projects/201-SRS_learning/201.003-Deutsch/deck/"
 
     root_groups:
       all_zettel_roots:

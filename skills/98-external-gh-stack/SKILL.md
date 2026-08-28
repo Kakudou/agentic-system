@@ -8,7 +8,7 @@ description: >
 metadata:
   author: github
   version: "0.1.0"
-  opencode/slack: "true"
+  opencode/slash: "true"
 ---
 
 # gh-stack

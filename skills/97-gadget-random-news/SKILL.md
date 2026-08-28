@@ -2,7 +2,7 @@
 name: 97-gadget-random-news
 description: "Append one compact random news item from either cybersecurity or France to a completed response. Randomly choose the topic, discover a fresh story through the configured Reddit communities, verify it against the linked or authoritative source, and append one factual brief without changing the main response."
 metadata:
-  version: "2.0"
+  version: "2.1"
   opencode/slash: "true"
 ---
 
@@ -18,14 +18,14 @@ Read [references/news-selection.md](references/news-selection.md).
 
 ## Topic Selection
 
-For each invocation, randomly select one:
+For each invocation, select one with the host RNG tool `otsumi_rng` (exposed by the response-gadgets runtime in this install):
 
-- `cybersecurity`
-- `france`
+- options: `["cybersecurity", "france"]`
+- weights: `[0.5, 0.5]`
 
 Target split: approximately 50/50 over time.
 
-Do not reroll merely because the selected topic is inconvenient. If no trustworthy fresh item exists for that topic, append nothing.
+If the host RNG tool is unavailable, append nothing. Never simulate the draw or choose the topic yourself. Do not reroll merely because the selected topic is inconvenient. If no trustworthy fresh item exists for that topic, append nothing.
 
 ## Hard Rules
 
@@ -46,7 +46,7 @@ Append nothing when the main response is trivial, already long, or contextually 
 
 ### 2. Select Topic
 
-Randomly choose `cybersecurity` or `france`.
+Call `otsumi_rng` with options `["cybersecurity", "france"]` and weights `[0.5, 0.5]`, then use the returned topic. If the tool is unavailable, stop and append nothing.
 
 ### 3. Discover Candidates
 

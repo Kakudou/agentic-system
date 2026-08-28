@@ -29,6 +29,7 @@ test("registers the current mutable pre-model context hook", async (t) => {
   })
 
   const modelHooks = []
+  const addedTools = []
   const ctx = {
     options: { config },
     command: {
@@ -43,10 +44,28 @@ test("registers the current mutable pre-model context hook", async (t) => {
     },
     tool: {
       async hook() {},
+      async transform(callback) {
+        callback({
+          add(definition) {
+            addedTools.push(definition)
+          },
+        })
+      },
     },
   }
 
   await plugin.setup(ctx)
 
   assert.deepEqual(modelHooks, ["context"])
+
+  const rng = addedTools.find((tool) => tool.name === "otsumi_rng")
+  assert.ok(rng, "otsumi_rng was not registered")
+  assert.equal(rng.input.required[0], "options")
+  assert.equal(rng.input.additionalProperties, false)
+
+  const result = await rng.execute({ options: ["a", "b", "c"] })
+  assert.ok(["a", "b", "c"].includes(result.output), "execute must return one of the options")
+
+  await assert.rejects(() => rng.execute({ options: [] }))
+  await assert.rejects(() => rng.execute({ options: ["a"], weights: [1, 2] }))
 })

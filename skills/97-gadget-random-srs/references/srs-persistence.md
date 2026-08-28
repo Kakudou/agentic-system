@@ -4,7 +4,7 @@ Persistent SRS storage is optional. The visible language drop is valid without i
 
 ## Configuration
 
-Consume a trusted vault descriptor. If `03-kb-obsidian-vault-overview` is installed locally, it may provide that descriptor; otherwise an equivalent caller-supplied descriptor is sufficient.
+The descriptor is obtained by calling the centralized vault overview capability — in this installation, the `03-kb-obsidian-vault-overview` skill — rather than carried inside this skill. Otherwise an equivalent caller-supplied descriptor is sufficient. This skill carries no registry copy and no vault paths.
 
 Require:
 
@@ -45,7 +45,9 @@ Populate only information supported by the current language drop:
 
 ## Write Boundary
 
-Persistence requires an authorized file-write capability independent of this skill.
+Persistence requires a file-write capability that can write to the configured deck location, independent of this skill.
+
+A configured root and template in the trusted descriptor is standing authorization for these bounded, per-card writes. Do not request per-card confirmation when the descriptor is configured; do not write when it is not.
 
 Before writing:
 

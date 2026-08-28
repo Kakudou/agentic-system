@@ -435,8 +435,6 @@ export class ContextService {
                     .searchCodeGraph({
                       codeGraphId,
                       query,
-                      kind:
-                        "any",
                       limit:
                         Math.min(
                           20,

@@ -1,5 +1,6 @@
 import type {
   CodeGraphAsset,
+  CodeGraphKind,
   MemoryScope,
   WikiAsset,
 } from "./model.ts"
@@ -119,7 +120,7 @@ export interface KnowledgePort {
   searchCodeGraph(input: {
     codeGraphId: string
     query: string
-    kind?: "symbol" | "file" | "any"
+    kind?: CodeGraphKind
     limit?: number
   }): Promise<unknown>
 

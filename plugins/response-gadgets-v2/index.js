@@ -10,6 +10,45 @@ const DEFAULT_CONFIG = resolve(PLUGIN_DIR, "config.yml")
 const GADGET_COMMAND_RE = /<opencode-response-gadget\s+action="([^"]*)"\s*\/>/i
 const RAW_GADGET_COMMAND_RE = /^\/gadget(?:[ \t]+([^\r\n]*))?$/
 
+const RNG_RANGE = 1_000_000
+
+export function weightedSelection(options, weights, draw) {
+  const source = typeof draw === "function" ? draw : () => randomInt(RNG_RANGE)
+  const roll = source()
+  if (!Number.isInteger(roll) || roll < 0 || roll >= RNG_RANGE) {
+    throw new Error(`otsumi_rng: draw must be an integer in [0, ${RNG_RANGE}), got ${roll}`)
+  }
+
+  if (!Array.isArray(options) || options.length === 0) {
+    throw new Error("otsumi_rng: options must be a non-empty array of strings")
+  }
+  for (const option of options) {
+    if (typeof option !== "string" || !option.trim()) {
+      throw new Error("otsumi_rng: every option must be a non-empty string")
+    }
+  }
+  if (weights !== undefined) {
+    if (!Array.isArray(weights) || weights.length !== options.length) {
+      throw new Error("otsumi_rng: weights must be an array matching the options length")
+    }
+    for (const weight of weights) {
+      if (typeof weight !== "number" || !Number.isFinite(weight) || weight <= 0) {
+        throw new Error("otsumi_rng: every weight must be a finite number greater than zero")
+      }
+    }
+  }
+
+  const effectiveWeights = options.map((_, index) => (weights ? weights[index] : 1))
+  const total = effectiveWeights.reduce((sum, weight) => sum + weight, 0)
+  const target = (roll / RNG_RANGE) * total
+  let cumulative = 0
+  for (let index = 0; index < options.length; index++) {
+    cumulative += effectiveWeights[index]
+    if (target < cumulative) return options[index]
+  }
+  return options[options.length - 1]
+}
+
 function configPathOf(ctx) {
   return typeof ctx.options?.config === "string" && ctx.options.config.trim()
     ? resolve(ctx.options.config)
@@ -312,6 +351,42 @@ export default {
         command.description =
           "Inspect or change global response-gadget probabilities: /gadget [status|reload|<name> <0..1>]"
         command.template = '<opencode-response-gadget action="$ARGUMENTS" />'
+      })
+    })
+
+    await ctx.tool.transform((tools) => {
+      tools.add({
+        name: "otsumi_rng",
+        options: { codemode: false },
+        description:
+          "Select one entry from a list using real host-side randomness (node:crypto). " +
+          "Use it for every genuinely random choice a skill requires (gadget language, topic, community, candidate). " +
+          "Pass the candidate strings as options and optional positive weights in matching order. " +
+          "Never simulate randomness, never pick or guess a value yourself, and never expose the raw roll value. " +
+          "Returns exactly the selected option.",
+        input: {
+          type: "object",
+          required: ["options"],
+          properties: {
+            options: {
+              type: "array",
+              items: { type: "string", minLength: 1 },
+              minItems: 1,
+              maxItems: 100,
+            },
+            weights: {
+              type: "array",
+              items: { type: "number", exclusiveMinimum: 0 },
+              maxItems: 100,
+            },
+          },
+          additionalProperties: false,
+        },
+        output: { type: "string" },
+        execute: async (args) => {
+          const selected = weightedSelection(args?.options, args?.weights, () => randomInt(RNG_RANGE))
+          return { output: selected, content: selected }
+        },
       })
     })
 

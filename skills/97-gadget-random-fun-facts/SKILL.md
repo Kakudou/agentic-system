@@ -2,7 +2,7 @@
 name: 97-gadget-random-fun-facts
 description: "Append one compact, randomly selected, recently surfaced fun fact to a completed response. Discover a small candidate pool from the configured Reddit curiosity communities, verify the factual claim when practical, choose one eligible item, and append it without changing the main response."
 metadata:
-  version: "2.0"
+  version: "2.1"
   opencode/slash: "true"
 ---
 
@@ -25,6 +25,7 @@ Read [references/sources-and-filtering.md](references/sources-and-filtering.md).
 - Never treat a Reddit title as sufficient factual verification when the underlying claim can be checked.
 - Select at most one fact.
 - Do not reroll merely to force output.
+- Every random choice (community, final candidate) must come from the host RNG tool `otsumi_rng`. Never simulate a draw or claim a random selection the tool did not produce. If the tool is unavailable, append nothing.
 - Keep the drop short.
 - Enclose any delivered gadget appendix in the generic ephemeral markers shown below so host memory capture can exclude ambient material.
 - If no trustworthy candidate exists, append nothing.
@@ -39,7 +40,7 @@ Append nothing when the main response is trivial, already long, sensitive/heavy,
 
 Use read-only public retrieval.
 
-Randomly choose one configured Reddit curiosity community first. Try another only when the selected source yields no usable candidate.
+Choose one configured Reddit curiosity community first using `otsumi_rng` (uniform over the configured communities). Try another only when the selected source yields no usable candidate.
 
 ### 3. Filter and Verify
 
@@ -49,7 +50,7 @@ Prefer the underlying factual source. When practical, verify the core claim inde
 
 ### 4. Select One
 
-Randomly choose one eligible fact from the small verified pool.
+Choose one eligible fact from the small verified pool using `otsumi_rng` (uniform over the eligible candidates). If the tool is unavailable, append nothing.
 
 ### 5. Append
 

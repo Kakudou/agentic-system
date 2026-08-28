@@ -1,6 +1,7 @@
 ---
 description: "Constructive challenger. Finds risks, blind spots, contradictions, and simpler alternatives."
 mode: subagent
+subtask: true
 permissions:
   - action: edit
     resource: "*"

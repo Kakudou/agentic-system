@@ -8,6 +8,8 @@ import {
 
 import type {
   ContextMode,
+  RetrievalEnvelope,
+  TdaiSource,
 } from "../../domain/model.ts"
 
 import {
@@ -32,8 +34,8 @@ import {
   KnowledgeAssetResolver,
 } from "../../application/knowledge-assets.ts"
 
-import {
-  RetrievalBudget,
+import type {
+  RetrievalGuard,
 } from "../../application/retrieval-budget.ts"
 
 import {
@@ -185,49 +187,312 @@ async function safeOperation(
   }
 }
 
-function budgetExceeded(
-  snapshot: ReturnType<
-    RetrievalBudget["snapshot"]
-  >,
+function capExceeded(
+  env: RetrievalEnvelope,
 ) {
   return {
-    terminal: true,
+    terminal:
+      true,
+
     terminal_code:
       "TDAI_TERMINAL_RETRIEVAL_BUDGET_EXHAUSTED",
 
     message:
-      "TencentDB retrieval budget for this model turn is exhausted. Stop retrieval and answer from the evidence already obtained.",
+      "Per-turn TDAI retrieval cap (retrieval.maxCallsPerTurn) reached for this turn. Answer from evidence already gathered.",
 
     retrieval:
-      snapshot,
+      env,
   }
 }
 
-async function withBudget(
-  budget: RetrievalBudget,
+function degradedBlock(
+  env: RetrievalEnvelope,
+) {
+  const s =
+    env.source
+
+  return {
+    terminal:
+      false,
+
+    status:
+      "degraded",
+
+    source:
+      s.id,
+
+    reason:
+      `${s.consecutiveFailures} consecutive failures on TDAI source '${s.id}' (last: ${s.lastError ?? "unknown error"})`,
+
+    guidance:
+      "Do not retry this TDAI source for the remainder of this turn. Continue the main task with an alternate retrieval path (local file tools, web search, or the direct backend endpoint). The source will be re-probed automatically after a cooldown.",
+
+    recovery:
+      "automatic half-open probe after cooldown or on success",
+
+    retrieval:
+      env,
+  }
+}
+
+function childResults(
+  value: unknown,
+): unknown[] {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
+    return []
+  }
+
+  const v =
+    value as any
+
+  const children:
+    unknown[] = []
+
+  if (
+    Array.isArray(
+      v.searches,
+    )
+  ) {
+    for (
+      const item
+      of v.searches
+    ) {
+      const child =
+        (
+          item &&
+          typeof item === "object" &&
+          item.result !==
+          undefined
+        )
+          ? item.result
+          : item
+
+      children.push(
+        child,
+      )
+    }
+  }
+
+  if (
+    v.results &&
+    typeof v.results === "object" &&
+    !Array.isArray(
+      v.results,
+    )
+  ) {
+    for (
+      const child
+      of Object.values(
+        v.results,
+      )
+    ) {
+      if (
+        child &&
+        typeof child === "object"
+      ) {
+        children.push(
+          child,
+        )
+      }
+    }
+  }
+
+  for (
+    const key
+    of [
+      "l1",
+      "l0",
+    ]
+  ) {
+    if (
+      v[key] &&
+      typeof v[key] === "object"
+    ) {
+      children.push(
+        v[key],
+      )
+    }
+  }
+
+  return children
+}
+
+export function isSourceFailure(
+  value: unknown,
+): boolean {
+  if (
+    !value ||
+    typeof value !== "object"
+  ) {
+    return false
+  }
+
+  const v =
+    value as any
+
+  if (
+    v.available ===
+    false
+  ) {
+    return true
+  }
+
+  if (
+    typeof v.code ===
+      "number" &&
+    v.code !== 0
+  ) {
+    return true
+  }
+
+  const children =
+    childResults(
+      value,
+    )
+
+  return (
+    children.length > 0 &&
+    children.every(
+      (child) =>
+        isSourceFailure(
+          child,
+        ),
+    )
+  )
+}
+
+function failureSummary(
+  value: unknown,
+  fallback: string,
+): string {
+  if (
+    value &&
+    typeof value === "object"
+  ) {
+    const v =
+      value as any
+
+    if (
+      typeof v.error ===
+      "string"
+    ) {
+      return v.error
+    }
+
+    if (
+      typeof v.message ===
+      "string"
+    ) {
+      return v.message
+    }
+  }
+
+  return fallback
+}
+
+async function withGuard(
+  guard: RetrievalGuard,
+  source: TdaiSource,
   sessionID: string,
   toolName: string,
   operation:
     () => Promise<unknown>,
 ) {
   const admission =
-    budget.consume(
+    guard.consumeTurn(
       sessionID,
       toolName,
     )
 
   if (!admission.allowed) {
-    return budgetExceeded(
-      admission.snapshot,
+    return capExceeded(
+      guard.envelopeFor(
+        sessionID,
+        source,
+      ),
     )
   }
 
-  const result =
-    await operation()
+  const adm =
+    guard.admit(
+      source,
+      sessionID,
+      toolName,
+    )
+
+  if (
+    adm.action ===
+    "block"
+  ) {
+    return degradedBlock(
+      guard.envelopeFor(
+        sessionID,
+        source,
+      ),
+    )
+  }
+
+  let result:
+    unknown
+
+  try {
+    result =
+      await operation()
+  } catch (error) {
+    guard.recordOutcome(
+      source,
+      false,
+      String(error),
+    )
+
+    return {
+      retrieval:
+        guard.envelopeFor(
+          sessionID,
+          source,
+        ),
+
+      result: {
+        available:
+          false,
+
+        source:
+          toolName,
+
+        error:
+          String(error),
+
+        guidance:
+          "Continue the main task without this TencentDB source.",
+      },
+    }
+  }
+
+  const failed =
+    isSourceFailure(
+      result,
+    )
+
+  guard.recordOutcome(
+    source,
+    !failed,
+    failed
+      ? failureSummary(
+          result,
+          "unknown error",
+        )
+      : undefined,
+  )
 
   return {
     retrieval:
-      admission.snapshot,
+      guard.envelopeFor(
+        sessionID,
+        source,
+      ),
 
     result,
   }
@@ -254,7 +519,7 @@ export type ToolDependencies = {
   context: ContextService
   assets: KnowledgeAssetResolver
   capture: CaptureService
-  budget: RetrievalBudget
+  guard: RetrievalGuard
   turns: TurnStore
   trace: TracePort
 }
@@ -339,8 +604,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "context",
                 sessionID,
                 "tdai_context",
                 () =>
@@ -434,8 +700,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "memory",
                 sessionID,
                 "tdai_memory_search",
                 async () => {
@@ -611,8 +878,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "memory",
                 sessionID,
                 "tdai_memory_layer",
                 async () => {
@@ -763,8 +1031,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "wiki",
                 sessionID,
                 "tdai_wiki_search",
                 async () => {
@@ -890,8 +1159,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "wiki",
                 sessionID,
                 "tdai_wiki_read",
                 () =>
@@ -939,6 +1209,7 @@ export async function registerTools(
 
         description:
           "Search Tencent MemoryKnowledge CodeGraph symbols/files. Prefer this before grep for structural repository discovery. " +
+          "kind restricts result type; 'any' searches all kinds. " +
           "If code_graph_id is omitted, searches configured or auto-discovered ready graphs for the Team. Verify exact current working-tree code with normal file tools afterward when necessary.",
 
         input: {
@@ -960,9 +1231,15 @@ export async function registerTools(
               type:
                 "string",
               enum: [
-                "symbol",
-                "file",
                 "any",
+                "function",
+                "method",
+                "class",
+                "interface",
+                "type",
+                "variable",
+                "route",
+                "component",
               ],
             },
 
@@ -1001,8 +1278,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "codegraph",
                 sessionID,
                 "tdai_code_search",
                 async () => {
@@ -1218,8 +1496,9 @@ export async function registerTools(
               )
 
             return present(
-              await withBudget(
-                deps.budget,
+              await withGuard(
+                deps.guard,
+                "codegraph",
                 sessionID,
                 "tdai_code_graph",
                 async () => {
@@ -1512,8 +1791,8 @@ export async function registerTools(
                 scope,
 
               retrieval_budget:
-                deps.budget
-                  .snapshot(
+                deps.guard
+                  .turnState(
                     sessionID,
                   ),
 

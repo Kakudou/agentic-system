@@ -1,4 +1,8 @@
 import type {
+  CodeGraphKind,
+} from "../../domain/model.ts"
+
+import type {
   KnowledgePort,
 } from "../../domain/ports.ts"
 
@@ -179,7 +183,7 @@ export class TencentKnowledgeClient
     input: {
       codeGraphId: string
       query: string
-      kind?: "symbol" | "file" | "any"
+      kind?: CodeGraphKind
       limit?: number
     },
   ) {
@@ -193,8 +197,16 @@ export class TencentKnowledgeClient
           query:
             input.query,
 
-          kind:
-            input.kind ?? "any",
+          ...(
+            input.kind &&
+            input.kind !==
+            "any"
+              ? {
+                  kind:
+                    input.kind,
+                }
+              : {}
+          ),
 
           limit:
             input.limit ?? 10,

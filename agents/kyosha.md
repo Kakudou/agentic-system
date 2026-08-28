@@ -1,6 +1,7 @@
 ---
 description: "Read-only researcher and evidence retriever. Finds facts and sources without deciding the final answer."
 mode: subagent
+subtask: true
 permissions:
   - action: edit
     resource: "*"

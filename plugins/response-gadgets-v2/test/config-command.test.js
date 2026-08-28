@@ -98,6 +98,9 @@ async function setupHarness(t, config, options = {}) {
       async hook(name, callback) {
         toolHooks.set(name, callback)
       },
+      async transform(callback) {
+        callback({ add() {} })
+      },
     },
   }
 

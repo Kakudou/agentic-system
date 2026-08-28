@@ -15,7 +15,7 @@ import {
 } from "./application/knowledge-assets.ts"
 
 import {
-  RetrievalBudget,
+  RetrievalGuard,
 } from "./application/retrieval-budget.ts"
 
 import {
@@ -160,9 +160,19 @@ export default {
             config.knowledge
               .agents,
 
-          retrievalBudget:
-            config.retrieval
-              .budgetPerTurn,
+          retrievalGuard: {
+            failureThreshold:
+              config.retrieval
+                .failureThreshold,
+
+            probeCooldownMs:
+              config.retrieval
+                .probeCooldownMs,
+
+            maxCallsPerTurn:
+              config.retrieval
+                .maxCallsPerTurn,
+          },
 
           dream: {
             enabled:
@@ -222,11 +232,22 @@ export default {
       const turns =
         new TurnStore()
 
-      const budget =
-        new RetrievalBudget(
-          config.retrieval
-            .budgetPerTurn,
-        )
+      const guard =
+        new RetrievalGuard({
+          failureThreshold:
+            config.retrieval
+              .failureThreshold,
+
+          probeCooldownMs:
+            config.retrieval
+              .probeCooldownMs,
+
+          maxCallsPerTurn:
+            config.retrieval
+              .maxCallsPerTurn,
+
+          trace,
+        })
 
       const dreamSessions =
         new DreamSessionRegistry()
@@ -274,7 +295,7 @@ export default {
         new OpenCodeLifecycle(
           turns,
           capture,
-          budget,
+          guard,
           dreamSessions,
           trace,
         )
@@ -302,7 +323,7 @@ export default {
         ctx,
         config,
         turns,
-        budget,
+        guard,
         trace,
       )
 
@@ -382,7 +403,7 @@ export default {
           context,
           assets,
           capture,
-          budget,
+          guard,
           turns,
           trace,
         },

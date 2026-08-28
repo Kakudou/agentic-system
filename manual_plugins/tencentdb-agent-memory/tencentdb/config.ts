@@ -60,7 +60,30 @@ export type PluginOptions = {
   }
 
   retrieval?: {
+    /*
+     * Legacy: number of consecutive TDAI source failures before that
+     * source degrades. Used as the failureThreshold default when
+     * failureThreshold is not set explicitly.
+     */
     budgetPerTurn?: number
+
+    /*
+     * Consecutive failures before one TDAI source degrades to the
+     * non-terminal guardrail state.
+     */
+    failureThreshold?: number
+
+    /*
+     * Cooldown before a degraded TDAI source is re-probed (half-open).
+     */
+    probeCooldownMs?: number
+
+    /*
+     * Optional hard cap on TDAI retrieval tool calls per model turn.
+     * Absent (or null) means no hard cap.
+     */
+    maxCallsPerTurn?: number
+
     memoryLimit?: number
     knowledgeLimit?: number
     scenarioIndexLimit?: number
@@ -154,6 +177,9 @@ export type AppConfig = {
 
   retrieval: {
     budgetPerTurn: number
+    failureThreshold: number
+    probeCooldownMs: number
+    maxCallsPerTurn: number | null
     memoryLimit: number
     knowledgeLimit: number
     scenarioIndexLimit: number
@@ -557,6 +583,30 @@ export function loadConfig(
           retrieval.budgetPerTurn,
           3,
         ),
+
+      failureThreshold:
+        asPositiveInt(
+          retrieval.failureThreshold,
+          asPositiveInt(
+            retrieval.budgetPerTurn,
+            3,
+          ),
+        ),
+
+      probeCooldownMs:
+        asPositiveInt(
+          retrieval.probeCooldownMs,
+          60000,
+        ),
+
+      maxCallsPerTurn:
+        retrieval.maxCallsPerTurn ==
+        null
+          ? null
+          : asPositiveInt(
+              retrieval.maxCallsPerTurn,
+              10,
+            ),
 
       memoryLimit:
         asPositiveInt(

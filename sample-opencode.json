@@ -26,6 +26,9 @@
   },
   "model": "llamacpp/otsumi",
   "default_agent": "osho",
+  "experimental": {
+    "subagent_depth": 2
+  },
   "plugins":  [
     { "package": "./plugins/mode-router-v2", "options": { "enabled": true } },
     {

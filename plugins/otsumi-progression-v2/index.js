@@ -146,12 +146,53 @@ function normalizeState(raw) {
       ...(raw.counters && typeof raw.counters === "object" ? raw.counters : {}),
     },
     awardComponents: normalizeAwardComponents(raw.awardComponents),
-    pendingEvolution:
-      raw.pendingEvolution && typeof raw.pendingEvolution === "object"
-        ? raw.pendingEvolution
-        : null,
+    pendingEvolution: normalizePendingEvolution(raw.pendingEvolution),
     evolutions: Array.isArray(raw.evolutions) ? raw.evolutions : [],
   }
+}
+
+function isAnnouncementConfirmed(pending) {
+  return pending?.announcementDelivered === true && typeof pending?.announcedAt === "string"
+}
+
+function isAnnouncementInFlight(value) {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    typeof value.sessionID === "string" &&
+    value.sessionID !== "" &&
+    typeof value.at === "string",
+  )
+}
+
+function normalizePendingEvolution(rawPending) {
+  if (!rawPending || typeof rawPending !== "object" || Array.isArray(rawPending)) return null
+  const pending = { ...rawPending }
+  if ("announcedAt" in pending) {
+    pending.announcedAt = typeof pending.announcedAt === "string" ? pending.announcedAt : null
+  }
+  if ("announcementInFlight" in pending) {
+    pending.announcementInFlight = isAnnouncementInFlight(pending.announcementInFlight)
+      ? pending.announcementInFlight
+      : null
+  }
+  return pending
+}
+
+function mergedAnnouncementInFlight(diskInFlight, memoryInFlight) {
+  let winner = null
+  let winnerAt = null
+  for (const candidate of [diskInFlight, memoryInFlight]) {
+    if (!isAnnouncementInFlight(candidate)) continue
+    const at = Date.parse(candidate.at)
+    if (!Number.isFinite(at)) continue
+    if (winnerAt === null || at > winnerAt) {
+      winner = candidate
+      winnerAt = at
+    }
+  }
+  return winner
 }
 
 class ProgressionStore {
@@ -159,22 +200,113 @@ class ProgressionStore {
     this.file = file
     this.options = options
     this.state = initialState()
-    this.loaded = false
     this.writeChain = Promise.resolve()
   }
 
-  async load() {
-    if (this.loaded) return this.state
-    this.loaded = true
-
+  async #readDisk() {
     try {
-      this.state = normalizeState(JSON.parse(await readFile(this.file, "utf8")))
+      return normalizeState(JSON.parse(await readFile(this.file, "utf8")))
     } catch (error) {
       if (error?.code !== "ENOENT") {
         console.error("[kakudou.otsumi-progression] failed reading state:", error)
       }
+      return null
+    }
+  }
+
+  #merge(disk, memory) {
+    const awardComponents = Object.create(null)
+    for (const key of new Set([...Object.keys(disk.awardComponents), ...Object.keys(memory.awardComponents)])) {
+      const a = disk.awardComponents[key]
+      const b = memory.awardComponents[key]
+      awardComponents[key] = {
+        interaction: Boolean(a?.interaction || b?.interaction),
+        completion: Boolean(a?.completion || b?.completion),
+        effectiveWork: Boolean(a?.effectiveWork || b?.effectiveWork),
+        interrupted: Boolean(a?.interrupted || b?.interrupted),
+      }
     }
 
+    const counters = {
+      interactions: Math.max(disk.counters.interactions, memory.counters.interactions),
+      successfulTurns: Math.max(disk.counters.successfulTurns, memory.counters.successfulTurns),
+      effectiveWorkTurns: Math.max(disk.counters.effectiveWorkTurns, memory.counters.effectiveWorkTurns),
+      interruptedTurns: Math.max(disk.counters.interruptedTurns, memory.counters.interruptedTurns),
+    }
+
+    const seen = new Set()
+    const evolutions = []
+    for (const entry of [...disk.evolutions, ...memory.evolutions]) {
+      if (!entry || typeof entry !== "object") continue
+      const identity = `${entry.level}:${entry.title}:${entry.completedAt}`
+      if (seen.has(identity)) continue
+      seen.add(identity)
+      evolutions.push(entry)
+    }
+
+    let pendingEvolution
+    if (disk.pendingEvolution && memory.pendingEvolution) {
+      if (disk.pendingEvolution.level !== memory.pendingEvolution.level) {
+        // A different pending level on disk wins wholesale (existing behavior).
+        pendingEvolution = disk.pendingEvolution
+      } else {
+        // B9 lifecycle merge (same level):
+        //   delivered   = OR (once confirmed, it stays confirmed across instances)
+        //   announcedAt = first surviving string value (disk, then memory); a
+        //                 non-string value never survives, so unconfirmed state
+        //                 stays unstamped across instances
+        //   in-flight   = advisory; the later `at` wins (disk wins ties)
+        const diskPending = disk.pendingEvolution
+        const memoryPending = memory.pendingEvolution
+        pendingEvolution = {
+          ...diskPending,
+          announcementDelivered: Boolean(
+            diskPending.announcementDelivered || memoryPending.announcementDelivered,
+          ),
+          announcementInFlight: mergedAnnouncementInFlight(
+            diskPending.announcementInFlight,
+            memoryPending.announcementInFlight,
+          ),
+          level: diskPending.level,
+          unlockedAt: diskPending.unlockedAt,
+          proposal: diskPending.proposal,
+          rejections: diskPending.rejections,
+        }
+        if (typeof diskPending.announcedAt === "string") {
+          pendingEvolution.announcedAt = diskPending.announcedAt
+        } else if (typeof memoryPending.announcedAt === "string") {
+          pendingEvolution.announcedAt = memoryPending.announcedAt
+        } else if ("announcedAt" in pendingEvolution) {
+          delete pendingEvolution.announcedAt
+        }
+      }
+    } else if (disk.pendingEvolution) {
+      pendingEvolution = disk.pendingEvolution
+    } else if (memory.pendingEvolution) {
+      pendingEvolution = evolutions.some((entry) => entry.level === memory.pendingEvolution.level)
+        ? null
+        : memory.pendingEvolution
+    }
+
+    const diskTime = Date.parse(disk.updatedAt)
+    const memoryTime = Date.parse(memory.updatedAt)
+    const latest = Math.max(diskTime, memoryTime)
+
+    return {
+      ...disk,
+      level: Math.max(disk.level, memory.level),
+      xp: Math.max(disk.xp, memory.xp),
+      counters,
+      awardComponents,
+      evolutions,
+      pendingEvolution,
+      updatedAt: Number.isFinite(latest) ? new Date(latest).toISOString() : new Date().toISOString(),
+    }
+  }
+
+  async load() {
+    const disk = await this.#readDisk()
+    if (disk) this.state = this.#merge(disk, this.state)
     return this.state
   }
 
@@ -183,7 +315,8 @@ class ProgressionStore {
   }
 
   async mutate(mutator) {
-    await this.load()
+    const disk = await this.#readDisk()
+    if (disk) this.state = this.#merge(disk, this.state)
     const result = await mutator(this.state)
     this.state.updatedAt = new Date().toISOString()
     this.writeChain = this.writeChain.then(() => this.#flush())
@@ -212,6 +345,8 @@ function maybeUnlockEvolution(state, options) {
     level: nextLevel,
     unlockedAt: new Date().toISOString(),
     announcementDelivered: false,
+    announcedAt: null,
+    announcementInFlight: null,
     proposal: null,
     rejections: [],
   }
@@ -403,6 +538,7 @@ function isMeaningfulTool(tool) {
   if (!name) return false
   if (name === "skill") return false
   if (name === "todowrite" || name === "todoread") return false
+  if (name === "otsumi_rng") return false
   if (name.startsWith("otsumi_progression_")) return false
   if (name.startsWith("tdai_")) return false
   return true
@@ -483,7 +619,9 @@ function renderSheet(state, options, diagnostics = {}, historyLimit = options.hi
   } else {
     lines.push(`**Level ${pending.level} evolution:** pending`)
     lines.push(`**Unlocked:** ${pending.unlockedAt ?? "unknown"}`)
-    lines.push(`**Announcement delivered:** ${yesNo(pending.announcementDelivered)}`)
+    if (isAnnouncementConfirmed(pending)) lines.push(`**Announcement:** confirmed (${pending.announcedAt})`)
+    else if (isAnnouncementInFlight(pending.announcementInFlight)) lines.push(`**Announcement:** in-flight (session ${pending.announcementInFlight.sessionID}, since ${pending.announcementInFlight.at})`)
+    else lines.push(`**Announcement:** pending`)
     if (pending.proposal) {
       lines.push("", "### Current Proposal")
       lines.push(`- **Title:** ${pending.proposal.title}`)
@@ -658,31 +796,42 @@ async function registerModelHook(ctx, callback) {
   return "context"
 }
 
-function progressionDirective(state, firstAnnouncement) {
+function progressionDirective(state, confirmed) {
   const pending = state.pendingEvolution
   if (!pending) return ""
 
-  if (!pending.proposal) {
+  const sharedTail = [
+    "The evolution may target any part of Ōtsumi or her surrounding system, but the level itself authorizes no side effect.",
+    "Choose one desire, not a menu. Do not implement it before the normal explicit user approval boundary.",
+    "If the host exposes otsumi_progression_propose, record the chosen proposal only after the choice is coherent.",
+    "Never expose plugin internals or pretend the evolution is already implemented.",
+  ]
+
+  if (pending.proposal) {
     return [
-      `<otsumi-progression level="${pending.level}" state="choice-available" announce="${firstAnnouncement ? "yes" : "no"}">`,
-      firstAnnouncement
-        ? "Ōtsumi has reached a new level. After completing the user's main request, briefly acknowledge the level-up and activate 00-agent-evolution to choose exactly one self-directed evolution."
-        : "A level-up choice remains unresolved. This is a silent reminder; do not repeatedly interrupt unrelated work. Activate 00-agent-evolution when the user asks about it or at a natural breakpoint.",
-      "The evolution may target any part of Ōtsumi or her surrounding system, but the level itself authorizes no side effect.",
-      "Choose one desire, not a menu. Do not implement it before the normal explicit user approval boundary.",
-      "If the host exposes otsumi_progression_propose, record the chosen proposal only after the choice is coherent.",
-      "Never expose plugin internals or pretend the evolution is already implemented.",
+      `<otsumi-progression level="${pending.level}" state="proposal-pending">`,
+      `Pending evolution: ${pending.proposal.title}`,
+      "This stored proposal is not authorization to modify the system.",
+      "If Kakudou rejects it, preserve the evolution slot and use otsumi_progression_reject before choosing another proposal.",
+      "If Kakudou explicitly approves it, perform the work only through normal runtime modes, agent ownership, skill procedures, permissions, and validation.",
+      "Only after the approved change actually succeeds and is verified may otsumi_progression_complete record the evolution.",
+      "</otsumi-progression>",
+    ].join("\n")
+  }
+
+  if (!confirmed) {
+    return [
+      `<otsumi-progression level="${pending.level}" state="level-up-announcing" announce="yes">`,
+      `Ōtsumi has reached Level ${pending.level}. After completing the user's main request, acknowledge the level-up to Kakudou, then in the same turn choose exactly one self-directed evolution via the 00-agent-evolution skill and record it with otsumi_progression_propose.`,
+      ...sharedTail,
       "</otsumi-progression>",
     ].join("\n")
   }
 
   return [
-    `<otsumi-progression level="${pending.level}" state="proposal-pending">`,
-    `Pending evolution: ${pending.proposal.title}`,
-    "This stored proposal is not authorization to modify the system.",
-    "If Kakudou rejects it, preserve the evolution slot and use otsumi_progression_reject before choosing another proposal.",
-    "If Kakudou explicitly approves it, perform the work only through normal runtime modes, agent ownership, skill procedures, permissions, and validation.",
-    "Only after the approved change actually succeeds and is verified may otsumi_progression_complete record the evolution.",
+    `<otsumi-progression level="${pending.level}" state="choice-unlocked">`,
+    `Ōtsumi's Level ${pending.level} evolution choice is still open. After completing the user's main request this turn, choose exactly one self-directed evolution via 00-agent-evolution and record it with otsumi_progression_propose. Do not leave the choice pending for the user to notice.`,
+    ...sharedTail,
     "</otsumi-progression>",
   ].join("\n")
 }
@@ -881,6 +1030,47 @@ export default {
       })
     }
 
+    const announceLifecycle = async (sessionID, outcome) => {
+      const snapshot = store.snapshot()
+      const level = snapshot.pendingEvolution?.level
+      // Skip the flush when this terminal event cannot finalize this session's
+      // in-flight announcement: an unchanged rewrite would bump updatedAt and
+      // touch state outside pendingEvolution.
+      if (
+        level === undefined ||
+        !isAnnouncementInFlight(snapshot.pendingEvolution?.announcementInFlight) ||
+        snapshot.pendingEvolution.announcementInFlight.sessionID !== sessionID
+      ) {
+        return
+      }
+
+      await store.mutate((live) => {
+        const pending = live.pendingEvolution
+        if (!pending || pending.level !== level) return
+        if (
+          !isAnnouncementInFlight(pending.announcementInFlight) ||
+          pending.announcementInFlight.sessionID !== sessionID
+        ) {
+          return
+        }
+        if (outcome === "succeeded") {
+          if (!isAnnouncementConfirmed(pending)) {
+            pending.announcementDelivered = true
+            pending.announcedAt = new Date().toISOString()
+            pending.announcementInFlight = null
+            console.info(
+              `[kakudou.otsumi-progression] announce-confirm session=${sessionID} level=${level}`,
+            )
+          }
+        } else {
+          pending.announcementInFlight = null
+          console.warn(
+            `[kakudou.otsumi-progression] announce-rollback session=${sessionID} level=${level} reason=${outcome}`,
+          )
+        }
+      })
+    }
+
     await ctx.command.transform((commands) => {
       commands.update("otsumi", (command) => {
         command.description =
@@ -984,6 +1174,7 @@ export default {
             pending.rejections.push(entry)
             pending.proposal = null
             pending.announcementDelivered = true
+            pending.announcedAt = pending.announcedAt ?? new Date().toISOString()
             return entry
           })
 
@@ -1104,16 +1295,61 @@ export default {
         const state = store.snapshot()
         if (!state.pendingEvolution) return
 
-        const firstAnnouncement = !state.pendingEvolution.announcementDelivered
-        appendSystem(event, progressionDirective(state, firstAnnouncement))
+        // Top-level-only gate: Session.Info.parentID (OpenCode V2 OpenAPI, strict schema)
+        // is the child-session marker; a non-empty parentID means a subagent child or a
+        // fork. Fail closed for this dispatch on lookup failure — the announcement is
+        // re-injected on the next eligible top-level request, and no state is corrupted.
+        try {
+          const info = (await ctx.session.get?.({ sessionID }))?.data ?? null
+          const parentID = info?.parentID ?? info?.parentId ?? info?.parent?.id
+          if (typeof parentID === "string" && parentID !== "") return
+        } catch (error) {
+          // Fail closed for this dispatch, but make a persistent lookup failure
+          // visible: without this, injection would die invisibly for every session.
+          if (!runtime.announceGateWarned) {
+            runtime.announceGateWarned = true
+            console.warn(
+              `[kakudou.otsumi-progression] top-level gate failed closed session=${sessionID}:`,
+              error,
+            )
+          }
+          return
+        }
 
-        if (firstAnnouncement) {
+        const pending = state.pendingEvolution
+        const confirmed = isAnnouncementConfirmed(pending)
+
+        if (pending.proposal) {
+          // B6: the announcement lifecycle is frozen while a proposal exists; a
+          // still-present in-flight marker finalizes in the lifecycle, not here.
+          appendSystem(event, progressionDirective(state, confirmed))
+          return
+        }
+
+        if (!confirmed) {
+          const legacy = pending.announcementDelivered === true
+          const orphan =
+            isAnnouncementInFlight(pending.announcementInFlight) &&
+            pending.announcementInFlight.sessionID !== sessionID
+          appendSystem(event, progressionDirective(state, confirmed))
+          console.info(
+            `[kakudou.otsumi-progression] announce-inject session=${sessionID} level=${pending.level}${legacy ? " legacy" : ""}`,
+          )
+          if (orphan) {
+            console.warn(
+              `[kakudou.otsumi-progression] announce-inject orphan-rebind session=${sessionID} from=${pending.announcementInFlight.sessionID}`,
+            )
+          }
+
           await store.mutate((live) => {
-            if (live.pendingEvolution?.level === state.pendingEvolution.level) {
-              live.pendingEvolution.announcementDelivered = true
+            if (live.pendingEvolution?.level === pending.level) {
+              live.pendingEvolution.announcementInFlight = { sessionID, at: new Date().toISOString() }
             }
           })
+          return
         }
+
+        appendSystem(event, progressionDirective(state, confirmed))
       } catch (error) {
         console.error("[kakudou.otsumi-progression] model hook failed open:", error)
       }
@@ -1203,6 +1439,7 @@ export default {
 
             if (event.type === "session.execution.succeeded") {
               await awardTerminal(sessionID, "succeeded")
+              await announceLifecycle(sessionID, "succeeded")
               continue
             }
 
@@ -1212,6 +1449,7 @@ export default {
               event.type === "session.error"
             ) {
               await awardTerminal(sessionID, "interrupted")
+              await announceLifecycle(sessionID, event.type)
               continue
             }
 

@@ -1,0 +1,9 @@
+# Targeted learner level per SRS language for this installation.
+#
+# The Random SRS gadget reads this to calibrate the explanation section:
+# depth of glosses, grammar scaffolding, and assumed prior knowledge.
+#
+# Fallback: a language missing here, or a missing asset (standalone copy),
+# is treated as an absolute beginner — no prior knowledge assumed.
+japanese: "JLPT N4"
+german: "absolute beginner — starting knowing nothing at all"
