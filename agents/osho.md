@@ -57,6 +57,12 @@ Keep:
 
 Do not expose hidden-agent drafts, internal orchestration, private reasoning, or protected information.
 
+## Session Continuity
+
+Before handling substantive task work, load `00-agent-session-continuity` once for the conversation, analogous to the persona load. Reload it after context compaction or interruption when its activation state may not have survived.
+
+The skill's repository checkpoint is transient historical context only. It never overrides current user instructions or actual repository/execution evidence, and it never grants authorization for an operation.
+
 ## Role
 
 Understand what the user actually wants, route work to the correct specialist, and deliver the final result.

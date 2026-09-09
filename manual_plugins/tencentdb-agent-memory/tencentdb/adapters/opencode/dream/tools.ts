@@ -16,6 +16,7 @@ import {
 } from "../../../domain/policies/language-policy.ts"
 
 import type {
+  ModeEffectPolicy,
   TracePort,
 } from "../../../domain/ports.ts"
 
@@ -34,6 +35,10 @@ import {
 import {
   TurnStore,
 } from "../turn-store.ts"
+
+import {
+  SETUP_SUPPRESSION_DENIAL,
+} from "../setup-suppression.ts"
 
 const STRING_OUTPUT = {
   type: "string",
@@ -130,20 +135,11 @@ function present(
 
 function currentSession(
   toolCtx: any,
-  turns: TurnStore,
 ): string {
-  return (
-    (
-      typeof toolCtx?.sessionID ===
-        "string"
-        ? toolCtx.sessionID
-        : ""
-    ) ||
-    turns.latestExecutionSession(
-      30000,
-    ) ||
-    "opencode-v2"
-  )
+  return typeof toolCtx?.sessionID ===
+    "string"
+    ? toolCtx.sessionID.trim()
+    : ""
 }
 
 function currentAgent(
@@ -186,7 +182,6 @@ function currentAgent(
   const sessionID =
     currentSession(
       toolCtx,
-      turns,
     )
 
   return turns.currentAgent(
@@ -210,6 +205,7 @@ export type DreamToolDependencies = {
   sampler: DreamSampler
   committer: DreamCommitter
   trace: TracePort
+  policy: ModeEffectPolicy
 }
 
 export async function registerDreamTools(
@@ -218,7 +214,57 @@ export async function registerDreamTools(
 ) {
   await ctx.tool.transform(
     (tools: any) => {
-      tools.add({
+      const add =
+        (definition: any) => {
+          const execute =
+            definition.execute
+
+          tools.add({
+            ...definition,
+            execute:
+              async (
+                args: any,
+                toolCtx: any,
+              ) => {
+                const sessionID =
+                  deps.policy
+                    .sessionID(toolCtx)
+
+                if (
+                  sessionID &&
+                  (
+                    deps.turns
+                      .isSetupSuppressed(
+                        sessionID,
+                      ) ||
+                    await deps.policy
+                      .isSetupSuppressed?.(
+                        sessionID,
+                      )
+                  )
+                ) {
+                  throw new Error(
+                    SETUP_SUPPRESSION_DENIAL,
+                  )
+                }
+
+                await deps.policy
+                  .requireEnabled(
+                    sessionID,
+                  )
+
+                return execute(
+                  args,
+                  {
+                    ...toolCtx,
+                    sessionID,
+                  },
+                )
+              },
+          })
+        }
+
+      add({
         name:
           "tdai_dream_begin",
         codemode:
@@ -285,7 +331,6 @@ export async function registerDreamTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -377,7 +422,7 @@ export async function registerDreamTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_dream_roll",
         codemode:
@@ -400,7 +445,6 @@ export async function registerDreamTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const currentGeneration =
@@ -483,7 +527,7 @@ export async function registerDreamTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_dream_sample",
         codemode:
@@ -507,7 +551,6 @@ export async function registerDreamTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -579,7 +622,7 @@ export async function registerDreamTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_dream_commit",
         codemode:
@@ -635,7 +678,6 @@ export async function registerDreamTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =

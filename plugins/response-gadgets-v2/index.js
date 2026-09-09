@@ -9,6 +9,10 @@ const PLUGIN_DIR = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_CONFIG = resolve(PLUGIN_DIR, "config.yml")
 const GADGET_COMMAND_RE = /<opencode-response-gadget\s+action="([^"]*)"\s*\/>/i
 const RAW_GADGET_COMMAND_RE = /^\/gadget(?:[ \t]+([^\r\n]*))?$/
+const POLICY_DENIAL = "response-gadgets: disabled by authoritative mode-router policy"
+const BOOTSTRAP_DENIAL = "response-gadgets: disabled for trusted setup-template turn"
+const SETUP_TEMPLATE_STEPS = new Set(["mode", "persona_setup", "introduction"])
+const SHA256_HEX_RE = /^[0-9a-f]{64}$/
 
 const RNG_RANGE = 1_000_000
 
@@ -76,7 +80,7 @@ function latestUser(messages) {
 
   for (let index = messages.length - 1; index >= 0; index--) {
     const message = messages[index]
-    const role = message?.role ?? message?.info?.role
+    const role = message?.role ?? message?.info?.role ?? message?.type
     if (role !== "user") continue
 
     const text = textFrom(message).trim()
@@ -96,6 +100,50 @@ function latestUser(messages) {
   }
 
   return null
+}
+
+function trustedSetupTemplateMetadata(metadata) {
+  return Boolean(
+    metadata &&
+    typeof metadata === "object" &&
+    !Array.isArray(metadata) &&
+    metadata.kind === "setup_template_step" &&
+    metadata.templateSchemaVersion === 2 &&
+    SETUP_TEMPLATE_STEPS.has(metadata.step) &&
+    typeof metadata.fingerprint === "string" &&
+    SHA256_HEX_RE.test(metadata.fingerprint),
+  )
+}
+
+function ownMetadata(value) {
+  if (!value || typeof value !== "object") return { present: false, value: null }
+  if (Object.hasOwn(value, "metadata")) {
+    return { present: true, value: value.metadata }
+  }
+  if (value.info && typeof value.info === "object" && Object.hasOwn(value.info, "metadata")) {
+    return { present: true, value: value.info.metadata }
+  }
+  return { present: false, value: null }
+}
+
+function currentInputMetadata(event, providerUser, identity) {
+  for (const candidate of [
+    event,
+    event?.input,
+    event?.message,
+    event?.item,
+    event?.data?.item,
+  ]) {
+    const metadata = ownMetadata(candidate)
+    if (metadata.present) return metadata
+  }
+
+  if (providerUser?.message) return ownMetadata(providerUser.message)
+
+  const identityMetadata = ownMetadata(identity)
+  if (identityMetadata.present) return identityMetadata
+
+  return { present: false, value: null }
 }
 
 function turnKey(identity, providerUser, rawText) {
@@ -123,6 +171,63 @@ function agentOf(event) {
     event?.context?.agent?.id ??
     event?.context?.agent
   return typeof value === "string" && value ? value : null
+}
+
+function trustedIdentity(event, bridge) {
+  if (!bridge?.resolveRequest) return null
+  try {
+    const identity = bridge.resolveRequest(event)
+    const sessionID = identity?.sessionID ?? sessionIDOf(event)
+    if (typeof sessionID !== "string" || !sessionID) return null
+    return { ...identity, sessionID }
+  } catch {
+    return null
+  }
+}
+
+async function pluginAuthorization(event) {
+  const bridge = globalThis[MODE_BRIDGE]
+  if (!bridge?.resolveRequest || !bridge?.pluginDecisionFor) {
+    return { allowed: false, bridge: null, identity: null, decision: null }
+  }
+
+  const identity = trustedIdentity(event, bridge)
+  if (!identity?.sessionID) {
+    return { allowed: false, bridge, identity: null, decision: null }
+  }
+
+  try {
+    const decision = await bridge.pluginDecisionFor(identity.sessionID, PLUGIN_ID)
+    const allowed =
+      decision?.managed === true &&
+      decision?.enabled === true &&
+      typeof decision?.mode === "string" &&
+      Boolean(decision.mode)
+    return { allowed, bridge, identity, decision }
+  } catch {
+    return { allowed: false, bridge, identity, decision: null }
+  }
+}
+
+async function requirePluginAuthorization(event) {
+  const authorization = await pluginAuthorization(event)
+  if (!authorization.allowed) throw new Error(POLICY_DENIAL)
+  return authorization
+}
+
+async function requireGadgetSkillAuthorization(authorization, skill) {
+  const { bridge, identity } = authorization
+  if (bridge?.decisionFor) {
+    try {
+      const decision = await bridge.decisionFor(identity.sessionID, skill)
+      if (decision?.allowed === true) return
+    } catch {
+      // Convert unavailable policy paths into one deterministic denial.
+    }
+  }
+  throw new Error(
+    `response-gadgets: blocked gadget skill '${skill}' by authoritative mode-router skill policy`,
+  )
 }
 
 function appendSystem(event, text) {
@@ -242,8 +347,6 @@ function buildStatus(configManager) {
       ? [`Config reload error: ${configManager.lastError}`]
       : []),
     `Primary agent: ${config.primaryAgent}`,
-    `Require mode-router: ${config.requireModeRouter}`,
-    `Allowed modes: ${config.modeList.join(", ")}`,
     "Gadgets:",
     ...config.gadgets.map(
       (gadget) =>
@@ -345,6 +448,31 @@ export default {
     const configManager = new ConfigManager(configPathOf(ctx))
     await configManager.initialize()
     const turns = new Map()
+    const setupTemplateSessions = new Set()
+
+    function rejectSetupTemplateExecution(event) {
+      const bridge = globalThis[MODE_BRIDGE]
+      const identity = trustedIdentity(event, bridge)
+      if (!identity?.sessionID) return
+
+      const providerUser = latestUser(event?.messages)
+      const metadata = currentInputMetadata(event, providerUser, identity)
+      if (metadata.present) {
+        if (trustedSetupTemplateMetadata(metadata.value)) {
+          setupTemplateSessions.add(identity.sessionID)
+        } else {
+          setupTemplateSessions.delete(identity.sessionID)
+          return
+        }
+      } else if (providerUser) {
+        setupTemplateSessions.delete(identity.sessionID)
+        return
+      }
+
+      if (setupTemplateSessions.has(identity.sessionID)) {
+        throw new Error(BOOTSTRAP_DENIAL)
+      }
+    }
 
     await ctx.command.transform((commands) => {
       commands.update("gadget", (command) => {
@@ -383,7 +511,9 @@ export default {
           additionalProperties: false,
         },
         output: { type: "string" },
-        execute: async (args) => {
+        execute: async (args, toolContext) => {
+          rejectSetupTemplateExecution(toolContext)
+          await requirePluginAuthorization(toolContext)
           const selected = weightedSelection(args?.options, args?.weights, () => randomInt(RNG_RANGE))
           return { output: selected, content: selected }
         },
@@ -398,20 +528,51 @@ export default {
     // follow-up turn. This is intentionally not the legacy V1 plugin API.
     await ctx.session.hook("context", async (event) => {
       try {
-        // The file is authoritative across plugin setups and sessions. Refresh
-        // on every model context while retaining the last-known-good value if
-        // an external edit is missing or invalid.
-        await configManager.refresh()
-        const config = configManager.current
-        const bridge = globalThis[MODE_BRIDGE]
-
-        const identity = bridge?.resolveRequest
-          ? bridge.resolveRequest(event)
-          : { sessionID: sessionIDOf(event), agent: agentOf(event) }
+        // The mode-router owns whether this plugin exists for the request.
+        // Resolve and authorize before config refresh, command execution,
+        // random gates, directives, or per-turn state allocation.
+        const authorization = await pluginAuthorization(event)
+        const { bridge, identity, decision: pluginDecision } = authorization
         const providerUser = latestUser(event?.messages)
+        const currentMetadata = currentInputMetadata(event, providerUser, identity)
+
+        if (identity?.sessionID) {
+          if (trustedSetupTemplateMetadata(currentMetadata.value)) {
+            setupTemplateSessions.add(identity.sessionID)
+            turns.delete(identity.sessionID)
+            return
+          }
+          if (providerUser || currentMetadata.present) {
+            setupTemplateSessions.delete(identity.sessionID)
+          }
+        }
+
         const admittedInputText =
           typeof identity?.inputText === "string" ? identity.inputText.trim() : ""
         const commandAction = requestedGadgetAction(event, admittedInputText)
+
+        if (!authorization.allowed) {
+          if (commandAction !== null) {
+            replaceGadgetCommandPrompt(event, POLICY_DENIAL)
+            appendSystem(
+              event,
+              [
+                "<response-gadget-command>",
+                "The response-gadgets runtime control operation was denied.",
+                "Return the exact result below verbatim and do not call tools:",
+                POLICY_DENIAL,
+                "</response-gadget-command>",
+              ].join("\n"),
+            )
+          }
+          return
+        }
+
+        // The file is authoritative for probability across plugin setups and
+        // sessions. Refresh only after mode-router authorization, retaining the
+        // last-known-good value if an external edit is missing or invalid.
+        await configManager.refresh()
+        const config = configManager.current
 
         if (commandAction !== null) {
           const commandResult = await executeGadgetCommand(
@@ -439,9 +600,7 @@ export default {
           return
         }
 
-        if (!bridge && config.requireModeRouter) return
-        const sessionID = identity?.sessionID ?? null
-        if (!sessionID) return
+        const sessionID = identity.sessionID
 
         // Ambient behavior belongs only to the primary user-facing agent.
         // The mode-router correlates the V2 public lifecycle stream when the
@@ -459,9 +618,7 @@ export default {
         if (!rawUserText || isControlTurn(rawUserText)) return
         const userTurnKey = turnKey(identity, user, rawUserText)
 
-        const mode = bridge?.modeFor ? await bridge.modeFor(sessionID) : null
-        if (!mode && config.requireModeRouter) return
-        if (mode && !config.modes.has(mode)) return
+        const mode = pluginDecision.mode
 
         let state = turns.get(sessionID)
         if (!state || state.turnKey !== userTurnKey) {
@@ -471,17 +628,16 @@ export default {
             // Every gate is independent and is evaluated exactly once per user turn.
             if (!selected(gadget.probability)) continue
 
-            if (bridge?.decisionFor) {
-              const decision = await bridge.decisionFor(sessionID, gadget.skill)
-              if (!decision?.allowed) continue
-            }
+            if (!bridge?.decisionFor) continue
+            const decision = await bridge.decisionFor(sessionID, gadget.skill)
+            if (!decision?.allowed) continue
 
             chosen.push(gadget.skill)
           }
 
           state = {
             turnKey: userTurnKey,
-            mode: mode ?? "unmanaged",
+            mode,
             selected: chosen,
             invoked: new Set(),
             updatedAt: Date.now(),
@@ -500,7 +656,7 @@ export default {
         appendSystem(event, directive(state.mode, state))
       } catch (error) {
         // Optional ambient behavior must never break the actual user response.
-        console.error("[kakudou.response-gadgets] context hook failed open:", error)
+        console.error("[kakudou.response-gadgets] context hook failed closed:", error)
       }
     })
 
@@ -508,10 +664,14 @@ export default {
     // Explicit/manual gadget invocations on turns with no random selection are untouched.
     await ctx.tool.hook("execute.before", async (event) => {
       const skill = toolSkillID(event)
-      if (!skill) return
+      if (!skill?.startsWith("97-gadget-")) return
 
-      const sessionID = sessionIDOf(event)
-      const state = sessionID ? turns.get(sessionID) : null
+      rejectSetupTemplateExecution(event)
+      const authorization = await requirePluginAuthorization(event)
+      await requireGadgetSkillAuthorization(authorization, skill)
+
+      const sessionID = authorization.identity.sessionID
+      const state = turns.get(sessionID)
       if (!state || !state.selected.includes(skill)) return
 
       if (state.invoked.has(skill)) {

@@ -60,6 +60,9 @@ function installRuntime(t) {
     async modeFor() {
       return "dev"
     },
+    async pluginDecisionFor() {
+      return { mode: "dev", managed: true, enabled: true, reason: "allow" }
+    },
     async decisionFor() {
       return { allowed: true, mode: "dev" }
     },
@@ -171,7 +174,7 @@ test("registers /gadget and reports the authoritative configuration without touc
   assert.match(output, /Response Gadgets: HEALTHY/)
   assert.match(output, new RegExp(`Config: ${config.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`))
   assert.match(output, /Config revision: [a-f0-9]{12}/)
-  assert.match(output, /Allowed modes: dev, dev-python, video-edit/)
+  assert.doesNotMatch(output, /Allowed modes:/)
   assert.match(output, /random-srs\s+->\s+97-gadget-random-srs\s+probability=0\.15/)
   assert.match(output, /random-news\s+->\s+97-gadget-random-news\s+probability=0\.05/)
   assert.match(output, /random-fun-facts\s+->\s+97-gadget-random-fun-facts\s+probability=0\.05/)
@@ -266,6 +269,8 @@ test("atomically persists a global probability that a second plugin setup observ
   assert.doesNotMatch(renderedSystem(mutation), /<response-gadget-runtime mode=/)
 
   const persisted = JSON.parse(await readFile(config, "utf8"))
+  assert.equal("modes" in persisted, false)
+  assert.equal("require_mode_router" in persisted, false)
   assert.equal(
     persisted.gadgets.find((gadget) => gadget.name === "random-srs").probability,
     1,

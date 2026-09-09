@@ -12,8 +12,14 @@ import type {
 
 import type {
   MemoryPort,
+  ModeEffectPolicy,
   TracePort,
 } from "../domain/ports.ts"
+
+import {
+  isPermanentHttpError,
+  isRetryableError,
+} from "../infrastructure/tencent/errors.ts"
 
 function hashText(
   value: string,
@@ -119,6 +125,9 @@ export class CaptureService {
       RetryState
     >()
 
+  private readonly permanentlyRejected =
+    new Set<string>()
+
   private config:
     AppConfig
 
@@ -127,6 +136,9 @@ export class CaptureService {
 
   private trace:
     TracePort
+
+  private policy:
+    ModeEffectPolicy
 
   constructor(
     config:
@@ -137,10 +149,14 @@ export class CaptureService {
 
     trace:
       TracePort,
+
+    policy:
+      ModeEffectPolicy,
   ) {
     this.config = config
     this.memory = memory
     this.trace = trace
+    this.policy = policy
   }
 
   private key(
@@ -287,6 +303,66 @@ export class CaptureService {
       return false
     }
 
+    const key =
+      this.key(turn)
+
+    const setupSuppressed =
+      Boolean(
+        turn.setupSuppressed ||
+        await this.policy
+          .isSetupSuppressed?.(
+            turn.sessionID,
+          ),
+      )
+
+    if (setupSuppressed) {
+      const pending =
+        this.retries.get(key)
+
+      if (pending?.timer) {
+        clearTimeout(
+          pending.timer,
+        )
+      }
+
+      this.retries.delete(key)
+      return false
+    }
+
+    if (
+      this.permanentlyRejected.has(
+        key,
+      )
+    ) {
+      return false
+    }
+
+    if (
+      !retry &&
+      this.retries.has(key)
+    ) {
+      return false
+    }
+
+    if (
+      !await this.policy
+        .isEnabled(
+          turn.sessionID,
+        )
+    ) {
+      const pending =
+        this.retries.get(key)
+
+      if (pending?.timer) {
+        clearTimeout(
+          pending.timer,
+        )
+      }
+
+      this.retries.delete(key)
+      return false
+    }
+
     const originalAssistantChars =
       turn.assistantText.length
 
@@ -382,9 +458,6 @@ export class CaptureService {
 
       return false
     }
-
-    const key =
-      this.key(turn)
 
     if (
       this.captured.has(key)
@@ -491,7 +564,24 @@ export class CaptureService {
         },
       )
 
-      this.scheduleRetry(turn)
+      if (
+        isPermanentHttpError(error)
+      ) {
+        this.permanentlyRejected.add(
+          key,
+        )
+        this.retries.delete(key)
+      } else if (
+        isRetryableError(error) ||
+        !(
+          error &&
+          typeof error === "object" &&
+          (error as any).name ===
+            "HttpStatusError"
+        )
+      ) {
+        this.scheduleRetry(turn)
+      }
 
       return false
     } finally {

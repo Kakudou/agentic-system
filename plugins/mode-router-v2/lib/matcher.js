@@ -1,5 +1,10 @@
 const MODE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const JOHNNY_DECIMAL_PREFIX = /^\d{2}-/
+const LEGACY_MANAGED_PLUGIN_IDS = new Set([
+  "kakudou.response-gadgets",
+  "kakudou.otsumi-progression",
+  "kakudou.tencentdb-memory",
+])
 
 export function isJohnnyDecimalIdentifier(value) {
   return typeof value === "string" && JOHNNY_DECIMAL_PREFIX.test(value)
@@ -20,6 +25,13 @@ function asStringArray(value, field, modeName) {
     }
     return item.trim()
   })
+}
+
+function asRequiredStringArray(value, field, modeName) {
+  if (!Array.isArray(value)) {
+    throw new Error(`mode-router config: ${field} for '${modeName}' must be a list`)
+  }
+  return asStringArray(value, field, modeName)
 }
 
 export function compileGlob(pattern) {
@@ -44,7 +56,7 @@ export function compileGlob(pattern) {
   return new RegExp(source)
 }
 
-function normalizeMode(entry) {
+function normalizeMode(entry, version) {
   if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
     throw new Error("mode-router config: every mode entry must be an object")
   }
@@ -65,6 +77,10 @@ function normalizeMode(entry) {
     }
   }
 
+  const plugins = version === 2
+    ? asRequiredStringArray(entry.plugins ?? [], "plugins", name)
+    : []
+
   return {
     name,
     description:
@@ -73,6 +89,7 @@ function normalizeMode(entry) {
     extends: asStringArray(entry.extends, "extends", name),
     allow: asStringArray(entry.prefixes_allowed, "prefixes_allowed", name),
     deny: asStringArray(entry.prefixes_denied, "prefixes_denied", name),
+    plugins,
   }
 }
 
@@ -82,7 +99,7 @@ export function normalizeConfig(raw) {
   }
 
   const version = Number(raw.version ?? 1)
-  if (version !== 1) {
+  if (version !== 1 && version !== 2) {
     throw new Error(`mode-router config: unsupported version '${raw.version}'`)
   }
 
@@ -93,7 +110,7 @@ export function normalizeConfig(raw) {
     )
   }
 
-  const declared = entries.map(normalizeMode)
+  const declared = entries.map((entry) => normalizeMode(entry, version))
   const byName = new Map()
 
   for (const item of declared) {
@@ -132,20 +149,24 @@ export function normalizeConfig(raw) {
 
     let allow = []
     let deny = []
+    let plugins = []
     for (const parentNameRaw of item.extends) {
       const parentName = aliases.get(parentNameRaw) ?? parentNameRaw
       const parent = resolveOne(parentName)
       allow.push(...parent.allow)
       deny.push(...parent.deny)
+      plugins.push(...parent.plugins)
     }
 
     allow.push(...item.allow)
     deny.push(...item.deny)
+    plugins.push(...item.plugins)
 
     const effective = {
       ...item,
       allow: unique(allow),
       deny: unique(deny),
+      plugins: unique(plugins),
     }
 
     resolving.delete(name)
@@ -168,6 +189,23 @@ export function normalizeConfig(raw) {
     "managed_prefixes",
     "<root>",
   )
+
+  const managedPlugins = version === 2
+    ? unique(asRequiredStringArray(raw.managed_plugins, "managed_plugins", "<root>"))
+    : []
+
+  if (version === 2) {
+    const managedPluginSet = new Set(managedPlugins)
+    for (const mode of resolved.values()) {
+      for (const pluginID of mode.plugins) {
+        if (!managedPluginSet.has(pluginID)) {
+          throw new Error(
+            `mode-router config: plugin '${pluginID}' allowed by '${mode.name}' is not listed in managed_plugins`,
+          )
+        }
+      }
+    }
+  }
 
   const allPatterns = unique([
     ...explicitManaged,
@@ -216,6 +254,7 @@ export function normalizeConfig(raw) {
     aliases,
     managed,
     managedPatterns: allPatterns,
+    managedPlugins,
   }
 }
 
@@ -262,4 +301,55 @@ export function modeDecision(skillID, modeName, config) {
   }
 
   return { managed: true, allowed: false, reason: "not-allowed-in-mode" }
+}
+
+export function pluginDecision(pluginID, modeName, config) {
+  const id = typeof pluginID === "string" ? pluginID.trim() : ""
+  const configured = Array.isArray(config?.managedPlugins)
+    ? config.managedPlugins.includes(id)
+    : false
+  const managed = configured || LEGACY_MANAGED_PLUGIN_IDS.has(id)
+
+  if (!managed) {
+    return { mode: modeName, managed: false, enabled: true, reason: "passthrough" }
+  }
+
+  if (!config) {
+    return {
+      mode: modeName,
+      managed: true,
+      enabled: false,
+      reason: "config-unavailable",
+    }
+  }
+
+  if (config.version !== 2) {
+    return {
+      mode: modeName,
+      managed: true,
+      enabled: false,
+      reason: "plugin-policy-unavailable-in-version-1",
+    }
+  }
+
+  const mode = config.modes.get(modeName)
+  if (!mode) {
+    return {
+      mode: modeName,
+      managed: true,
+      enabled: false,
+      reason: "invalid-mode",
+    }
+  }
+
+  if (mode.plugins.includes(id)) {
+    return { mode: modeName, managed: true, enabled: true, reason: "allow" }
+  }
+
+  return {
+    mode: modeName,
+    managed: true,
+    enabled: false,
+    reason: "not-enabled-in-mode",
+  }
 }

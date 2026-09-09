@@ -149,9 +149,7 @@ export class RequestIdentityTracker {
     this.maxAgeMs = maxAgeMs
     this.pending = new Map()
     this.agentBySession = new Map()
-    this.iterator = null
-    this.task = null
-    this.stopped = false
+    this.subscriptions = new Set()
   }
 
   prune(now = Date.now()) {
@@ -288,22 +286,28 @@ export class RequestIdentityTracker {
   }
 
   start(ctx) {
-    if (!ctx?.event?.subscribe || this.task) return
-    this.stopped = false
+    if (!ctx?.event?.subscribe) return async () => {}
 
-    this.task = (async () => {
+    const subscription = {
+      iterator: null,
+      task: null,
+      stopped: false,
+    }
+    this.subscriptions.add(subscription)
+
+    subscription.task = (async () => {
       try {
         const stream = ctx.event.subscribe()
-        this.iterator = stream?.[Symbol.asyncIterator]?.() ?? stream
-        if (!this.iterator?.next) return
+        subscription.iterator = stream?.[Symbol.asyncIterator]?.() ?? stream
+        if (!subscription.iterator?.next) return
 
-        if (this.stopped) {
-          await this.iterator.return?.()
+        if (subscription.stopped) {
+          await subscription.iterator.return?.()
           return
         }
 
-        while (!this.stopped) {
-          const item = await this.iterator.next()
+        while (!subscription.stopped) {
+          const item = await subscription.iterator.next()
           if (item?.done) break
           try {
             this.observe(item?.value)
@@ -315,24 +319,33 @@ export class RequestIdentityTracker {
         console.warn("[kakudou.mode-router] identity event stream unavailable:", error)
       }
     })()
+
+    return () => this.stop(subscription)
   }
 
-  async stop() {
-    this.stopped = true
-    try {
-      await this.iterator?.return?.()
-    } catch {
-      // Cleanup is best-effort; OpenCode also scopes plugin registrations.
+  async stop(subscription = null) {
+    const targets = subscription ? [subscription] : [...this.subscriptions]
+    for (const target of targets) target.stopped = true
+
+    for (const target of targets) {
+      try {
+        await target.iterator?.return?.()
+      } catch {
+        // Cleanup is best-effort; OpenCode also scopes plugin registrations.
+      }
     }
 
-    try {
-      await this.task
-    } catch {
-      // start() already records subscription errors; cleanup should complete.
+    for (const target of targets) {
+      try {
+        await target.task
+      } catch {
+        // start() already records subscription errors; cleanup should complete.
+      }
+      this.subscriptions.delete(target)
     }
 
-    this.iterator = null
-    this.task = null
+    if (this.subscriptions.size > 0) return
+
     this.pending.clear()
     this.agentBySession.clear()
   }

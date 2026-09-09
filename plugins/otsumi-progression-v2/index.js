@@ -7,12 +7,8 @@ const PLUGIN_ID = "kakudou.otsumi-progression"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
 const OTSUMI_COMMAND_RE = /<otsumi-progression-command\s+action="([^"]*)"\s*\/>/i
 const RAW_OTSUMI_COMMAND_RE = /^\/otsumi(?:[ \t]+([^\r\n]*))?$/i
-
-const DEFAULT_ELIGIBLE_MODES = new Set([
-  "dev",
-  "dev-python",
-  "video-edit",
-])
+const SETUP_TEMPLATE_STEPS = new Set(["mode", "persona_setup", "introduction"])
+const SHA256_HEX_RE = /^[0-9a-f]{64}$/
 
 const DEFAULTS = Object.freeze({
   primaryAgent: "osho",
@@ -21,7 +17,6 @@ const DEFAULTS = Object.freeze({
   effectiveWorkXP: 3,
   firstLevelXP: 40,
   levelGrowth: 1.25,
-  requireModeRouter: true,
   historyLimit: 12,
 })
 
@@ -63,10 +58,6 @@ function optionsOf(ctx) {
       typeof raw.primaryAgent === "string" && raw.primaryAgent.trim()
         ? raw.primaryAgent.trim()
         : DEFAULTS.primaryAgent,
-    eligibleModes: Array.isArray(raw.eligibleModes)
-      ? new Set(raw.eligibleModes.filter((value) => typeof value === "string" && value.trim()))
-      : DEFAULT_ELIGIBLE_MODES,
-    requireModeRouter: raw.requireModeRouter !== false,
     stateFile: expandHome(raw.stateFile) ?? defaultStateFile(),
     interactionXP: positiveInt(xp.interaction, DEFAULTS.interactionXP),
     completionXP: positiveInt(xp.completion, DEFAULTS.completionXP),
@@ -456,6 +447,75 @@ function latestProviderUser(messages) {
   return null
 }
 
+function messageRole(message) {
+  return message?.role ?? message?.info?.role ?? null
+}
+
+function messageParts(message) {
+  if (Array.isArray(message?.parts)) return message.parts
+  if (Array.isArray(message?.content)) return message.content
+  return []
+}
+
+function isTrustedSetupTemplateMetadata(metadata) {
+  return Boolean(
+    metadata &&
+    typeof metadata === "object" &&
+    !Array.isArray(metadata) &&
+    metadata.kind === "setup_template_step" &&
+    metadata.templateSchemaVersion === 2 &&
+    SETUP_TEMPLATE_STEPS.has(metadata.step) &&
+    typeof metadata.fingerprint === "string" &&
+    SHA256_HEX_RE.test(metadata.fingerprint),
+  )
+}
+
+function hasTrustedSetupTemplateMarker(value) {
+  return isTrustedSetupTemplateMetadata(value?.metadata) ||
+    isTrustedSetupTemplateMetadata(value?.info?.metadata)
+}
+
+function isSyntheticTextPart(part) {
+  if (!part || typeof part !== "object" || part.type !== "text") return false
+  return Boolean(
+    part.synthetic === true ||
+    part.metadata?.synthetic === true ||
+    part.metadata?.compaction_continue === true ||
+    part.metadata?.compactionContinue === true,
+  )
+}
+
+function isSyntheticContext(event) {
+  const messages = event?.messages
+  if (!Array.isArray(messages) || messages.length === 0) return false
+  const latest = messages[messages.length - 1]
+  const parts = messageParts(latest)
+
+  if (hasTrustedSetupTemplateMarker(latest)) return true
+  if (parts.some((part) => part?.type === "compaction" || part?.type === "summary")) return true
+  if (
+    messageRole(latest) === "assistant" &&
+    (latest?.summary === true || latest?.info?.summary === true)
+  ) {
+    return true
+  }
+  return messageRole(latest) === "user" && parts.some(isSyntheticTextPart)
+}
+
+function inboxItemOf(event) {
+  if (event?.type !== "session.inbox.enqueued" && event?.type !== "session.inbox.delivered") {
+    return null
+  }
+  return dataOf(event)?.item ?? null
+}
+
+function isDeniedInboxItem(event) {
+  const item = inboxItemOf(event)
+  if (!item) return false
+  if (item.type !== "user") return true
+  return hasTrustedSetupTemplateMarker(item) || hasTrustedSetupTemplateMarker(item.payload)
+}
+
 function inputAgentOf(event) {
   const data = dataOf(event)
   if (event?.type === "session.inbox.enqueued" || event?.type === "session.inbox.delivered") {
@@ -544,16 +604,32 @@ function isMeaningfulTool(tool) {
   return true
 }
 
-async function modeAllowed(sessionID, options) {
+async function progressionPolicyFor(sessionID) {
+  if (typeof sessionID !== "string" || !sessionID) {
+    return { enabled: false, mode: null, reason: "unresolved-session" }
+  }
+
   const bridge = globalThis[MODE_BRIDGE]
-  if (!bridge?.modeFor) return !options.requireModeRouter
+  if (typeof bridge?.pluginDecisionFor !== "function") {
+    return { enabled: false, mode: null, reason: "plugin-policy-unavailable" }
+  }
 
   try {
-    const mode = await bridge.modeFor(sessionID)
-    return typeof mode === "string" && options.eligibleModes.has(mode)
+    const decision = await bridge.pluginDecisionFor(sessionID, PLUGIN_ID)
+    const mode =
+      typeof decision?.mode === "string" && decision.mode.trim()
+        ? decision.mode.trim()
+        : null
+    const enabled =
+      mode !== null && decision?.managed === true && decision?.enabled === true
+    return {
+      enabled,
+      mode,
+      reason: typeof decision?.reason === "string" ? decision.reason : "unresolved-decision",
+    }
   } catch (error) {
-    console.warn("[kakudou.otsumi-progression] mode lookup failed closed:", error)
-    return false
+    console.warn("[kakudou.otsumi-progression] plugin policy failed closed:", error)
+    return { enabled: false, mode: null, reason: "plugin-policy-error" }
   }
 }
 
@@ -564,13 +640,20 @@ function currentAgent(toolCtx, sessionID, fallback = null) {
   return bridge?.agentFor?.(sessionID) ?? fallback
 }
 
-function requirePrimary(toolCtx, options) {
+async function requireToolAccess(toolCtx, options, deniedInputs) {
   const sessionID = sessionIDOf(toolCtx)
+  const policy = await progressionPolicyFor(sessionID)
+  if (!policy.enabled) {
+    throw new Error("OTSProgression_DISABLED_BY_MODE_POLICY")
+  }
+  if (deniedInputs.has(sessionID)) {
+    throw new Error("OTSProgression_SYNTHETIC_INPUT")
+  }
   const agent = currentAgent(toolCtx, sessionID)
   if (agent !== options.primaryAgent) {
     throw new Error("OTSProgression_PRIMARY_AGENT_REQUIRED")
   }
-  return sessionID
+  return { sessionID, policy }
 }
 
 function nextLevelAt(state, options) {
@@ -672,7 +755,7 @@ function renderSheet(state, options, diagnostics = {}, historyLimit = options.hi
     `- State schema version: ${state.version}`,
     `- State path: ${options.stateFile}`,
     `- Configured primary agent: ${options.primaryAgent}`,
-    `- Eligible modes: ${[...options.eligibleModes].sort().join(", ") || "none"}`,
+    "- Mode gate: authoritative mode-router plugin policy",
     `- Tracked runtime sessions: ${diagnostics.trackedSessions ?? 0}`,
     "",
     "## Current-Session Diagnostics",
@@ -845,6 +928,9 @@ export default {
     await store.load()
 
     const executions = new Map()
+    const deniedInputs = new Map()
+    const pendingGenerations = new Map()
+    const pendingLifecycle = new Map()
     let iterator = null
     let stopped = false
 
@@ -852,7 +938,7 @@ export default {
       let state = executions.get(sessionID)
       if (!state) {
         state = {
-          generation: 0,
+          generation: pendingGenerations.get(sessionID) ?? 0,
           userText: "",
           inputKey: null,
           providerMessageID: null,
@@ -861,21 +947,25 @@ export default {
           meaningfulWork: false,
           ambientGadgetPhase: false,
           controlTurn: false,
-          lastLifecycleEvent: null,
-          lastLifecycleAt: null,
+          lastLifecycleEvent: pendingLifecycle.get(sessionID)?.event ?? null,
+          lastLifecycleAt: pendingLifecycle.get(sessionID)?.at ?? null,
         }
+        pendingGenerations.delete(sessionID)
+        pendingLifecycle.delete(sessionID)
         executions.set(sessionID, state)
       }
       return state
     }
 
-    function clearRuntimeInput(runtime) {
-      runtime.userText = ""
-      runtime.inputKey = null
-      runtime.providerMessageID = null
-      runtime.meaningfulWork = false
-      runtime.ambientGadgetPhase = false
-      runtime.controlTurn = false
+    function denyInput(sessionID, reason) {
+      executions.delete(sessionID)
+      pendingGenerations.delete(sessionID)
+      pendingLifecycle.delete(sessionID)
+      deniedInputs.set(sessionID, { reason, at: Date.now() })
+    }
+
+    function clearDeniedInput(sessionID) {
+      deniedInputs.delete(sessionID)
     }
 
     function reconcileInput(
@@ -944,27 +1034,14 @@ export default {
       })
     }
 
-    async function modeForDiagnostics(sessionID) {
-      const bridge = globalThis[MODE_BRIDGE]
-      if (!bridge?.modeFor || !sessionID) return null
-      try {
-        const mode = await bridge.modeFor(sessionID)
-        return typeof mode === "string" && mode ? mode : null
-      } catch (error) {
-        console.warn("[kakudou.otsumi-progression] diagnostic mode lookup unavailable:", error)
-        return null
-      }
-    }
-
-    async function sheetFor(sessionID, fallbackAgent = null) {
+    async function sheetFor(sessionID, fallbackAgent = null, policyMode = null) {
       await store.load()
       const runtime = sessionID ? executions.get(sessionID) ?? null : null
-      const mode = runtime?.mode ?? (sessionID ? await modeForDiagnostics(sessionID) : null)
       return renderSheet(store.snapshot(), options, {
         sessionID,
         runtime,
         agent: runtime?.agent ?? fallbackAgent,
-        mode,
+        mode: policyMode ?? runtime?.mode ?? null,
         trackedSessions: executions.size,
       })
     }
@@ -979,7 +1056,6 @@ export default {
       const bridge = globalThis[MODE_BRIDGE]
       const agent = runtime.agent ?? bridge?.agentFor?.(sessionID) ?? null
       if (agent !== options.primaryAgent) return
-      if (!(await modeAllowed(sessionID, options))) return
       if (!runtime.userText.trim()) return
 
       await store.mutate((state) => {
@@ -1092,8 +1168,8 @@ export default {
         },
         output: { type: "string" },
         execute: async (_args, toolCtx) => {
-          const sessionID = requirePrimary(toolCtx, options)
-          return toolResult(await sheetFor(sessionID, options.primaryAgent))
+          const { sessionID, policy } = await requireToolAccess(toolCtx, options, deniedInputs)
+          return toolResult(await sheetFor(sessionID, options.primaryAgent, policy.mode))
         },
       })
 
@@ -1118,7 +1194,7 @@ export default {
         },
         output: { type: "string" },
         execute: async (args, toolCtx) => {
-          requirePrimary(toolCtx, options)
+          await requireToolAccess(toolCtx, options, deniedInputs)
 
           const result = await store.mutate((state) => {
             const pending = state.pendingEvolution
@@ -1159,7 +1235,7 @@ export default {
         },
         output: { type: "string" },
         execute: async (args, toolCtx) => {
-          requirePrimary(toolCtx, options)
+          await requireToolAccess(toolCtx, options, deniedInputs)
 
           const rejected = await store.mutate((state) => {
             const pending = state.pendingEvolution
@@ -1201,7 +1277,7 @@ export default {
         },
         output: { type: "string" },
         execute: async (args, toolCtx) => {
-          requirePrimary(toolCtx, options)
+          await requireToolAccess(toolCtx, options, deniedInputs)
 
           const completion = await store.mutate((state) => {
             const pending = state.pendingEvolution
@@ -1248,15 +1324,41 @@ export default {
 
         const sessionID = identity?.sessionID ?? sessionIDOf(event)
         if (!sessionID) return
-
-        const runtime = executionFor(sessionID)
-        reconcileContextInput(sessionID, runtime, identity, event)
         const agent = identity?.agent ?? bridge?.agentFor?.(sessionID) ?? agentOf(event)
-        if (agent) runtime.agent = agent
-        runtime.mode = await modeForDiagnostics(sessionID)
+
+        if (deniedInputs.has(sessionID) || isSyntheticContext(event)) {
+          denyInput(sessionID, "synthetic-context")
+          return
+        }
 
         const commandAction = requestedOtsumiAction(event, identity?.inputText)
         if (commandAction !== null) {
+          const policy = await progressionPolicyFor(sessionID)
+          if (!policy.enabled) {
+            const commandResult = "Ōtsumi Progression ERROR: OTSProgression_DISABLED_BY_MODE_POLICY"
+            const replaced = replaceOtsumiCommandPrompt(event, commandResult)
+            appendSystem(
+              event,
+              [
+                "<otsumi-progression-command-result>",
+                "The progression command was denied by the authoritative runtime mode policy.",
+                "Return the exact result below verbatim and do not call tools:",
+                commandResult,
+                "</otsumi-progression-command-result>",
+              ].join("\n"),
+            )
+            if (!replaced) {
+              console.warn(
+                "[kakudou.otsumi-progression] denied command detected but provider prompt could not be replaced; using system result only",
+              )
+            }
+            return
+          }
+
+          const runtime = executionFor(sessionID)
+          reconcileContextInput(sessionID, runtime, identity, event)
+          if (agent) runtime.agent = agent
+          runtime.mode = policy.mode
           // Slash controllers are read-only runtime turns. They remain tracked
           // for diagnostics, but terminal lifecycle events may never create XP
           // or durable award-ledger entries for them.
@@ -1265,7 +1367,7 @@ export default {
           const action = commandAction.trim()
           const commandResult =
             !action || action === "status"
-              ? await sheetFor(sessionID, agent)
+              ? await sheetFor(sessionID, agent, policy.mode)
               : `Ōtsumi Progression ERROR: unknown action '${action}'. Supported actions: status.`
 
           const replaced = replaceOtsumiCommandPrompt(event, commandResult)
@@ -1287,18 +1389,24 @@ export default {
           return
         }
 
-        if (!bridge && options.requireModeRouter) return
+        const policy = await progressionPolicyFor(sessionID)
+        if (!policy.enabled) return
         if (agent !== options.primaryAgent) return
-        if (!(await modeAllowed(sessionID, options))) return
+
+        const runtime = executionFor(sessionID)
+        reconcileContextInput(sessionID, runtime, identity, event)
+        if (agent) runtime.agent = agent
+        runtime.mode = policy.mode
 
         await store.load()
         const state = store.snapshot()
         if (!state.pendingEvolution) return
 
-        // Top-level-only gate: Session.Info.parentID (OpenCode V2 OpenAPI, strict schema)
-        // is the child-session marker; a non-empty parentID means a subagent child or a
-        // fork. Fail closed for this dispatch on lookup failure — the announcement is
-        // re-injected on the next eligible top-level request, and no state is corrupted.
+        // Announcement-only child gate: Session.Info.parentID marks a delegated
+        // child. A user-facing fork uses Session.Info.fork and remains eligible;
+        // mode policy still controls it before this distinction is considered.
+        // Fail closed for this dispatch on lookup failure — the announcement is
+        // re-injected on the next eligible request, and no state is corrupted.
         try {
           const info = (await ctx.session.get?.({ sessionID }))?.data ?? null
           const parentID = info?.parentID ?? info?.parentId ?? info?.parent?.id
@@ -1360,9 +1468,18 @@ export default {
         if (!isSuccessfulToolEvent(event)) return
         const sessionID = sessionIDOf(event)
         if (!sessionID) return
-        const runtime = executionFor(sessionID)
-        const agent = agentOf(event) ?? globalThis[MODE_BRIDGE]?.agentFor?.(sessionID) ?? runtime.agent
+        const policy = await progressionPolicyFor(sessionID)
+        if (!policy.enabled) {
+          executions.delete(sessionID)
+          return
+        }
+        if (deniedInputs.has(sessionID)) return
+        const agent = agentOf(event) ?? globalThis[MODE_BRIDGE]?.agentFor?.(sessionID) ?? null
         if (agent !== options.primaryAgent) return
+
+        const runtime = executions.get(sessionID)
+        if (!runtime) return
+        runtime.mode = policy.mode
 
         const gadgetSkill = skillIDOf(event)
         if (gadgetSkill?.startsWith("97-gadget-")) {
@@ -1398,17 +1515,46 @@ export default {
 
             const sessionID = sessionIDOf(event)
             if (!sessionID) continue
-            const runtime = executionFor(sessionID)
-            runtime.lastLifecycleEvent = event.type
-            runtime.lastLifecycleAt = new Date().toISOString()
+
+            if (isDeniedInboxItem(event)) {
+              denyInput(sessionID, "synthetic-inbox")
+              continue
+            }
+
+            if (
+              (event.type === "session.inbox.enqueued" || event.type === "session.inbox.delivered") &&
+              dataOf(event)?.item?.type === "user"
+            ) {
+              clearDeniedInput(sessionID)
+            }
+
+            if (deniedInputs.has(sessionID)) {
+              if (
+                event.type === "session.execution.succeeded" ||
+                event.type === "session.execution.interrupted" ||
+                event.type === "session.execution.failed" ||
+                event.type === "session.error"
+              ) {
+                clearDeniedInput(sessionID)
+              }
+              continue
+            }
+
+            const policy = await progressionPolicyFor(sessionID)
+            if (!policy.enabled) {
+              // A mode transition must not leave an eligible-turn input around
+              // for a later off-mode terminal event (or a future re-enable).
+              executions.delete(sessionID)
+              pendingGenerations.delete(sessionID)
+              pendingLifecycle.delete(sessionID)
+              continue
+            }
 
             if (event.type === "session.inbox.enqueued" || event.type === "session.inbox.delivered") {
-              if (dataOf(event)?.item?.type !== "user") {
-                if (event.type === "session.inbox.delivered") {
-                  clearRuntimeInput(runtime)
-                }
-                continue
-              }
+              const runtime = executionFor(sessionID)
+              runtime.mode = policy.mode
+              runtime.lastLifecycleEvent = event.type
+              runtime.lastLifecycleAt = new Date().toISOString()
               const text = inputTextOf(event)
               if (text) {
                 const explicitID = inputIDOf(event)
@@ -1425,6 +1571,18 @@ export default {
             }
 
             if (event.type === "session.execution.started") {
+              const runtime = executions.get(sessionID)
+              if (!runtime) {
+                pendingGenerations.set(sessionID, (pendingGenerations.get(sessionID) ?? 0) + 1)
+                pendingLifecycle.set(sessionID, {
+                  event: event.type,
+                  at: new Date().toISOString(),
+                })
+                continue
+              }
+              runtime.mode = policy.mode
+              runtime.lastLifecycleEvent = event.type
+              runtime.lastLifecycleAt = new Date().toISOString()
               runtime.generation += 1
               runtime.meaningfulWork = false
               runtime.ambientGadgetPhase = false
@@ -1432,6 +1590,11 @@ export default {
             }
 
             if (event.type === "session.step.started") {
+              const runtime = executions.get(sessionID)
+              if (!runtime) continue
+              runtime.mode = policy.mode
+              runtime.lastLifecycleEvent = event.type
+              runtime.lastLifecycleAt = new Date().toISOString()
               const agent = agentOf(dataOf(event))
               if (agent) runtime.agent = agent
               continue
@@ -1440,6 +1603,8 @@ export default {
             if (event.type === "session.execution.succeeded") {
               await awardTerminal(sessionID, "succeeded")
               await announceLifecycle(sessionID, "succeeded")
+              pendingGenerations.delete(sessionID)
+              pendingLifecycle.delete(sessionID)
               continue
             }
 
@@ -1450,6 +1615,8 @@ export default {
             ) {
               await awardTerminal(sessionID, "interrupted")
               await announceLifecycle(sessionID, event.type)
+              pendingGenerations.delete(sessionID)
+              pendingLifecycle.delete(sessionID)
               continue
             }
 
@@ -1459,6 +1626,9 @@ export default {
               event.type === "session.ended"
             ) {
               executions.delete(sessionID)
+              clearDeniedInput(sessionID)
+              pendingGenerations.delete(sessionID)
+              pendingLifecycle.delete(sessionID)
             }
           } catch (error) {
             console.warn("[kakudou.otsumi-progression] lifecycle event ignored:", error)
@@ -1486,6 +1656,9 @@ export default {
         // Subscription errors were already logged above.
       }
       executions.clear()
+      deniedInputs.clear()
+      pendingGenerations.clear()
+      pendingLifecycle.clear()
     }
   },
 }

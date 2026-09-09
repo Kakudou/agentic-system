@@ -9,6 +9,27 @@ export interface TracePort {
   write(label: string, data?: unknown): void
 }
 
+export interface ModeEffectPolicy {
+  sessionID(event: any): string | null
+  isEnabled(
+    sessionID: string | null,
+  ): Promise<boolean>
+  requireEnabled(
+    sessionID: string | null,
+  ): Promise<void>
+  isSetupSuppressed?(
+    sessionID: string | null,
+  ): boolean | Promise<boolean>
+  markSetupSuppressed?(
+    sessionID: string,
+    inputID?: string,
+  ): void
+  clearSetupSuppressed?(
+    sessionID: string,
+    inputID?: string,
+  ): void
+}
+
 export interface MemoryPort {
   health(): Promise<unknown>
 

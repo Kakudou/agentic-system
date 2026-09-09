@@ -56,6 +56,10 @@ import {
 } from "./adapters/opencode/turn-store.ts"
 
 import {
+  ModePolicyGate,
+} from "./adapters/opencode/mode-policy.ts"
+
+import {
   FileTrace,
 } from "./infrastructure/observability/trace.ts"
 
@@ -232,6 +236,9 @@ export default {
       const turns =
         new TurnStore()
 
+      const modePolicy =
+        new ModePolicyGate()
+
       const guard =
         new RetrievalGuard({
           failureThreshold:
@@ -273,6 +280,7 @@ export default {
           config,
           memory,
           trace,
+          modePolicy,
         )
 
       const assets =
@@ -298,6 +306,7 @@ export default {
           guard,
           dreamSessions,
           trace,
+          modePolicy,
         )
 
       /*
@@ -317,6 +326,7 @@ export default {
         ctx,
         config,
         trace,
+        modePolicy,
       )
 
       await installTurnAwareWebGuard(
@@ -325,6 +335,7 @@ export default {
         turns,
         guard,
         trace,
+        modePolicy,
       )
 
       await installDreamExecutionGuard(
@@ -333,6 +344,7 @@ export default {
         dreamSessions,
         turns,
         trace,
+        modePolicy,
       )
 
       const stopLifecycle =
@@ -406,6 +418,8 @@ export default {
           guard,
           turns,
           trace,
+          policy:
+            modePolicy,
         },
       )
 
@@ -421,6 +435,8 @@ export default {
           committer:
             dreamCommitter,
           trace,
+          policy:
+            modePolicy,
         },
       )
 

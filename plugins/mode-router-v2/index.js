@@ -2,8 +2,6 @@ import { resolve, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const PLUGIN_DIR = dirname(fileURLToPath(import.meta.url))
-import { ConfigManager } from "./lib/config.js"
-import { SessionModeStore } from "./lib/state.js"
 import {
   isJohnnyDecimalIdentifier,
   modeDecision,
@@ -24,10 +22,14 @@ import {
   replaceModeCommandPrompt,
   sessionIDOf,
 } from "./lib/runtime.js"
-import { RequestIdentityTracker } from "./lib/identity.js"
+import {
+  activateSharedRuntime,
+  discardSharedRuntime,
+  prepareSharedRuntime,
+  releaseSharedRuntime,
+} from "./lib/shared.js"
 
 const PLUGIN_ID = "kakudou.mode-router"
-const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
 const DEFAULT_CONFIG = resolve(PLUGIN_DIR, "modes.yml")
 
 function configPathOf(ctx) {
@@ -71,92 +73,34 @@ function runtimeEnvelope(mode) {
   ].join("\n")
 }
 
+async function registerGuard(runtime, operation) {
+  try {
+    return await operation()
+  } catch (error) {
+    await discardSharedRuntime(runtime)
+    throw error
+  }
+}
+
 export default {
   id: PLUGIN_ID,
 
   async setup(ctx) {
-    const configManager = new ConfigManager(configPathOf(ctx))
+    const runtime = await prepareSharedRuntime(configPathOf(ctx))
+    const {
+      configManager,
+      identities,
+      modeForSession,
+      store,
+    } = runtime
 
-    // Invalid initial policy means the plugin must not pretend mode enforcement exists.
-    await configManager.initialize()
-
-    const store = new SessionModeStore(configManager.path)
-    await store.load()
-
-    const identities = new RequestIdentityTracker()
-
-    const modeForSession = async (sessionID, config, seen = new Set()) => {
-      if (!sessionID) return null
-
-      const stored = store.get(sessionID, config)
-      if (stored) return stored
-
-      // OpenCode subagents execute in child sessions. A child must inherit the
-      // parent's runtime mode instead of silently falling back to `dev`.
-      // Only a session positively confirmed as top-level receives the configured
-      // default. Lookup failure or a parent-resolution failure stays unresolved
-      // so managed skills fail closed.
-      if (seen.has(sessionID)) return null
-      seen.add(sessionID)
-
-      try {
-        const response = await ctx.session.get({ sessionID })
-        const session = response?.data ?? response
-        const parentID =
-          session?.parentID ??
-          session?.parentId ??
-          session?.parent?.id ??
-          null
-
-        if (typeof parentID === "string" && parentID) {
-          const inherited = await modeForSession(parentID, config, seen)
-          if (!inherited) return null
-          await store.set(sessionID, inherited)
-          return inherited
-        }
-
-        // Session lookup succeeded and reported no parent: this is a top-level
-        // session, so the configured default is authoritative for its first turn.
-        await store.set(sessionID, config.defaultMode)
-        return config.defaultMode
-      } catch (error) {
-        console.warn(
-          `[kakudou.mode-router] session mode resolution unavailable for '${sessionID}':`,
-          error,
-        )
-        return null
-      }
-    }
-
-    // Small runtime bridge for sibling plugins that need the authoritative mode.
-    // Skills and agents never depend on this bridge.
-    const bridge = {
-      id: PLUGIN_ID,
-      async modeFor(sessionID) {
-        if (!sessionID) return null
-        await configManager.refresh()
-        return modeForSession(sessionID, configManager.current)
-      },
-      resolveRequest(event) {
-        return identities.resolve(event)
-      },
-      agentFor(sessionID) {
-        return identities.agentFor(sessionID)
-      },
-      async decisionFor(sessionID, skillID) {
-        if (!sessionID || !skillID) return null
-        await configManager.refresh()
-        const mode = await modeForSession(sessionID, configManager.current)
-        return { mode, ...modeDecision(skillID, mode, configManager.current) }
-      },
-    }
-    await ctx.command.transform((commands) => {
+    await registerGuard(runtime, () => ctx.command.transform((commands) => {
       commands.update("mode", (command) => {
         command.description =
           "Switch or inspect the session skill mode: /mode <name>, status, list, reload"
         command.template = '<opencode-mode-router action="$ARGUMENTS" />'
       })
-    })
+    }))
 
     // OpenCode V2 beta pre-model context hook: runs immediately before each model
     // dispatch, including continuation steps after tools. Mode policy therefore
@@ -165,7 +109,7 @@ export default {
     // mutable system/messages/tools surface. The beta API is moving quickly;
     // keep this aligned with the current /v2 plugin contract rather than the
     // legacy V1 hook-object API.
-    await ctx.session.hook("context", async (event) => {
+    await registerGuard(runtime, () => ctx.session.hook("context", async (event) => {
       try {
         await configManager.refresh()
         let config = configManager.current
@@ -303,9 +247,9 @@ export default {
         )
         console.error("[kakudou.mode-router] context skill routing failed closed:", error)
       }
-    })
+    }))
 
-    await ctx.tool.hook("execute.before", async (event) => {
+    await registerGuard(runtime, () => ctx.tool.hook("execute.before", async (event) => {
       // The router has no authority over native/system/harness tools or any
       // non-JohnnyDecimal custom tool. Return before config or session work.
       const call = routedCall(event)
@@ -345,17 +289,15 @@ export default {
           ].join(" "),
         )
       }
-    })
+    }))
 
     // Do not expose authoritative identity/mode state until every runtime guard
     // has registered successfully. A partial setup must leave no live bridge or
     // event subscription behind.
-    identities.start(ctx)
-    globalThis[MODE_BRIDGE] = bridge
+    const binding = activateSharedRuntime(runtime, ctx)
 
     return async () => {
-      if (globalThis[MODE_BRIDGE] === bridge) delete globalThis[MODE_BRIDGE]
-      await identities.stop()
+      await releaseSharedRuntime(runtime, binding)
     }
   },
 }

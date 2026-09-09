@@ -3,6 +3,7 @@ import type {
 } from "../../../config.ts"
 
 import type {
+  ModeEffectPolicy,
   TracePort,
 } from "../../../domain/ports.ts"
 
@@ -13,6 +14,10 @@ import {
 import {
   TurnStore,
 } from "../turn-store.ts"
+
+import {
+  ModePolicyGate,
+} from "../mode-policy.ts"
 
 function toolName(
   event: any,
@@ -25,25 +30,6 @@ function toolName(
   )
     .trim()
     .toLowerCase()
-}
-
-function eventSessionID(
-  event: any,
-  turns: TurnStore,
-): string {
-  const explicit =
-    String(
-      event?.sessionID ??
-      event?.sessionId ??
-      "",
-    ).trim()
-
-  return (
-    explicit ||
-    turns.latestExecutionSession(
-      60000,
-    )
-  )
 }
 
 function isDreamTool(
@@ -81,6 +67,8 @@ export async function installDreamExecutionGuard(
   sessions: DreamSessionRegistry,
   turns: TurnStore,
   trace: TracePort,
+  modePolicy: ModeEffectPolicy =
+    new ModePolicyGate(),
 ) {
   if (!config.dream.enabled) {
     trace.write(
@@ -93,16 +81,29 @@ export async function installDreamExecutionGuard(
   try {
     await ctx.tool.hook(
       "execute.before",
-      (
+      async (
         event: any,
       ) => {
         const sessionID =
-          eventSessionID(
-            event,
-            turns,
-          )
+          modePolicy.sessionID(event)
 
-        if (!sessionID) {
+        if (
+          !sessionID ||
+          !await modePolicy
+            .isEnabled(sessionID)
+        ) {
+          return
+        }
+
+        if (
+          turns.isSetupSuppressed?.(
+            sessionID,
+          ) ||
+          await modePolicy
+            .isSetupSuppressed?.(
+              sessionID,
+            )
+        ) {
           return
         }
 

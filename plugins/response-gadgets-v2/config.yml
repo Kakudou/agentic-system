@@ -1,16 +1,11 @@
 # OpenCode V2 global response-gadget configuration.
 #
-# This file is authoritative for every plugin setup and session. Use /gadget
-# to inspect or atomically update probabilities without restarting OpenCode.
+# This file is authoritative only for gadget identity and probability. The
+# mode-router plugin bridge is the sole runtime enablement authority. Use
+# /gadget to inspect or atomically update probabilities without restarting.
 
 version: 1
 primary_agent: osho
-require_mode_router: true
-
-modes:
-  - dev
-  - dev-python
-  - video-edit
 
 gadgets:
   - name: random-srs

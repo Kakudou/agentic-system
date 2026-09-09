@@ -13,12 +13,8 @@ vaults:
       "030-Funnel/": "031-Notes, 032-Attachments, 033-Zettels"
       "100-Personal/": "101-Funnel, 200-Projects, 300-Areas_of_Responsabilities, 400-Resources, 500-Archived"
       "600-Workspace/": "601-Funnel, 700-Projects, 800-Areas_of_Responsabilities, 900-Resources, 999-Archived"
-      "4242-Otsumi/": "raw, resources, zettel"
 
     named_roots:
-      raw_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/raw/"
-      zettel_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/zettel/"
-      resources_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/4242-Otsumi/resources/"
       funnel_inbox: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/031-Notes/"
       funnel_attachments: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/032-Attachments/"
       funnel_zettels_global: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/033-Zettels/"
@@ -94,5 +90,4 @@ vaults:
       configured_submodules:
         - "100-Personal/"
         - "600-Workspace/"
-        - "4242-Otsumi/"
       disclose_submodule_mutation: true

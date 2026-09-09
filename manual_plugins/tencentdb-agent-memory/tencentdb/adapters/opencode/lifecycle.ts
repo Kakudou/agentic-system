@@ -1,4 +1,5 @@
 import type {
+  ModeEffectPolicy,
   TracePort,
 } from "../../domain/ports.ts"
 
@@ -24,6 +25,10 @@ import {
 import {
   TurnStore,
 } from "./turn-store.ts"
+
+import {
+  hasTrustedSetupMarker,
+} from "./setup-suppression.ts"
 
 const LOGGED_EVENT_TYPES =
   new Set([
@@ -64,6 +69,9 @@ export class OpenCodeLifecycle {
   private trace:
     TracePort
 
+  private policy:
+    ModeEffectPolicy
+
   constructor(
     turns:
       TurnStore,
@@ -79,12 +87,16 @@ export class OpenCodeLifecycle {
 
     trace:
       TracePort,
+
+    policy:
+      ModeEffectPolicy,
   ) {
     this.turns = turns
     this.capture = capture
     this.guard = guard
     this.dreams = dreams
     this.trace = trace
+    this.policy = policy
   }
 
   async handle(
@@ -101,13 +113,6 @@ export class OpenCodeLifecycle {
       return
     }
 
-    if (
-      !this.turns
-        .acceptEvent(event)
-    ) {
-      return
-    }
-
     const type =
       event.type
 
@@ -116,6 +121,146 @@ export class OpenCodeLifecycle {
 
     const sessionID =
       sessionIDFrom(event)
+
+    if (
+      !await this.policy
+        .isEnabled(
+          sessionID || null,
+        )
+    ) {
+      return
+    }
+
+    if (
+      type ===
+        "session.inbox.enqueued" &&
+      sessionID &&
+      hasTrustedSetupMarker(event)
+    ) {
+      const inboxID = data?.inboxID
+
+      if (
+        typeof inboxID === "string" &&
+        inboxID
+      ) {
+        const added =
+          this.turns.suppressSetup(
+            sessionID,
+            inboxID,
+          )
+
+        if (added) {
+          this.policy
+            .markSetupSuppressed?.(
+              sessionID,
+              inboxID,
+            )
+        }
+      }
+
+      return
+    }
+
+    const sessionTerminal =
+      type === "session.deleted" ||
+      type === "session.closed" ||
+      type === "session.ended"
+
+    if (
+      sessionID &&
+      sessionTerminal &&
+      this.turns.hasCompletedSetup(
+        sessionID,
+      )
+    ) {
+      this.pendingUserText.delete(
+        sessionID,
+      )
+      this.turns.clearSetupSuppressed(
+        sessionID,
+      )
+      this.policy
+        .clearSetupSuppressed?.(
+          sessionID,
+        )
+      return
+    }
+
+    if (
+      sessionID &&
+      this.turns
+        .isSetupSuppressed?.(
+          sessionID,
+        )
+    ) {
+      if (sessionTerminal) {
+        this.pendingUserText.delete(
+          sessionID,
+        )
+        this.turns
+          .clearSetupSuppressed(
+            sessionID,
+          )
+        this.policy
+          .clearSetupSuppressed?.(
+            sessionID,
+          )
+        return
+      }
+
+      const inputTerminal =
+        type ===
+          "session.execution.succeeded" ||
+        type ===
+          "session.execution.interrupted" ||
+        type ===
+          "session.inbox.cancelled"
+
+      if (inputTerminal) {
+        const explicitInputID =
+          type ===
+            "session.inbox.cancelled" &&
+          typeof data?.inboxID ===
+            "string"
+            ? data.inboxID
+            : undefined
+        const completedInputID =
+          this.turns.completeSetup(
+            sessionID,
+            explicitInputID,
+          )
+
+        if (completedInputID) {
+          this.policy
+            .clearSetupSuppressed?.(
+              sessionID,
+              completedInputID,
+            )
+
+          const remainingInputID =
+            this.turns.setupInput(
+              sessionID,
+            )
+
+          if (remainingInputID) {
+            this.policy
+              .markSetupSuppressed?.(
+                sessionID,
+                remainingInputID,
+              )
+          }
+        }
+      }
+
+      return
+    }
+
+    if (
+      !this.turns
+        .acceptEvent(event)
+    ) {
+      return
+    }
 
     const assistantMessageID =
       assistantMessageIDFrom(
@@ -827,35 +972,9 @@ export class OpenCodeLifecycle {
         return
       }
 
-      const turn =
-        this.turns
-          .finishExecution(
-            sessionID,
-          )
-
-      if (
-        turn?.userText &&
-        turn.assistantText
-      ) {
-        if (
-          this.dreams.isDreamExecution(
-            sessionID,
-            turn.generation,
-          )
-        ) {
-          this.trace.write(
-            "DREAM_SESSION_END_CAPTURE_SUPPRESSED",
-            {
-              sessionID,
-              generation:
-                turn.generation,
-            },
-          )
-        } else {
-          void this.capture
-            .capture(turn)
-        }
-      }
+      this.turns.finishExecution(
+        sessionID,
+      )
 
       this.guard.clearTurn(
         sessionID,

@@ -136,6 +136,14 @@ async function persistedAwardTotals(stateFile) {
 
 function installModeBridge() {
   globalThis[bridgeKey] = {
+    async pluginDecisionFor(_sessionID, pluginID) {
+      return {
+        mode: "dev",
+        managed: pluginID === "kakudou.otsumi-progression",
+        enabled: pluginID === "kakudou.otsumi-progression",
+        reason: "allow",
+      }
+    },
     async modeFor() {
       return "dev"
     },

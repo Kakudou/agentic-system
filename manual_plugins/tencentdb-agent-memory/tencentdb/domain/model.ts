@@ -13,6 +13,7 @@ export type CompletedTurn = {
   userText: string
   assistantText: string
   assistantMessageIDs: string[]
+  setupSuppressed?: boolean
 }
 
 export type TurnState = {
@@ -24,6 +25,7 @@ export type TurnState = {
   sawTextDelta: boolean
   assistantMessageIDs: Set<string>
   startedAt: number
+  setupSuppressed: boolean
 }
 
 export type QueryIntent =

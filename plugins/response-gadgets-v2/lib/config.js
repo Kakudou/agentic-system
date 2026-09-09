@@ -26,20 +26,6 @@ function nonEmptyString(value, field) {
   return value.trim()
 }
 
-function normalizeModes(raw) {
-  if (!Array.isArray(raw) || raw.length === 0) {
-    throw new Error("response-gadgets config: modes must be a non-empty list")
-  }
-
-  const modes = raw.map((value, index) =>
-    nonEmptyString(value, `modes[${index}]`)
-  )
-  if (new Set(modes).size !== modes.length) {
-    throw new Error("response-gadgets config: modes must not contain duplicates")
-  }
-  return modes
-}
-
 function normalizeGadget(raw, index) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     throw new Error(`response-gadgets config: gadgets[${index}] must be a mapping`)
@@ -78,11 +64,6 @@ export function normalizeConfig(raw) {
   }
 
   const primaryAgent = nonEmptyString(raw.primary_agent, "primary_agent")
-  if (typeof raw.require_mode_router !== "boolean") {
-    throw new Error("response-gadgets config: require_mode_router must be true or false")
-  }
-
-  const modeList = normalizeModes(raw.modes)
   if (!Array.isArray(raw.gadgets) || raw.gadgets.length === 0) {
     throw new Error("response-gadgets config: gadgets must be a non-empty list")
   }
@@ -99,9 +80,6 @@ export function normalizeConfig(raw) {
   return {
     version,
     primaryAgent,
-    requireModeRouter: raw.require_mode_router,
-    modeList,
-    modes: new Set(modeList),
     gadgets,
     gadgetByName: new Map(gadgets.map((gadget) => [gadget.name, gadget])),
   }
@@ -111,8 +89,6 @@ function plainConfig(config) {
   return {
     version: config.version,
     primary_agent: config.primaryAgent,
-    require_mode_router: config.requireModeRouter,
-    modes: [...config.modeList],
     gadgets: config.gadgets.map((gadget) => ({ ...gadget })),
   }
 }
@@ -122,9 +98,6 @@ function fallbackYaml(config) {
   return [
     `version: ${config.version}`,
     `primary_agent: ${quote(config.primary_agent)}`,
-    `require_mode_router: ${config.require_mode_router}`,
-    "modes:",
-    ...config.modes.map((mode) => `  - ${quote(mode)}`),
     "gadgets:",
     ...config.gadgets.flatMap((gadget) => [
       `  - name: ${quote(gadget.name)}`,

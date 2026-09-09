@@ -48,6 +48,14 @@ let requestHook = null
 
 const bridgeKey = Symbol.for("kakudou.mode-router.v2.bridge")
 globalThis[bridgeKey] = {
+  async pluginDecisionFor(_sessionID, pluginID) {
+    return {
+      mode: "dev",
+      managed: pluginID === "kakudou.otsumi-progression",
+      enabled: pluginID === "kakudou.otsumi-progression",
+      reason: "allow",
+    }
+  },
   async modeFor() {
     return "dev"
   },
@@ -161,7 +169,7 @@ async function successfulTurn({ work = false, text = "do work" } = {}) {
     })
   }
   emit({ type: "session.execution.succeeded", data: { sessionID: "s1" } })
-  await sleep(60)
+  await sleep(120)
 }
 
 await successfulTurn({ work: true })
@@ -295,7 +303,7 @@ await hooks.get("execute.after")({
   result: { ok: true },
 })
 emit({ type: "session.execution.succeeded", data: { sessionID: "s1" } })
-await sleep(60)
+await sleep(120)
 status = await statusTool.execute({}, { sessionID: "s1", agent: "osho" })
 assert.match(status.output, /\*\*XP:\*\* 12/)
 
@@ -307,7 +315,7 @@ emit({ type: "session.execution.started", data: { sessionID: "s1" } })
 deliverUserInbox(retryInbox)
 emit({ type: "session.step.started", data: { sessionID: "s1", agent: "osho" } })
 emit({ type: "session.execution.interrupted", data: { sessionID: "s1" } })
-await sleep(60)
+await sleep(120)
 status = await statusTool.execute({}, { sessionID: "s1", agent: "osho" })
 assert.match(status.output, /\*\*XP:\*\* 13/)
 
@@ -324,7 +332,7 @@ await hooks.get("execute.after")({
   result: { ok: true },
 })
 emit({ type: "session.execution.succeeded", data: { sessionID: "s1" } })
-await sleep(60)
+await sleep(120)
 status = await statusTool.execute({}, { sessionID: "s1", agent: "osho" })
 assert.match(status.output, /\*\*XP:\*\* 17/)
 assert.match(status.output, /Interactions: 4/)

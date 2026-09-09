@@ -20,6 +20,18 @@ export class TurnStore {
   private readonly activeExecutions =
     new Set<string>()
 
+  private readonly setupSuppressed =
+    new Map<
+      string,
+      Set<string>
+    >()
+
+  private readonly completedSetupInputs =
+    new Map<
+      string,
+      Set<string>
+    >()
+
   private readonly executionStartedAt =
     new Map<
       string,
@@ -52,6 +64,10 @@ export class TurnStore {
           new Set<string>(),
         startedAt:
           Date.now(),
+        setupSuppressed:
+          this.isSetupSuppressed(
+            sessionID,
+          ),
       }
 
       this.turns.set(
@@ -83,6 +99,129 @@ export class TurnStore {
     )
 
     this.executionStartedAt.delete(
+      sessionID,
+    )
+  }
+
+  suppressSetup(
+    sessionID: string,
+    inputID: string,
+  ): boolean {
+    let inputs =
+      this.setupSuppressed.get(
+        sessionID,
+      )
+
+    if (!inputs) {
+      inputs = new Set<string>()
+      this.setupSuppressed.set(
+        sessionID,
+        inputs,
+      )
+    }
+
+    const before = inputs.size
+    inputs.add(inputID)
+    this.completedSetupInputs.get(
+      sessionID,
+    )?.delete(inputID)
+
+    const state =
+      this.turns.get(sessionID)
+
+    if (state) {
+      state.setupSuppressed = true
+    }
+
+    return inputs.size > before
+  }
+
+  isSetupSuppressed(
+    sessionID: string,
+  ): boolean {
+    return Boolean(
+      this.setupSuppressed.get(
+        sessionID,
+      )?.size,
+    )
+  }
+
+  completeSetup(
+    sessionID: string,
+    inputID?: string,
+  ): string | null {
+    const inputs =
+      this.setupSuppressed.get(
+        sessionID,
+      )
+
+    if (!inputs?.size) {
+      return null
+    }
+
+    const completed =
+      inputID
+        ? inputs.has(inputID)
+          ? inputID
+          : undefined
+        : inputs.values().next()
+            .value as string | undefined
+
+    if (!completed) {
+      return null
+    }
+
+    inputs.delete(completed)
+
+    let completedInputs =
+      this.completedSetupInputs.get(
+        sessionID,
+      )
+
+    if (!completedInputs) {
+      completedInputs = new Set<string>()
+      this.completedSetupInputs.set(
+        sessionID,
+        completedInputs,
+      )
+    }
+
+    completedInputs.add(completed)
+
+    if (!inputs.size) {
+      this.setupSuppressed.delete(
+        sessionID,
+      )
+    }
+
+    return completed
+  }
+
+  setupInput(
+    sessionID: string,
+  ): string | null {
+    return this.setupSuppressed.get(
+      sessionID,
+    )?.values().next().value ?? null
+  }
+
+  hasCompletedSetup(
+    sessionID: string,
+  ): boolean {
+    return Boolean(
+      this.completedSetupInputs.get(
+        sessionID,
+      )?.size,
+    )
+  }
+
+  clearSetupSuppressed(
+    sessionID: string,
+  ) {
+    this.setupSuppressed.delete(
+      sessionID,
+    )
+    this.completedSetupInputs.delete(
       sessionID,
     )
   }
@@ -122,6 +261,10 @@ export class TurnStore {
   openExecution(
     sessionID: string,
   ) {
+    this.completedSetupInputs.delete(
+      sessionID,
+    )
+
     this.activeExecutions.add(
       sessionID,
     )
@@ -145,6 +288,10 @@ export class TurnStore {
       .clear()
     state.startedAt =
       Date.now()
+    state.setupSuppressed =
+      this.isSetupSuppressed(
+        sessionID,
+      )
 
     return state
   }
@@ -321,6 +468,8 @@ export class TurnStore {
           ...state
             .assistantMessageIDs,
         ],
+      setupSuppressed:
+        state.setupSuppressed,
     }
   }
 
@@ -364,27 +513,11 @@ export class TurnStore {
   currentAgent(
     sessionID?: string,
   ): string {
-    if (sessionID) {
-      const explicit =
-        this.turns.get(
+    return sessionID
+      ? this.turns.get(
           sessionID,
-        )?.openCodeAgent
-
-      if (explicit) {
-        return explicit
-      }
-    }
-
-    const latest =
-      this.latestExecutionSession()
-
-    return (
-      latest
-        ? this.turns.get(
-            latest,
-          )?.openCodeAgent
-        : ""
-    ) ?? ""
+        )?.openCodeAgent ?? ""
+      : ""
   }
 
   stats() {

@@ -5,38 +5,70 @@
       "name": "llamacpp",
       "package": "@opencode-ai/ai/providers/openai-compatible",
       "settings": {
-        "baseURL": "http://192.168.1.148:4242/v1",
+        "baseURL": "http://192.168.1.148:18020/v1",
         "apiKey": "otsumi"
       },
       "models": {
-        "otsumi": {
-          "name": "otsumi",
-          "limits": {
-            "context": 100000
-          }
-        },
-        "otsumi-rp": {
-          "name": "otsumi-rp",
-          "limits": {
-            "context": 100000
+        "qwen3.8-27b": {
+          "name":  "qwen3.8-27b",
+          "variants": [
+            {
+              "id": "none",
+              "body": {
+                "chat_template_kwargs": {
+                  "enable_thinking": false,
+                  "preserve_thinking": false
+                }
+              }
+            },
+
+            {
+              "id": "low",
+              "body": {
+                "chat_template_kwargs": {
+                  "enable_thinking": true,
+                  "reasoning_effort": "low",
+                  "preserve_thinking": false
+                }
+              }
+            },
+
+            {
+              "id": "medium",
+              "body": {
+                "chat_template_kwargs": {
+                  "enable_thinking": true,
+                  "reasoning_effort": "medium",
+                  "preserve_thinking": false
+                }
+              }
+            },
+
+            {
+              "id": "xhigh",
+              "body": {
+                "chat_template_kwargs": {
+                  "enable_thinking": true,
+                  "reasoning_effort": "xhigh",
+                  "preserve_thinking": false
+                }
+              }
+            }
+          ],
+          "limit": {
+            "context": 224000,
+            "tokens": 32000
           }
         }
       }
     }
   },
-  "model": "llamacpp/otsumi",
+  "model": "llamacpp/qwen38-27b#medium",
   "default_agent": "osho",
   "experimental": {
     "subagent_depth": 2
   },
   "plugins":  [
-    { "package": "./plugins/mode-router-v2", "options": { "enabled": true } },
-    {
-      "package": "./plugins/response-gadgets-v2",
-      "options": {
-        "enabled": true
-      }
-    },
     {
       "package": "./manual_plugins/tencentdb-agent-memory/tencentdb/index.ts",
 

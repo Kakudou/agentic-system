@@ -3,7 +3,6 @@ import type {
 } from "../../config.ts"
 
 import {
-  configuredOpenCodeAgents,
   resolveMemoryScope,
 } from "../../config.ts"
 
@@ -17,6 +16,7 @@ import {
 } from "../../domain/policies/language-policy.ts"
 
 import type {
+  ModeEffectPolicy,
   TracePort,
 } from "../../domain/ports.ts"
 
@@ -27,6 +27,14 @@ import type {
 import {
   TurnStore,
 } from "./turn-store.ts"
+
+import {
+  ModePolicyGate,
+} from "./mode-policy.ts"
+
+import {
+  hasTrustedSetupMarker,
+} from "./setup-suppression.ts"
 
 function agentPolicy(
   config: AppConfig,
@@ -98,25 +106,53 @@ function toolName(
     .toLowerCase()
 }
 
-function eventSessionID(
+function appendSystem(
   event: any,
-  turns: TurnStore,
-): string {
-  const explicit =
-    String(
-      event?.sessionID ??
-      event?.sessionId ??
-      "",
-    ).trim()
+  text: string,
+) {
+  if (Array.isArray(event?.system)) {
+    for (
+      let index =
+        event.system.length - 1;
+      index >= 0;
+      index--
+    ) {
+      const part = event.system[index]
 
-  if (explicit) {
-    return explicit
+      if (
+        part &&
+        typeof part === "object" &&
+        typeof part.text === "string"
+      ) {
+        if (!part.text.includes(text)) {
+          part.text =
+            `${part.text}\n\n${text}`
+        }
+        return
+      }
+
+      if (typeof part === "string") {
+        if (!part.includes(text)) {
+          event.system[index] =
+            `${part}\n\n${text}`
+        }
+        return
+      }
+    }
+
+    event.system.push({ text })
+    return
   }
 
-  return turns
-    .latestExecutionSession(
-      60000,
-    )
+  if (typeof event?.system === "string") {
+    if (!event.system.includes(text)) {
+      event.system =
+        `${event.system}\n\n${text}`
+    }
+    return
+  }
+
+  event.system = [{ text }]
 }
 
 function isPublicWebTool(
@@ -172,6 +208,8 @@ export async function installAgentPolicy(
   ctx: any,
   config: AppConfig,
   trace: TracePort,
+  modePolicy: ModeEffectPolicy =
+    new ModePolicyGate(),
 ) {
   if (!config.guardrails.enabled) {
     trace.write(
@@ -187,62 +225,45 @@ export async function installAgentPolicy(
         config,
       )
 
-    await ctx.agent.transform(
-      (agents: any) => {
-        for (
-          const name of
-            configuredOpenCodeAgents(
-              config,
+    await ctx.session.hook(
+      "context",
+      async (event: any) => {
+        if (
+          hasTrustedSetupMarker(event)
+        ) {
+          return
+        }
+
+        const sessionID =
+          modePolicy.sessionID(event)
+
+        if (
+          await modePolicy
+            .isSetupSuppressed?.(
+              sessionID,
             )
         ) {
-          try {
-            agents.update(
-              name,
-              (
-                agent: any,
-              ) => {
-                const existing =
-                  typeof agent.system ===
-                    "string"
-                    ? agent.system
-                    : ""
-
-                if (
-                  !existing.includes(
-                    "<tencentdb-agent-memory-policy>",
-                  )
-                ) {
-                  agent.system =
-                    existing
-                      ? `${existing}\n\n${policy}`
-                      : policy
-                }
-              },
-            )
-          } catch (error) {
-            trace.write(
-              "AGENT_POLICY_SKIPPED",
-              {
-                agent:
-                  name,
-
-                error:
-                  String(error),
-              },
-            )
-          }
+          return
         }
+
+        if (
+          !sessionID ||
+          !await modePolicy
+            .isEnabled(sessionID)
+        ) {
+          return
+        }
+
+        appendSystem(
+          event,
+          policy,
+        )
       },
     )
 
     trace.write(
       "AGENT_POLICY_INSTALLED",
       {
-        agents:
-          configuredOpenCodeAgents(
-            config,
-          ),
-
         outputLanguage:
           config.guardrails
             .outputLanguage,
@@ -269,6 +290,8 @@ export async function installTurnAwareWebGuard(
   turns: TurnStore,
   guard: RetrievalGuard,
   trace: TracePort,
+  modePolicy: ModeEffectPolicy =
+    new ModePolicyGate(),
 ) {
   if (
     !config.guardrails.enabled ||
@@ -285,16 +308,29 @@ export async function installTurnAwareWebGuard(
   try {
     await ctx.tool.hook(
       "execute.before",
-      (
+      async (
         event: any,
       ) => {
         const sessionID =
-          eventSessionID(
-            event,
-            turns,
-          )
+          modePolicy.sessionID(event)
 
-        if (!sessionID) {
+        if (
+          !sessionID ||
+          !await modePolicy
+            .isEnabled(sessionID)
+        ) {
+          return
+        }
+
+        if (
+          turns.isSetupSuppressed?.(
+            sessionID,
+          ) ||
+          await modePolicy
+            .isSetupSuppressed?.(
+              sessionID,
+            )
+        ) {
           return
         }
 

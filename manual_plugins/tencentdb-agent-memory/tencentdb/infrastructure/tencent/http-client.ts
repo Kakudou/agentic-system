@@ -6,6 +6,12 @@ import {
   CircuitBreaker,
 } from "./circuit-breaker.ts"
 
+import {
+  HttpStatusError,
+  TransportError,
+  isPermanentHttpError,
+} from "./errors.ts"
+
 type HeadersFactory =
   (
     path: string,
@@ -113,8 +119,10 @@ export class HttpJsonClient {
       }
 
       if (!response.ok) {
-        throw new Error(
-          `HTTP ${response.status} ${path}: ${text}`,
+        throw new HttpStatusError(
+          response.status,
+          path,
+          text,
         )
       }
 
@@ -143,8 +151,25 @@ export class HttpJsonClient {
 
       return parsed as T
     } catch (error) {
+      if (
+        isPermanentHttpError(error)
+      ) {
+        throw error
+      }
+
+      const classified =
+        error instanceof HttpStatusError ||
+        (
+          error &&
+          typeof error === "object" &&
+          (error as any).name ===
+            "TransportError"
+        )
+          ? error
+          : new TransportError(error)
+
       this.breaker.failure()
-      throw error
+      throw classified
     }
   }
 }

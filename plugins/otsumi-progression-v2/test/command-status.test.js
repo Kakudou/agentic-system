@@ -112,6 +112,14 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
   let rawInput = "/otsumi status"
 
   globalThis[bridgeKey] = {
+    async pluginDecisionFor(_sessionID, pluginID) {
+      return {
+        mode: "dev",
+        managed: pluginID === "kakudou.otsumi-progression",
+        enabled: pluginID === "kakudou.otsumi-progression",
+        reason: "allow",
+      }
+    },
     async modeFor() {
       return "dev"
     },
@@ -240,7 +248,7 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
   assert.match(rendered, /State schema version: 2/)
   assert.match(rendered, new RegExp(stateFile.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
   assert.match(rendered, /Configured primary agent: osho/)
-  assert.match(rendered, /Eligible modes: dev, dev-python, video-edit/)
+  assert.match(rendered, /Mode gate: authoritative mode-router plugin policy/)
   assert.match(rendered, /Tracked runtime sessions: 1/)
   assert.match(rendered, /Agent: osho/)
   assert.match(rendered, /Mode: dev/)
@@ -393,6 +401,14 @@ test("renders an honest announcement state line for confirmed, in-flight, and pe
       const stream = new AsyncQueue()
       const capturedTools = new Map()
       globalThis[bridgeKey] = {
+        async pluginDecisionFor(_sessionID, pluginID) {
+          return {
+            mode: "dev",
+            managed: pluginID === "kakudou.otsumi-progression",
+            enabled: pluginID === "kakudou.otsumi-progression",
+            reason: "allow",
+          }
+        },
         async modeFor() {
           return "dev"
         },

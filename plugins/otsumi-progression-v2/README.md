@@ -31,7 +31,7 @@ Retries can earn only components not already awarded to the same input. The comp
 
 The public `session.inbox.*` lifecycle path remains authoritative when available. On every pre-model context hook, the plugin also reconciles the current runtime input from the mode-router request identity and the latest provider user message. This fallback repairs turns whose inbox event was missed by this plugin, while stable message IDs (or deterministic privacy-safe hashes when no ID exists) preserve continuation/reload deduplication.
 
-Child/non-primary-agent sessions and modes outside `eligibleModes` receive no awards. Non-user inbox work clears the prior user award context. A `97-gadget-*` appendix cannot turn its own retrieval or delegation into effective-work XP.
+Child/non-primary-agent sessions and sessions denied by the mode-router's `pluginDecisionFor(sessionID, "kakudou.otsumi-progression")` policy receive no awards. Non-user inbox work clears the prior user award context. A `97-gadget-*` appendix cannot turn its own retrieval or delegation into effective-work XP.
 
 The first level requires 40 lifetime XP. Each subsequent per-level requirement is multiplied by `1.25` and rounded.
 
@@ -62,8 +62,6 @@ When explicitly configuring the plugin, options may override:
 ```json
 {
   "primaryAgent": "osho",
-  "eligibleModes": ["dev", "dev-python", "video-edit"],
-  "requireModeRouter": true,
   "stateFile": "~/.local/state/opencode/otsumi-progression-v2/otsumi.json",
   "historyLimit": 12,
   "xp": {
@@ -85,7 +83,7 @@ With the repository's normal `plugins/` discovery/symlink setup, explicit config
 - `otsumi_progression_reject` — reject/reconsider the proposal while keeping the level slot.
 - `otsumi_progression_complete` — record an explicitly approved, actually implemented, verified evolution.
 
-All four tools fail closed unless the tool execution context resolves to the configured primary agent.
+All four tools re-check the authoritative mode-router plugin policy at execution time, including stale tool snapshots captured before a mode change. Missing session identity, a missing or unresolved policy bridge, policy errors, and disabled modes fail closed before any progression-store read or write. Enabled calls must also resolve to the configured primary agent.
 
 ## `/otsumi` command
 
@@ -103,10 +101,10 @@ Both forms render a GameMaster/PNJ character sheet containing:
 - the pending evolution, current proposal, and rejected/reconsidered proposals, with an honest announcement line—confirmed (with `announcedAt`), in-flight (with session and since), or pending when unconfirmed (including legacy);
 - recent completed evolution history;
 - durable award-ledger entry count, schema version, and state path;
-- configured primary agent and eligible modes;
+- configured primary agent and authoritative mode-gate diagnostics;
 - tracked runtime-session count and current-session diagnostics.
 
-Unknown actions return an explicit error. The context hook replaces the command marker prompt with the already-computed result and appends an exact-result/no-tools instruction without changing `event.tools`.
+Unknown actions return an explicit error. The context hook replaces the command marker prompt with the already-computed result and appends an exact-result/no-tools instruction without changing `event.tools`. In a mode where progression is disabled, `/otsumi` returns `OTSProgression_DISABLED_BY_MODE_POLICY` without reading or mutating progression state.
 
 `/otsumi` is a slash control turn, so the response-gadget runtime suppresses ambient gadgets through its normal slash-command rule. The progression runtime also marks the input XP-neutral: success, interruption, lifecycle reordering, or continuation cannot add interaction, completion, effective-work, interrupted, or ledger state. Reading the sheet does not deliver a pending-evolution announcement or otherwise mutate durable state.
 
@@ -122,7 +120,9 @@ While a pending evolution has no locked proposal and the announcement is confirm
 
 A state with `announcementDelivered: true` but no `announcedAt` (the pre-feature shape) self-heals without manual surgery: it reads as unconfirmed, is re-announced on the next eligible request, and confirms on that session's `succeeded` through the same code path as a fresh unlock.
 
-Directive injection is top-level-only: it is skipped for child sessions (a non-empty OpenCode V2 `Session.Info.parentID`—subagent children (and forks when they carry a parentID)) and fails closed for the one dispatch when the session lookup fails; the announcement simply re-injects on the next eligible top-level request. The gate affects injection only; state mutation (XP awards and terminal-event confirmation/rollback) is unaffected.
+Directive injection is skipped for genuine delegated child sessions (a non-empty OpenCode V2 `Session.Info.parentID`) and fails closed for the one dispatch when the session lookup fails; the announcement simply re-injects on the next eligible request. A user-facing `Session.Info.fork` is not treated as a delegated child. The authoritative plugin policy is checked first and can still disable any fork (including a roleplay doppel session). The child gate affects announcement injection only.
+
+The same asynchronous plugin-policy guard runs before context handling, slash-command execution, every progression tool execution, successful-tool observation, and lifecycle-event processing. Disabled lifecycle traffic cannot allocate volatile execution state, award XP, write ledger entries, or confirm/roll back announcements.
 
 The pre-model hook's slash-command path retains its pre-existing behavior: `/otsumi` turns never receive an announcement directive (see the `/otsumi` command section above).
 

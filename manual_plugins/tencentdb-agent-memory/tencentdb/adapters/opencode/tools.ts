@@ -19,6 +19,7 @@ import {
 import type {
   KnowledgePort,
   MemoryPort,
+  ModeEffectPolicy,
   TracePort,
 } from "../../domain/ports.ts"
 
@@ -41,6 +42,10 @@ import type {
 import {
   TurnStore,
 } from "./turn-store.ts"
+
+import {
+  SETUP_SUPPRESSION_DENIAL,
+} from "./setup-suppression.ts"
 
 const STRING_OUTPUT = {
   type:
@@ -89,20 +94,11 @@ function presentToolResult(
 
 function currentSession(
   toolCtx: any,
-  turns: TurnStore,
 ): string {
-  return (
-    (
-      typeof toolCtx?.sessionID ===
-        "string"
-        ? toolCtx.sessionID
-        : ""
-    ) ||
-    turns.latestExecutionSession(
-      30000,
-    ) ||
-    "opencode-v2"
-  )
+  return typeof toolCtx?.sessionID ===
+    "string"
+    ? toolCtx.sessionID.trim()
+    : ""
 }
 
 function currentAgent(
@@ -145,7 +141,6 @@ function currentAgent(
   const sessionID =
     currentSession(
       toolCtx,
-      turns,
     )
 
   return turns.currentAgent(
@@ -522,6 +517,7 @@ export type ToolDependencies = {
   guard: RetrievalGuard
   turns: TurnStore
   trace: TracePort
+  policy: ModeEffectPolicy
 }
 
 
@@ -539,7 +535,57 @@ export async function registerTools(
 
   await ctx.tool.transform(
     (tools: any) => {
-      tools.add({
+      const add =
+        (definition: any) => {
+          const execute =
+            definition.execute
+
+          tools.add({
+            ...definition,
+            execute:
+              async (
+                args: any,
+                toolCtx: any,
+              ) => {
+                const sessionID =
+                  deps.policy
+                    .sessionID(toolCtx)
+
+                if (
+                  sessionID &&
+                  (
+                    deps.turns
+                      .isSetupSuppressed(
+                        sessionID,
+                      ) ||
+                    await deps.policy
+                      .isSetupSuppressed?.(
+                        sessionID,
+                      )
+                  )
+                ) {
+                  throw new Error(
+                    SETUP_SUPPRESSION_DENIAL,
+                  )
+                }
+
+                await deps.policy
+                  .requireEnabled(
+                    sessionID,
+                  )
+
+                return execute(
+                  args,
+                  {
+                    ...toolCtx,
+                    sessionID,
+                  },
+                )
+              },
+          })
+        }
+
+      add({
         name:
           "tdai_context",
 
@@ -594,7 +640,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -639,7 +684,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_memory_search",
 
@@ -690,7 +735,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -807,7 +851,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_memory_layer",
 
@@ -868,7 +912,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -970,7 +1013,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_wiki_search",
 
@@ -1021,7 +1064,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -1105,7 +1147,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_wiki_read",
 
@@ -1155,7 +1197,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             return present(
@@ -1200,7 +1241,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_code_search",
 
@@ -1268,7 +1309,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -1362,7 +1402,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_code_graph",
 
@@ -1486,7 +1526,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -1712,7 +1751,7 @@ export async function registerTools(
           },
       })
 
-      tools.add({
+      add({
         name:
           "tdai_memory_health",
 
@@ -1741,7 +1780,6 @@ export async function registerTools(
             const sessionID =
               currentSession(
                 toolCtx,
-                deps.turns,
               )
 
             const agent =
@@ -1823,7 +1861,7 @@ export async function registerTools(
       if (
         deps.config.exposeAdminTools
       ) {
-        tools.add({
+        add({
           name:
             "tdai_capture",
 
@@ -1875,7 +1913,6 @@ export async function registerTools(
                 args.session_id ??
                 currentSession(
                   toolCtx,
-                  deps.turns,
                 )
 
               const agent =

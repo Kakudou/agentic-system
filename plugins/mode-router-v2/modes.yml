@@ -6,8 +6,13 @@
 # Unmanaged skills pass through to normal OpenCode permissions.
 # Native tools and harness subagents are never mode-managed by this router.
 
-version: 1
+version: 2
 default_mode: dev
+
+managed_plugins:
+  - "kakudou.response-gadgets"
+  - "kakudou.otsumi-progression"
+  - "kakudou.tencentdb-memory"
 
 mode:
   - name: dev
@@ -25,6 +30,10 @@ mode:
       - "07-opencti-*"
       - "08-openaev-*"
       - "12-bbounty-*"
+    plugins:
+      - "kakudou.response-gadgets"
+      - "kakudou.otsumi-progression"
+      - "kakudou.tencentdb-memory"
 
   - name: dev-python
     description: Python-focused development; extends general development
@@ -44,11 +53,6 @@ mode:
     description: Persona-driven two-person roleplay chatbot workflow
     prefixes_allowed:
       - "09-rp-*"
-
-  - name: video-edit
-    description: Remotion video and motion-design workflow
-    prefixes_allowed:
-      - "99-tool-remotion-design"
 
 # Persona continuity, explicit Dream, optional gadgets, and non-JohnnyDecimal helper skills
 # remain pass-through. Native tools and harness subagents are always untouched. Skill creation
