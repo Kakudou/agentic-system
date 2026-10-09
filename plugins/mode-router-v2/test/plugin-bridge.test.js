@@ -59,7 +59,7 @@ async function setupBridge(t, { config = pluginConfig(), getSession } = {}) {
 
   const ctx = {
     options: { config: configPath },
-    command: { async transform(callback) { callback({ update() {} }) } },
+    command: { async transform(callback) { callback({ add() {} }) } },
     event: { subscribe: () => emptyEvents() },
     session: {
       async get(input) {

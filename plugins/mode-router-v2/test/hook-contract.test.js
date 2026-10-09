@@ -55,11 +55,7 @@ async function setupHarness(
     options: { config },
     command: {
       async transform(callback) {
-        callback({
-          update(_name, update) {
-            update({})
-          },
-        })
+        callback({ add() {} })
       },
     },
     event: {
@@ -194,7 +190,7 @@ test("registers the current mutable pre-model context hook", async (t) => {
     options: { config },
     command: {
       async transform(callback) {
-        callback({ update() {} })
+        callback({ add() {} })
       },
     },
     event: {

@@ -30,6 +30,9 @@ mode:
       - "07-opencti-*"
       - "08-openaev-*"
       - "12-bbounty-*"
+      - "97-gadget-*"
+      - "98-external-*"
+      - "99-tool-*"
     plugins:
       - "kakudou.response-gadgets"
       - "kakudou.otsumi-progression"

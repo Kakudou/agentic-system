@@ -132,7 +132,7 @@ async function setupInstances(
         options: { config: configPath },
         command: {
           async transform(callback) {
-            callback({ update(_name, update) { update({}) } })
+            callback({ add() {} })
           },
         },
         event: { subscribe: () => stream },

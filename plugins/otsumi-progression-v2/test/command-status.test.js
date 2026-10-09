@@ -108,6 +108,7 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
 
   const stream = new AsyncQueue()
   const commands = new Map()
+  const sessionPrompts = []
   let contextHook = null
   let rawInput = "/otsumi status"
 
@@ -141,10 +142,8 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
     command: {
       async transform(callback) {
         await callback({
-          update(name, mutate) {
-            const command = {}
-            mutate(command)
-            commands.set(name, command)
+          add(definition) {
+            commands.set(definition.name, definition)
           },
         })
       },
@@ -162,6 +161,9 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
       async get() {
         return { data: {} }
       },
+      async prompt(input) {
+        sessionPrompts.push(input)
+      },
     },
     tool: {
       async transform() {},
@@ -175,10 +177,27 @@ test("registers /otsumi and renders an XP-neutral diagnostic character sheet", {
     await rm(root, { recursive: true, force: true })
   })
 
-  assert.deepEqual(commands.get("otsumi"), {
-    description: "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
-    template: '<otsumi-progression-command action="$ARGUMENTS" />',
+  const otsumiCommand = commands.get("otsumi")
+  assert.ok(otsumiCommand, "the /otsumi command was not registered")
+  assert.equal(otsumiCommand.name, "otsumi")
+  assert.equal(
+    otsumiCommand.description,
+    "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
+  )
+  assert.equal(typeof otsumiCommand.execute, "function")
+
+  // execute must submit the marker as a user prompt, as the old template did.
+  await otsumiCommand.execute({
+    sessionID: "session-command-execute",
+    prompt: { text: "status" },
+    delivery: "steer",
   })
+  assert.equal(
+    sessionPrompts.at(-1).text,
+    '<otsumi-progression-command action="status" />',
+  )
+  assert.equal(sessionPrompts.at(-1).sessionID, "session-command-execute")
+  assert.equal(sessionPrompts.at(-1).delivery, "steer")
 
   // XP neutrality must not depend on the context hook being observed. The
   // public inbox path already carries the raw slash controller text.

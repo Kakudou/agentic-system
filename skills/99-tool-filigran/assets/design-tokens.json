@@ -1,0 +1,58 @@
+{
+  "name": "Filigran brand system snapshot",
+  "snapshotDate": "2026-09-19",
+  "sourcePolicy": "live Filigran UI / installed @filigran/ui wins over this snapshot",
+  "confidence": {
+    "canonical": "Explicitly documented by Filigran UI",
+    "observed": "Observed on current official Filigran corporate web properties",
+    "adaptation": "Recommended medium-specific translation, not an official token"
+  },
+  "colors": {
+    "canonicalPaletteFamilies": {
+      "gray": [50, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+      "darkblue": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "blue": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "turquoise": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "green": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "red": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "orange": [100, 200, 300, 400, 500, 600, 700, 800, 900],
+      "yellow": [100, 200, 300, 400, 500, 600, 700, 800, 900]
+    },
+    "verifiedExamples": {
+      "contrastForeground": "#009474",
+      "contrastBackground": "#00020c"
+    },
+    "documentedGradientAliases": {
+      "from": "hsl(var(--blue-default))",
+      "to": "hsl(var(--turquoise-300))",
+      "background": "hsl(var(--background))"
+    },
+    "unverifiedExactPaletteValues": "Resolve from current package/docs; do not guess"
+  },
+  "typographyClasses": [
+    "txt-jumbo",
+    "txt-title",
+    "txt-subtitle",
+    "txt-category",
+    "txt-tab",
+    "txt-container-title",
+    "txt-default",
+    "txt-sub-content",
+    "txt-mini"
+  ],
+  "spacing": {
+    "xxs": "0.125rem",
+    "xs": "0.25rem",
+    "s": "0.5rem",
+    "m": "0.75rem",
+    "l": "1rem",
+    "xl": "1.5rem",
+    "xxl": "2rem"
+  },
+  "observedCorporateExpression": {
+    "primaryAxis": ["blue", "dark navy", "turquoise/cyan"],
+    "secondaryGradientTransition": ["indigo", "violet"],
+    "contrast": ["white on dark/saturated", "dark on light"],
+    "contentTraits": ["clear hierarchy", "large headlines", "metrics", "product proof", "customer proof", "integration ecosystem", "direct CTAs"]
+  }
+}

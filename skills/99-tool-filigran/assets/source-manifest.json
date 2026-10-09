@@ -1,0 +1,19 @@
+{
+  "snapshotDate": "2026-09-19",
+  "canonical": [
+    "https://filigranhq.github.io/filigran-ui/",
+    "https://filigranhq.github.io/filigran-ui/docs/0-presentation",
+    "https://filigranhq.github.io/filigran-ui/docs/1-colors",
+    "https://filigranhq.github.io/filigran-ui/docs/2-typography",
+    "https://filigranhq.github.io/filigran-ui/docs/3-spacing",
+    "https://filigranhq.github.io/filigran-ui/docs"
+  ],
+  "observedCorporate": [
+    "https://filigran.io/",
+    "https://filigran.io/use-cases",
+    "https://filigran.io/guides",
+    "https://filigran.io/xtm-platform"
+  ],
+  "repository": "https://github.com/FiligranHQ/filigran-ui",
+  "refreshRule": "For exact product implementation, inspect live docs and the target repository's installed @filigran/ui version before hard-coding APIs or token values."
+}

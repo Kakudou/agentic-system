@@ -475,10 +475,25 @@ export default {
     }
 
     await ctx.command.transform((commands) => {
-      commands.update("gadget", (command) => {
-        command.description =
-          "Inspect or change global response-gadget probabilities: /gadget [status|reload|<name> <0..1>]"
-        command.template = '<opencode-response-gadget action="$ARGUMENTS" />'
+      // V2.0.16 command editor is add-only (no update(), no template field):
+      // execute submits the marker as a user prompt and the context hook
+      // below executes it, exactly as the old $ARGUMENTS template did.
+      commands.add({
+        name: "gadget",
+        description:
+          "Inspect or change global response-gadget probabilities: /gadget [status|reload|<name> <0..1>]",
+        execute: async ({ sessionID, prompt, delivery }) => {
+          if (!sessionID)
+            throw new Error("response-gadgets: /gadget has no session context")
+          const args =
+            typeof prompt?.text === "string" ? prompt.text.replace(/"/g, "") : ""
+          await ctx.session.prompt({
+            ...prompt,
+            sessionID,
+            text: `<opencode-response-gadget action="${args}" />`,
+            delivery,
+          })
+        },
       })
     })
 

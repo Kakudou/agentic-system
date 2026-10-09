@@ -95,10 +95,24 @@ export default {
     } = runtime
 
     await registerGuard(runtime, () => ctx.command.transform((commands) => {
-      commands.update("mode", (command) => {
-        command.description =
-          "Switch or inspect the session skill mode: /mode <name>, status, list, reload"
-        command.template = '<opencode-mode-router action="$ARGUMENTS" />'
+      // V2.0.16 command editor is add-only (no update(), no template field):
+      // execute submits the marker as a user prompt and the context hook
+      // below executes it, exactly as the old $ARGUMENTS template did.
+      commands.add({
+        name: "mode",
+        description:
+          "Switch or inspect the session skill mode: /mode <name>, status, list, reload",
+        execute: async ({ sessionID, prompt, delivery }) => {
+          if (!sessionID) throw new Error("mode-router: /mode has no session context")
+          const args =
+            typeof prompt?.text === "string" ? prompt.text.replace(/"/g, "") : ""
+          await ctx.session.prompt({
+            ...prompt,
+            sessionID,
+            text: `<opencode-mode-router action="${args}" />`,
+            delivery,
+          })
+        },
       })
     }))
 

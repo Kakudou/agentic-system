@@ -47,7 +47,7 @@ test("registers the current mutable pre-model context hook", async (t) => {
     options: { config },
     command: {
       async transform(callback) {
-        callback({ update() {} })
+        callback({ add() {} })
       },
     },
     session: {

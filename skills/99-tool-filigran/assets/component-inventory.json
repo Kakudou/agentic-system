@@ -1,0 +1,17 @@
+{
+  "snapshotDate": "2026-09-19",
+  "source": "https://filigranhq.github.io/filigran-ui/docs",
+  "note": "Public docs are evolving; refresh before relying on this as exhaustive.",
+  "categories": {
+    "core": ["Badge", "Button", "Gradient Button", "Icon Button", "Card"],
+    "feedback": ["Alert Dialog", "Toast"],
+    "dataDisplay": ["Avatar", "Datatable", "Tooltip"],
+    "navigation": ["Breadcrumb", "Tabs"],
+    "forms": ["Checkbox", "File Input", "Input", "Multi Select", "Select", "Tag Input", "Textarea"],
+    "other": ["Accordion", "Autoform", "Carousel", "Color Picker", "Command", "Dialog", "Dropdown Menu", "Label", "Popover", "Separator", "Sheet", "Skeleton", "Combobox"]
+  },
+  "buttonVariantsDocumented": ["default", "secondary", "destructive", "outline", "ghost", "link", "outline-primary", "outline-destructive", "outline-secondary"],
+  "buttonSizesDocumented": ["default", "sm", "lg", "icon", "icon-rounded"],
+  "badgeVariantsDocumented": ["default", "secondary", "warning", "destructive", "outline"],
+  "cardComposition": ["Card", "CardHeader", "CardTitle", "CardDescription", "CardContent", "CardFooter"]
+}

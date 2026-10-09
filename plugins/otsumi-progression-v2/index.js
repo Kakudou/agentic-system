@@ -1148,10 +1148,25 @@ export default {
     }
 
     await ctx.command.transform((commands) => {
-      commands.update("otsumi", (command) => {
-        command.description =
-          "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]"
-        command.template = '<otsumi-progression-command action="$ARGUMENTS" />'
+      // V2.0.16 command editor is add-only (no update(), no template field):
+      // execute submits the marker as a user prompt and the context hook
+      // below executes it, exactly as the old $ARGUMENTS template did.
+      commands.add({
+        name: "otsumi",
+        description:
+          "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
+        execute: async ({ sessionID, prompt, delivery }) => {
+          if (!sessionID)
+            throw new Error("otsumi-progression: /otsumi has no session context")
+          const args =
+            typeof prompt?.text === "string" ? prompt.text.replace(/"/g, "") : ""
+          await ctx.session.prompt({
+            ...prompt,
+            sessionID,
+            text: `<otsumi-progression-command action="${args}" />`,
+            delivery,
+          })
+        },
       })
     })
 

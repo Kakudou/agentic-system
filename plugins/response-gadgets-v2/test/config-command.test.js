@@ -8,7 +8,6 @@ import test from "node:test"
 import plugin from "../index.js"
 
 const BRIDGE_KEY = Symbol.for("kakudou.mode-router.v2.bridge")
-const COMMAND_MARKER = '<opencode-response-gadget action="$ARGUMENTS" />'
 
 function rawConfig(probabilities = {}) {
   return {
@@ -79,15 +78,14 @@ async function setupHarness(t, config, options = {}) {
   const commands = new Map()
   const contextHooks = new Map()
   const toolHooks = new Map()
+  const sessionPrompts = []
   const ctx = {
     options: { ...options, config },
     command: {
       async transform(callback) {
         callback({
-          update(name, update) {
-            const command = {}
-            update(command)
-            commands.set(name, command)
+          add(definition) {
+            commands.set(definition.name, definition)
           },
         })
       },
@@ -95,6 +93,9 @@ async function setupHarness(t, config, options = {}) {
     session: {
       async hook(name, callback) {
         contextHooks.set(name, callback)
+      },
+      async prompt(input) {
+        sessionPrompts.push(input)
       },
     },
     tool: {
@@ -111,6 +112,7 @@ async function setupHarness(t, config, options = {}) {
   t.after(async () => cleanup?.())
   return {
     commands,
+    sessionPrompts,
     contextHook: contextHooks.get("context"),
     executeBefore: toolHooks.get("execute.before"),
   }
@@ -148,12 +150,26 @@ function renderedSystem(event) {
 test("registers /gadget and reports the authoritative configuration without touching native tools", async (t) => {
   installRuntime(t)
   const config = await createConfig(t)
-  const { commands, contextHook } = await setupHarness(t, config)
+  const { commands, sessionPrompts, contextHook } = await setupHarness(t, config)
 
   const command = commands.get("gadget")
   assert.ok(command, "the /gadget command was not registered")
-  assert.equal(command.template, COMMAND_MARKER)
+  assert.equal(command.name, "gadget")
   assert.match(command.description, /inspect|probabilit/i)
+  assert.equal(typeof command.execute, "function")
+
+  // execute must submit the marker as a user prompt, as the old template did.
+  await command.execute({
+    sessionID: "session-gadget-execute",
+    prompt: { text: "status" },
+    delivery: "steer",
+  })
+  assert.equal(
+    sessionPrompts.at(-1).text,
+    '<opencode-response-gadget action="status" />',
+  )
+  assert.equal(sessionPrompts.at(-1).sessionID, "session-gadget-execute")
+  assert.equal(sessionPrompts.at(-1).delivery, "steer")
 
   const marker = Symbol("native-marker")
   const readDefinition = { description: "Read", input: { type: "object" } }

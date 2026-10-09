@@ -25,10 +25,8 @@ test("registers the current mutable pre-model context hook directly", async (t) 
     command: {
       async transform(callback) {
         callback({
-          update(name, mutate) {
-            const command = {}
-            mutate(command)
-            commands.push({ name, command })
+          add(definition) {
+            commands.push(definition)
           },
         })
       },
@@ -54,15 +52,13 @@ test("registers the current mutable pre-model context hook directly", async (t) 
   t.after(cleanup)
 
   assert.deepEqual(modelHooks, ["context"])
-  assert.deepEqual(commands, [
-    {
-      name: "otsumi",
-      command: {
-        description: "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
-        template: '<otsumi-progression-command action="$ARGUMENTS" />',
-      },
-    },
-  ])
+  assert.equal(commands.length, 1)
+  assert.equal(commands[0].name, "otsumi")
+  assert.equal(
+    commands[0].description,
+    "Inspect Ōtsumi's read-only GameMaster/PNJ progression sheet: /otsumi [status]",
+  )
+  assert.equal(typeof commands[0].execute, "function")
   assert.equal(tools.length, 4)
   for (const tool of tools) {
     assert.deepEqual(

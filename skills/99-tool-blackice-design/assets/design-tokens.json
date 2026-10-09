@@ -1,0 +1,45 @@
+{
+  "name": "Black Ice Design Language",
+  "version": "1.0.0",
+  "note": "Portable semantic reference. Do not force these tokens into media that do not use software-style design tokens.",
+  "color": {
+    "brand": {
+      "blue": "#003B6F",
+      "green": "#00FF66",
+      "orange": "#FF8C00"
+    },
+    "neutral": {
+      "blackIce": "#04080D",
+      "deepNight": "#0A0F1C",
+      "gunmetal": "#1A2230",
+      "ashBlue": "#8796A5",
+      "fogGray": "#C9D1D9",
+      "signalWhite": "#F4F7FA"
+    }
+  },
+  "semantic": {
+    "structure": "#003B6F",
+    "active": "#00FF66",
+    "success": "#00FF66",
+    "warning": "#FF8C00",
+    "danger": "#FF8C00",
+    "background": "#0A0F1C",
+    "backgroundDeep": "#04080D",
+    "surface": "#1A2230",
+    "text": "#C9D1D9",
+    "textStrong": "#F4F7FA",
+    "textMuted": "#8796A5"
+  },
+  "geometry": {
+    "defaultRadius": "0-4px equivalent",
+    "preferred": ["clipped-corner", "chamfer", "notch", "bracket", "interrupted-border", "asymmetric-frame"],
+    "avoidByDefault": ["pill-everything", "soft-card-everything", "decorative-hexagons"]
+  },
+  "artifact": {
+    "required": true,
+    "defaultIntensity": "G2",
+    "layerPosition": "topmost",
+    "preserveLegibility": true,
+    "reducedMotionFallback": "static artifact layer"
+  }
+}

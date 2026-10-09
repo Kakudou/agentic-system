@@ -139,7 +139,7 @@ async function setupHarness(t, config) {
   const tools = new Map()
   const ctx = {
     options: { config },
-    command: { async transform(callback) { callback({ update() {} }) } },
+    command: { async transform(callback) { callback({ add() {} }) } },
     session: {
       async hook(name, callback) {
         contextHooks.set(name, callback)
