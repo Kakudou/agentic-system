@@ -844,7 +844,7 @@ function toolResult(text) {
 }
 
 function addDirectTool(tools, definition) {
-  // The shipped beta accepts one Tool.Info object; registration options such as
+  // OpenCode V2 accepts one Tool.Info object; registration options such as
   // codemode belong under definition.options in that contract.
   tools.add(definition)
 }

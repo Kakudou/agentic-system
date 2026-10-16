@@ -2,6 +2,8 @@
 
 `kakudou.response-gadgets` independently selects optional response appendices once per eligible user turn. Selection happens in the OpenCode V2 `context` hook, remains stable across continuation requests for that turn, and never removes or rewrites native tool definitions.
 
+Selection, the directive, `/gadget`, `otsumi_rng`, and the configuration store are a host-free core shared with the Claude Code mod: see [`claude_plugins/otsumi`](../../claude_plugins/otsumi/). This plugin keeps the OpenCode V2 adapter (mode-router bridge policy, setup-template suppression, and the `context` request shape).
+
 ## Global configuration
 
 [`config.yml`](./config.yml) is the authoritative probability configuration shared by every session and plugin setup:
@@ -23,7 +25,7 @@ The plugin reads the probability file at setup and refreshes it on each authoriz
 
 Only `ctx.options.config` remains an option-level override. It selects another configuration path, which is useful for tests or a deliberately separate installation. Legacy `probabilities`, `modes`, `primaryAgent`, and `requireModeRouter` options are not runtime authorities and do not override persisted configuration or mode-router policy.
 
-The host uses `Bun.YAML` for YAML parsing. A custom `.json` path is also serialized as JSON, allowing tests to inject `JSON.parse` as `Bun.YAML.parse`.
+The host uses `Bun.YAML` for YAML parsing when present, and the core's block-YAML subset parser otherwise. Probability writes always use plain block YAML so every harness can read the file back. A custom `.json` path is also serialized as JSON, allowing tests to inject `JSON.parse` as `Bun.YAML.parse`.
 
 ## `/gadget` command
 

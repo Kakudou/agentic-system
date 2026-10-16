@@ -108,7 +108,7 @@ The router owns the mode names, child-session inheritance, managed skill pattern
 
 Edit `plugins/mode-router-v2/modes.yml` when the runtime skill families change.
 
-The router targets the OpenCode V2 beta pre-model `context` hook and enforces configured managed JohnnyDecimal skill policy before every model dispatch, not merely when a `/mode` command is issued. It filters those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board subagents remain untouched by the router. Child subagent sessions inherit their parent session's mode.
+The router targets the OpenCode V2 pre-model `context` hook and enforces configured managed JohnnyDecimal skill policy before every model dispatch, not merely when a `/mode` command is issued. It filters those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board subagents remain untouched by the router. Child subagent sessions inherit their parent session's mode.
 
 ## Ambient response gadgets
 
@@ -139,6 +139,7 @@ Obsidian knowledge and TencentDB memory are separate systems.
 - [skills/](skills/) — reusable capabilities at `skills/<name>/SKILL.md`.
 - [plugins/](plugins/) — automatically loaded OpenCode plugins / hard guardrails.
 - [manual_plugins/](manual_plugins/) — optional integrations that must be configured explicitly.
+- [claude_plugins/otsumi/](claude_plugins/otsumi/) — the Claude Code mod and the host-free cores it shares with the OpenCode plugins (response gadgets so far).
 - [sample-opencode.json](sample-opencode.json) — example OpenCode configuration.
 
 ## Install

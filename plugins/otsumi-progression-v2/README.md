@@ -1,6 +1,6 @@
 # Ōtsumi Progression V2
 
-OpenCode V2 beta runtime plugin for Ōtsumi's RPG-like progression loop.
+OpenCode V2 runtime plugin for Ōtsumi's RPG-like progression loop.
 
 ## Ownership
 
@@ -126,9 +126,9 @@ The same asynchronous plugin-policy guard runs before context handling, slash-co
 
 The pre-model hook's slash-command path retains its pre-existing behavior: `/otsumi` turns never receive an announcement directive (see the `/otsumi` command section above).
 
-## Beta API seam
+## V2 API seam
 
-The project targets the shipped OpenCode V2 beta one-object `Tool.Info` transform shape (`tools.add(definition)`), with registration flags such as `codemode` nested under `definition.options`. `/otsumi` uses `command.transform`. Model-request injection, command rendering, and input reconciliation use the V2 `context` hook, the current mutable pre-model hook.
+The project targets the OpenCode V2 (verified against 2.0.16) one-object `Tool.Info` transform shape (`tools.add(definition)`), with registration flags such as `codemode` nested under `definition.options`. `/otsumi` uses `command.transform`. Model-request injection, command rendering, and input reconciliation use the V2 `context` hook, the current mutable pre-model hook.
 
 Run the focused progression tests with:
 

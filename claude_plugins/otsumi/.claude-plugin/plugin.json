@@ -1,0 +1,8 @@
+{
+  "name": "otsumi",
+  "version": "0.1.0",
+  "description": "Ōtsumi runtime for Claude Code: ambient response gadgets, /gadget, and the otsumi_rng tool, sharing their core with the OpenCode V2 plugins.",
+  "author": {
+    "name": "Christophe Melchior"
+  }
+}

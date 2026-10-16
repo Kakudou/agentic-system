@@ -101,10 +101,12 @@ function liveInstanceRegistry():
 }
 
 /*
- * OpenCode V2 beta plugin entry.
+ * OpenCode V2 plugin entry.
  *
  * The V2 contract is a default export containing a unique id and setup().
  * Plugin.define() is a convenience helper, not required for this local plugin.
+ * Configure it by its directory (resolved through package.json "exports");
+ * V2.0.16 rejects a `plugins` entry that points at a file.
  */
 export default {
   id:

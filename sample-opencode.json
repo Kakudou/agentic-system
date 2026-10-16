@@ -70,7 +70,7 @@
   },
   "plugins":  [
     {
-      "package": "./manual_plugins/tencentdb-agent-memory/tencentdb/index.ts",
+      "package": "./manual_plugins/tencentdb-agent-memory/tencentdb",
 
       "options": {
         "gateway": {

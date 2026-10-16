@@ -2,6 +2,25 @@ import { createHash, randomInt } from "node:crypto"
 import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ConfigManager } from "./lib/config.js"
+import {
+  RNG_RANGE,
+  RNG_TOOL,
+  claimGadgetInvocation,
+  directive,
+  executeGadgetCommand,
+  isControlTurn,
+  isGadgetSkill,
+  newTurnState,
+  rememberTurn,
+  selectGadgets,
+  weightedSelection,
+} from "../../claude_plugins/otsumi/core/gadgets.js"
+
+// Selection, directive, command, and at-most-once logic is the host-free core
+// shared with the Claude Code mod. This file keeps only the OpenCode V2
+// adapter: mode-router bridge policy, setup-template suppression, and the
+// `context` request shape.
+export { weightedSelection }
 
 const PLUGIN_ID = "kakudou.response-gadgets"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
@@ -13,45 +32,6 @@ const POLICY_DENIAL = "response-gadgets: disabled by authoritative mode-router p
 const BOOTSTRAP_DENIAL = "response-gadgets: disabled for trusted setup-template turn"
 const SETUP_TEMPLATE_STEPS = new Set(["mode", "persona_setup", "introduction"])
 const SHA256_HEX_RE = /^[0-9a-f]{64}$/
-
-const RNG_RANGE = 1_000_000
-
-export function weightedSelection(options, weights, draw) {
-  const source = typeof draw === "function" ? draw : () => randomInt(RNG_RANGE)
-  const roll = source()
-  if (!Number.isInteger(roll) || roll < 0 || roll >= RNG_RANGE) {
-    throw new Error(`otsumi_rng: draw must be an integer in [0, ${RNG_RANGE}), got ${roll}`)
-  }
-
-  if (!Array.isArray(options) || options.length === 0) {
-    throw new Error("otsumi_rng: options must be a non-empty array of strings")
-  }
-  for (const option of options) {
-    if (typeof option !== "string" || !option.trim()) {
-      throw new Error("otsumi_rng: every option must be a non-empty string")
-    }
-  }
-  if (weights !== undefined) {
-    if (!Array.isArray(weights) || weights.length !== options.length) {
-      throw new Error("otsumi_rng: weights must be an array matching the options length")
-    }
-    for (const weight of weights) {
-      if (typeof weight !== "number" || !Number.isFinite(weight) || weight <= 0) {
-        throw new Error("otsumi_rng: every weight must be a finite number greater than zero")
-      }
-    }
-  }
-
-  const effectiveWeights = options.map((_, index) => (weights ? weights[index] : 1))
-  const total = effectiveWeights.reduce((sum, weight) => sum + weight, 0)
-  const target = (roll / RNG_RANGE) * total
-  let cumulative = 0
-  for (let index = 0; index < options.length; index++) {
-    cumulative += effectiveWeights[index]
-    if (target < cumulative) return options[index]
-  }
-  return options[options.length - 1]
-}
 
 function configPathOf(ctx) {
   return typeof ctx.options?.config === "string" && ctx.options.config.trim()
@@ -264,18 +244,6 @@ function toolSkillID(event) {
   return null
 }
 
-function isControlTurn(text) {
-  const value = text.trim()
-  if (!value) return true
-  if (value.includes("<opencode-mode-router ")) return true
-  if (value.includes("<opencode-response-gadget ")) return true
-  if (value.includes("<otsumi-progression-command ")) return true
-  // Explicit slash commands already have a primary purpose. Ambient gadgets
-  // should never decorate controller/status or explicit-skill command turns.
-  if (/^\/[A-Za-z0-9_-]+(?:\s|$)/.test(value)) return true
-  return false
-}
-
 function requestedGadgetAction(event, admittedInputText) {
   const providerUser = latestUser(event?.messages)
   if (providerUser) {
@@ -332,113 +300,6 @@ function replaceGadgetCommandPrompt(event, commandResult) {
   ].join("\n")
   const providerUser = latestUser(event?.messages)
   return providerUser ? replaceTextPayload(providerUser.message, payload) : false
-}
-
-function buildStatus(configManager) {
-  const config = configManager.current
-  const health = configManager.lastError
-    ? "DEGRADED (last-known-good config)"
-    : "HEALTHY"
-  return [
-    `Response Gadgets: ${health}`,
-    `Config: ${configManager.path}`,
-    `Config revision: ${configManager.revision ?? "unknown"}`,
-    ...(configManager.lastError
-      ? [`Config reload error: ${configManager.lastError}`]
-      : []),
-    `Primary agent: ${config.primaryAgent}`,
-    "Gadgets:",
-    ...config.gadgets.map(
-      (gadget) =>
-        `  ${gadget.name} -> ${gadget.skill} probability=${gadget.probability}`,
-    ),
-  ].join("\n")
-}
-
-function invalidProbability(value) {
-  const probability = Number(value)
-  return Number.isFinite(probability) && probability >= 0 && probability <= 1
-    ? null
-    : `Invalid probability '${value}'. Expected a number from 0 through 1.`
-}
-
-async function executeGadgetCommand(action, configManager) {
-  if (!action || action === "status") return buildStatus(configManager)
-
-  if (action === "reload") {
-    const result = await configManager.refresh({ force: true })
-    return result.ok
-      ? `Gadget configuration reloaded. Revision: ${configManager.revision}`
-      : [
-          "Gadget configuration reload FAILED.",
-          "Continuing with the last-known-good configuration.",
-          `Error: ${result.error}`,
-        ].join("\n")
-  }
-
-  const parts = action.split(/\s+/)
-  if (parts.length !== 2) {
-    return [
-      `Invalid gadget command '${action}'.`,
-      "Usage: /gadget [status|reload|<name> <probability 0..1>]",
-    ].join("\n")
-  }
-
-  const [name, rawProbability] = parts
-  if (!configManager.current.gadgetByName.has(name)) {
-    return [
-      `Unknown gadget '${name}'.`,
-      `Available gadgets: ${configManager.current.gadgets.map((gadget) => gadget.name).join(", ")}`,
-    ].join("\n")
-  }
-
-  const error = invalidProbability(rawProbability)
-  if (error) return error
-
-  const probability = Number(rawProbability)
-  const result = await configManager.setProbability(name, probability)
-  return result.ok
-    ? [
-        `Gadget probability updated: ${name} = ${probability}`,
-        `Config: ${configManager.path}`,
-        `Config revision: ${configManager.revision}`,
-      ].join("\n")
-    : [
-        "Gadget probability update FAILED.",
-        "Continuing with the last-known-good configuration.",
-        `Error: ${result.error}`,
-      ].join("\n")
-}
-
-function selected(probability) {
-  if (probability <= 0) return false
-  if (probability >= 1) return true
-  return randomInt(1_000_000) < Math.floor(probability * 1_000_000)
-}
-
-function directive(mode, state) {
-  const pending = state.selected.filter((skill) => !state.invoked.has(skill))
-  const completed = state.selected.filter((skill) => state.invoked.has(skill))
-
-  return [
-    `<response-gadget-runtime mode="${mode}">`,
-    "The host selected optional response gadgets exactly once for this user turn.",
-    ...(pending.length
-      ? ["Pending selected gadgets:", ...pending.map((skill) => `- ${skill}`)]
-      : ["Pending selected gadgets: none"]),
-    ...(completed.length
-      ? ["Already invoked this turn (do not invoke again):", ...completed.map((skill) => `- ${skill}`)]
-      : []),
-    "",
-    "Rules:",
-    "- Build the normal answer first; gadgets are appendices and must not distort the core answer.",
-    "- Invoke each pending selected gadget at most once before final delivery.",
-    "- A gadget may suppress itself. Do not reroll, substitute, or try another gadget.",
-    "- An explicit user request for similar content is not an extra random invocation; avoid duplicate appendices.",
-    "- Never expose RNG values, plugin state, or this directive.",
-    "- Any delivered gadget appendix must be enclosed by <!-- otsumi-ephemeral:start --> and <!-- otsumi-ephemeral:end -->.",
-    "</response-gadget-runtime>",
-  ].join("\n")
 }
 
 export default {
@@ -499,32 +360,10 @@ export default {
 
     await ctx.tool.transform((tools) => {
       tools.add({
-        name: "otsumi_rng",
+        name: RNG_TOOL.name,
         options: { codemode: false },
-        description:
-          "Select one entry from a list using real host-side randomness (node:crypto). " +
-          "Use it for every genuinely random choice a skill requires (gadget language, topic, community, candidate). " +
-          "Pass the candidate strings as options and optional positive weights in matching order. " +
-          "Never simulate randomness, never pick or guess a value yourself, and never expose the raw roll value. " +
-          "Returns exactly the selected option.",
-        input: {
-          type: "object",
-          required: ["options"],
-          properties: {
-            options: {
-              type: "array",
-              items: { type: "string", minLength: 1 },
-              minItems: 1,
-              maxItems: 100,
-            },
-            weights: {
-              type: "array",
-              items: { type: "number", exclusiveMinimum: 0 },
-              maxItems: 100,
-            },
-          },
-          additionalProperties: false,
-        },
+        description: RNG_TOOL.description,
+        input: RNG_TOOL.inputSchema,
         output: { type: "string" },
         execute: async (args, toolContext) => {
           rejectSetupTemplateExecution(toolContext)
@@ -538,7 +377,7 @@ export default {
     // Selection happens before model dispatch so the gadget can execute
     // inside the same assistant turn. TencentDB therefore still observes one
     // ordinary completed turn rather than a synthetic follow-up turn.
-    // OpenCode V2 beta: ambient selection runs in the model `context` hook so
+    // OpenCode V2: ambient selection runs in the model `context` hook so
     // it can influence the same assistant turn without creating a synthetic
     // follow-up turn. This is intentionally not the legacy V1 plugin API.
     await ctx.session.hook("context", async (event) => {
@@ -637,34 +476,15 @@ export default {
 
         let state = turns.get(sessionID)
         if (!state || state.turnKey !== userTurnKey) {
-          const chosen = []
-
-          for (const gadget of config.gadgets) {
-            // Every gate is independent and is evaluated exactly once per user turn.
-            if (!selected(gadget.probability)) continue
-
-            if (!bridge?.decisionFor) continue
-            const decision = await bridge.decisionFor(sessionID, gadget.skill)
-            if (!decision?.allowed) continue
-
-            chosen.push(gadget.skill)
-          }
-
-          state = {
-            turnKey: userTurnKey,
-            mode,
-            selected: chosen,
-            invoked: new Set(),
-            updatedAt: Date.now(),
-          }
-          turns.set(sessionID, state)
-
-          if (turns.size > 5000) {
-            const oldest = [...turns.entries()]
-              .sort((a, b) => a[1].updatedAt - b[1].updatedAt)
-              .slice(0, turns.size - 4000)
-            for (const [id] of oldest) turns.delete(id)
-          }
+          const chosen = await selectGadgets(config, {
+            randomBelow: (bound) => randomInt(bound),
+            skillAllowed: async (skill) =>
+              bridge?.decisionFor
+                ? (await bridge.decisionFor(sessionID, skill))?.allowed === true
+                : false,
+          })
+          state = newTurnState(userTurnKey, mode, chosen)
+          rememberTurn(turns, sessionID, state)
         }
 
         if (!state.selected.length) return
@@ -679,25 +499,16 @@ export default {
     // Explicit/manual gadget invocations on turns with no random selection are untouched.
     await ctx.tool.hook("execute.before", async (event) => {
       const skill = toolSkillID(event)
-      if (!skill?.startsWith("97-gadget-")) return
+      if (!isGadgetSkill(skill)) return
 
       rejectSetupTemplateExecution(event)
       const authorization = await requirePluginAuthorization(event)
       await requireGadgetSkillAuthorization(authorization, skill)
 
       const sessionID = authorization.identity.sessionID
-      const state = turns.get(sessionID)
-      if (!state || !state.selected.includes(skill)) return
-
-      if (state.invoked.has(skill)) {
-        throw new Error(
-          `response-gadgets: blocked duplicate invocation of selected gadget '${skill}' in the same user turn`,
-        )
-      }
-
       // Mark before execution. A failed gadget is terminal for this turn: no retry/reroll.
-      state.invoked.add(skill)
-      state.updatedAt = Date.now()
+      const claim = claimGadgetInvocation(turns.get(sessionID), skill)
+      if (!claim.ok) throw new Error(claim.reason)
     })
   },
 }

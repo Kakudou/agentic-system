@@ -116,13 +116,12 @@ export default {
       })
     }))
 
-    // OpenCode V2 beta pre-model context hook: runs immediately before each model
-    // dispatch, including continuation steps after tools. Mode policy therefore
-    // cannot drift between model steps in one turn.
-    // OpenCode V2 beta: `context` is the model-dispatch hook that owns the
-    // mutable system/messages/tools surface. The beta API is moving quickly;
-    // keep this aligned with the current /v2 plugin contract rather than the
-    // legacy V1 hook-object API.
+    // OpenCode V2 pre-model context hook: runs immediately before each primary
+    // agent-loop model dispatch, including continuation steps after tools. Mode
+    // policy therefore cannot drift between model steps in one turn.
+    // `context` owns the mutable system/messages/tools surface (verified against
+    // V2.0.16). The separate compaction/generate/title hooks are not guarded
+    // here; execute.before below still blocks any managed call they could emit.
     await registerGuard(runtime, () => ctx.session.hook("context", async (event) => {
       try {
         await configManager.refresh()

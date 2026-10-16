@@ -2,7 +2,7 @@
 name: 05-dev-init-project-devblog
 description: "Initialize an existing Git project with a dedicated Jekyll developer diary on a local gh-pages branch. Use an isolated orphan worktree, materialize the bundled minimal devblog template, verify it, create one exact local initialization commit, and leave publishing/push as a separate explicit action."
 metadata:
-  version: "2.0"
+  version: "2.1"
   opencode/slash: "true"
 ---
 
@@ -30,8 +30,10 @@ Read:
 - [Template contract](references/template-contract.md)
 - [Initialization safety](references/init-safety.md)
 
-The template is intentionally small: Jekyll configuration, two layouts, one stylesheet, an index,
-a post template, and a GitHub Pages workflow.
+The template is intentionally small: Jekyll configuration, three layouts, two includes, one
+self-contained Black Ice stylesheet, the brand mark and favicon, an index, a 404 page, a post
+template, and a GitHub Pages workflow. It needs no theme, gem, or plugin beyond what GitHub
+Pages' Jekyll build already provides.
 
 ## Hard Rules
 
@@ -103,7 +105,9 @@ Replace only these literal placeholders:
 - `{{PROJECT_NAME}}`
 - `{{PROJECT_DESCRIPTION}}`
 
-Verify no unresolved `{{...}}` token remains.
+Verify no unresolved upper-case placeholder (`{{[A-Z_]+}}`) remains. Liquid expressions such as
+`{{ page.title }}` and the workflow's `${{ ... }}` are template code, not placeholders; leave them
+intact.
 
 Do not introduce sample project events or fake historical blog posts.
 
@@ -112,9 +116,11 @@ Do not introduce sample project events or fake historical blog posts.
 At minimum inspect:
 
 ```bash
-git -C <devblog-worktree-path> diff --check --no-index /dev/null .
 git -C <devblog-worktree-path> status --porcelain=v2
+grep -rnE '\{\{[A-Z_]+\}\}' <devblog-worktree-path> --exclude-dir=.git
 ```
+
+The `grep` must return nothing. Whitespace errors are checked on the staged diff in step 6.
 
 Validate the YAML frontmatter/configuration structurally.
 
