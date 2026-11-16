@@ -63,10 +63,10 @@
       }
     }
   },
-  "model": "llamacpp/qwen38-27b#medium",
+  "model": "llamacpp/qwen3.8-27b#medium",
   "default_agent": "osho",
   "experimental": {
-    "subagent_depth": 2
+    "subagent_depth": 1
   },
   "plugins":  [
     {

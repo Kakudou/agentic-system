@@ -1,0 +1,12 @@
+# Example environment for the TencentDB agent-memory plugin.
+# Copy this file to `source_env` in the same directory, replace every
+# __SET_ME__ / <placeholder> value, then `source source_env`.
+# NEVER commit source_env: it holds real secrets and is git-ignored.
+export TDAI_GATEWAY_URL=__SET_ME__
+export TDAI_MEMORY_USER_ID='<your-name-lowercase>'
+export OPENCODE_SERVER_URL=__SET_ME__
+
+export TDAI_GATEWAY_API_KEY=__SET_ME__
+export TDAI_LLM_BASE_URL=__SET_ME__
+export TDAI_LLM_API_KEY=__SET_ME__
+export TDAI_LLM_MODEL=qwen38

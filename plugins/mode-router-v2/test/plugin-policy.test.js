@@ -88,6 +88,19 @@ test("canonical modes.yml declares the exact version 2 managed plugin policy", a
   }
 })
 
+test("canonical modes.yml leaves optional 97-gadget-* skills unmanaged (pass-through)", async () => {
+  const text = await readFile(new URL("../modes.yml", import.meta.url), "utf8")
+
+  const devPrefixes = yamlList(yamlModeBlock(text, "dev"), "prefixes_allowed", 6)
+  assert.ok(devPrefixes?.includes("05-dev-*"), "dev prefixes were not parsed")
+  assert.equal(devPrefixes.includes("97-gadget-*"), false, "dev still manages 97-gadget-*")
+  assert.deepEqual(
+    yamlList(yamlModeBlock(text, "dev-python"), "prefixes_allowed", 6),
+    ["06-python-*"],
+  )
+  assert.doesNotMatch(text, /97-gadget-/, "another mode or root rule still manages 97-gadget-*")
+})
+
 test("version 2 plugin allow rules inherit through extends without changing skill rules", () => {
   assert.equal(typeof matcher.pluginDecision, "function")
   const v2 = matcher.normalizeConfig(versionTwoConfig())

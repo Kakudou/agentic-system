@@ -10,7 +10,7 @@ vaults:
       "000-Meta/": "settings, plugins, and 003-Templates/"
       "010-Planners/": "011-Yearly, 012-Monthly, 013-Weekly, 014-Daily"
       "020-Feedbacks/": "021-Yearly, 022-Monthly, 023-Weekly, 024-Daily"
-      "030-Funnel/": "031-Notes, 032-Attachments, 033-Zettels"
+      "030-Funnel/": "031-Notes, 032-Attachments, 033-Zettels, 034-Resources"
       "100-Personal/": "101-Funnel, 200-Projects, 300-Areas_of_Responsabilities, 400-Resources, 500-Archived"
       "600-Workspace/": "601-Funnel, 700-Projects, 800-Areas_of_Responsabilities, 900-Resources, 999-Archived"
 
@@ -18,6 +18,9 @@ vaults:
       funnel_inbox: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/031-Notes/"
       funnel_attachments: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/032-Attachments/"
       funnel_zettels_global: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/033-Zettels/"
+      # zettel_root aliases funnel_zettels_global (same folder); resolvers must de-duplicate.
+      zettel_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/033-Zettels/"
+      resources_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/030-Funnel/034-Resources/"
       funnel_zettels_personal: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/100-Personal/101-Funnel/105-Zettels/"
       funnel_zettels_workspace: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/600-Workspace/601-Funnel/605-Zettels/"
       planner_yearly_root: "/home/kakudou/Arcology/ObsidianMD/volgna-gath/010-Planners/011-Yearly/"

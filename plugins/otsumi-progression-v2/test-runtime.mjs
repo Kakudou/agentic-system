@@ -44,6 +44,7 @@ const stream = new AsyncQueue()
 const tools = new Map()
 const commands = new Map()
 const hooks = new Map()
+const sessionPrompts = []
 let requestHook = null
 
 const bridgeKey = Symbol.for("kakudou.mode-router.v2.bridge")
@@ -90,11 +91,10 @@ const ctx = {
   },
   command: {
     async transform(callback) {
+      // V2 command editor is add-only: no update() and no template field.
       await callback({
-        update(name, mutate) {
-          const command = {}
-          mutate(command)
-          commands.set(name, command)
+        add(definition) {
+          commands.set(definition.name, definition)
         },
       })
     },
@@ -106,6 +106,9 @@ const ctx = {
     },
     async get() {
       return { data: {} }
+    },
+    async prompt(input) {
+      sessionPrompts.push(input)
     },
   },
   tool: {
@@ -124,7 +127,16 @@ const ctx = {
 
 const cleanup = await plugin.setup(ctx)
 assert.equal(typeof requestHook, "function")
-assert.equal(commands.get("otsumi")?.template, '<otsumi-progression-command action="$ARGUMENTS" />')
+// Ported from the removed `.template` field: execute() must submit the same
+// marker the old '<otsumi-progression-command action="$ARGUMENTS" />' template did.
+assert.equal(typeof commands.get("otsumi")?.execute, "function")
+await commands.get("otsumi").execute({
+  sessionID: "s-command",
+  prompt: { text: "status" },
+  delivery: "steer",
+})
+assert.equal(sessionPrompts.at(-1)?.text, '<otsumi-progression-command action="status" />')
+assert.equal(sessionPrompts.at(-1)?.sessionID, "s-command")
 assert.equal(tools.size, 4)
 assert.equal(typeof hooks.get("execute.after"), "function")
 

@@ -11,7 +11,9 @@ Require:
 - `named_roots.srs_japanese_root` for Japanese or `named_roots.srs_german_root` for German;
 - `templates.srscard_template`.
 
-If either is unconfigured, skip persistence. Never invent a vault path or fall back to an unrelated zettel directory.
+Also read, when configured, `safety.configured_submodules` and `safety.disclose_submodule_mutation`; they drive the disclosure rule below.
+
+If either required key is unconfigured, skip persistence. Never invent a vault path or fall back to an unrelated zettel directory.
 
 ## Template Authority
 
@@ -58,3 +60,11 @@ Before writing:
 After writing, read the changed card back and verify the intended fields/content.
 
 A blocked, duplicate, unavailable, or failed write does not invalidate the visible language drop and must never be reported as successful.
+
+## Sensitive Responses
+
+When the main response is sensitive or secret-bearing, skip persistence entirely: no card is created or updated from it.
+
+## Submodule Disclosure
+
+The standing per-card write authorization above is unchanged. When a verified write landed inside a configured submodule, or inside a configured root flagged `disclose_submodule_mutation`, the visible appendix must disclose that write and name the affected root or deck. Never disclose a write that did not succeed.

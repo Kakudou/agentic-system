@@ -28,6 +28,17 @@ Left is the **bottom**, right is the **top**. `auth` is based on `main` and merg
 Foundational work belongs at the bottom, code that depends on it above. For how to choose the
 layers, read `references/stack-design.md`.
 
+## Local safety overlay (not upstream)
+
+This section is a local addition to the vendored skill and overrides the guidance below.
+
+- Run these only after the user explicitly approves the exact command: `push`, `submit`,
+  `sync`, `link`, `merge`, any `unstack` without `--local`, `rebase --onto`, extension install
+  (`gh extension install`), and any `git config` write (including the Setup lines below).
+- Until that approval is given, prefer local-only operations such as `view --json`, `init`,
+  `add`, `up`/`down`/`top`/`bottom`, `checkout`, local commits, `rebase --upstack`, and
+  `unstack --local`.
+
 ## Setup
 
 ```bash

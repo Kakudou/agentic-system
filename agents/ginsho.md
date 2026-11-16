@@ -1,20 +1,13 @@
 ---
+name: ginsho
 description: "Independent validator. Judges supplied evidence against the required success criteria."
 mode: subagent
-subtask: true
-permissions:
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: execute
-    resource: "*"
-    effect: deny
-  - action: subagent
-    resource: "*"
-    effect: deny
+permission:
+  edit: deny
+  shell: deny
+  execute: deny
+  subagent: deny
+disallowedTools: Edit, Write, NotebookEdit, Bash, Agent, Artifact, ArtifactData, ArtifactComments, CronCreate, CronDelete, RemoteTrigger, SendMessage, PushNotification, EnterWorktree, ExitWorktree, DesignSync, PublishPlugin
 ---
 
 # Ginshō — Silver General

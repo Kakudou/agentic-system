@@ -1,4 +1,4 @@
-import { expect, test } from 'claude-code/testing'
+import { expect, mock, test } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
 const CONFIG_TAIL = '/plugins/response-gadgets-v2/config.yml'
@@ -23,8 +23,16 @@ function configText(probabilities: { srs: number; news: number; facts: number })
 }
 
 // The engine beneath the plugin: an in-memory shared config file, one
-// session, and records of what the plugin registered and submitted.
-function harness(on: On, sessionID: string, initial: string) {
+// session, its environment (empty, as an unset OTSUMI_GADGETS_MODE, unless
+// given; null when the test answers env.get itself), and records of what the
+// plugin registered and submitted.
+function harness(
+  on: On,
+  sessionID: string,
+  initial: string,
+  env: Readonly<Record<string, string>> | null = {},
+) {
+  if (env) mock.env(on, env)
   const file = { text: initial, mtimeMs: clock++ }
   const seen = {
     commands: [] as string[],
@@ -143,4 +151,80 @@ test('otsumi_rng answers one of the options and refuses invalid input', async ($
 
   const refused = await $.tool.call({ tool: 'mcp__otsumi__otsumi_rng', options: [] })
   expect(refused.deny).toContain('options must be a non-empty array')
+})
+
+// OTSUMI_GADGETS_MODE: unset, empty, or `dev` keeps ambient selection on;
+// any other value turns ambient selection off. Probability 1 is the
+// deterministic RNG seam: the gate selects without drawing.
+test('an unset OTSUMI_GADGETS_MODE keeps ambient selection on', async ($, on) => {
+  const { seen } = harness(on, 'session-mode-unset', configText({ srs: 1, news: 0, facts: 0 }), {})
+
+  await $.prompt.submit({ text: 'explain tcp slow start', wait: false, origin: PERSON })
+  expect(seen.contexts[0]?.length).toBe(1)
+  expect(seen.contexts[0]?.[0]).toContain('<response-gadget-runtime mode="dev">')
+  expect(seen.contexts[0]?.[0]).toContain('- 97-gadget-random-srs')
+})
+
+test('OTSUMI_GADGETS_MODE=chatbot suppresses ambient selection and its directive', async ($, on) => {
+  const { seen } = harness(on, 'session-mode-chatbot', configText({ srs: 1, news: 1, facts: 1 }), {
+    OTSUMI_GADGETS_MODE: 'chatbot',
+  })
+
+  await $.prompt.submit({ text: 'stay in character please', wait: false, origin: PERSON })
+  expect(seen.contexts).toEqual([undefined])
+
+  // No ambient selection means no at-most-once guard either: a manual gadget runs.
+  const manual = await $.tool.call({ tool: 'Skill', skill: '97-gadget-random-srs' })
+  expect(manual.deny).toBeUndefined()
+  expect(seen.skillRuns).toBe(1)
+})
+
+test('OTSUMI_GADGETS_MODE is read per prompt, trimmed and lowercased', async ($, on) => {
+  const env: { OTSUMI_GADGETS_MODE?: string } = {}
+  on('env.get', ($, e) => ({ value: e.name === 'OTSUMI_GADGETS_MODE' ? env.OTSUMI_GADGETS_MODE : undefined }))
+  const { seen } = harness(on, 'session-mode-live', configText({ srs: 1, news: 0, facts: 0 }), null)
+
+  const cases: [string | undefined, boolean][] = [
+    [undefined, true],
+    ['', true],
+    ['  DEV ', true],
+    ['off', false],
+    [' Chatbot', false],
+    ['GAMEMASTER', false],
+    ['something-else', false],
+    ['dev', true],
+  ]
+  for (const [index, [value, selected]] of cases.entries()) {
+    env.OTSUMI_GADGETS_MODE = value
+    await $.prompt.submit({ text: `prompt ${index}`, wait: false, origin: PERSON })
+    if (selected) expect(seen.contexts[index]?.[0]).toContain('- 97-gadget-random-srs')
+    else expect(seen.contexts[index]).toBeUndefined()
+  }
+
+  // A suppressed prompt leaves no stale selection behind: after a selected
+  // and invoked gadget, a later suppressed turn does not block a manual run.
+  env.OTSUMI_GADGETS_MODE = undefined
+  await $.prompt.submit({ text: 'selected turn', wait: false, origin: PERSON })
+  expect((await $.tool.call({ tool: 'Skill', skill: '97-gadget-random-srs' })).deny).toBeUndefined()
+  env.OTSUMI_GADGETS_MODE = 'off'
+  await $.prompt.submit({ text: 'suppressed turn', wait: false, origin: PERSON })
+  expect((await $.tool.call({ tool: 'Skill', skill: '97-gadget-random-srs' })).deny).toBeUndefined()
+})
+
+test('OTSUMI_GADGETS_MODE=off leaves the manual /gadget command and otsumi_rng working', async ($, on) => {
+  const { file, seen } = harness(on, 'session-mode-off', configText({ srs: 0.15, news: 0.05, facts: 0.05 }), {
+    OTSUMI_GADGETS_MODE: 'off',
+  })
+  await $.session.start({ cwd: '/work', surface: null, isInteractive: true })
+  const presentation = { isFullscreen: false, columns: 80 }
+
+  const status = await $.command.run({ command: 'gadget', args: 'status', origin: PERSON, presentation })
+  expect(status.text).toContain('Response Gadgets: HEALTHY')
+  const updated = await $.command.run({ command: 'gadget', args: 'random-srs 0.5', origin: PERSON, presentation })
+  expect(updated.text).toContain('Gadget probability updated: random-srs = 0.5')
+  expect(seen.writes.length).toBe(1)
+  expect(file.text).toContain('probability: 0.5')
+
+  const picked = await $.tool.call({ tool: 'mcp__otsumi__otsumi_rng', options: ['japanese', 'german'] })
+  expect(['japanese', 'german']).toContain(picked.result)
 })

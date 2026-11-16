@@ -81,8 +81,17 @@ export function explicitSkillSlash(text) {
   return match ? match[1] : null
 }
 
-const MODE_COMMAND_RE = /<opencode-mode-router\s+action="([^"]*)"\s*\/>/i
+// Both command forms are anchored: they authorize a control turn only when
+// they are the ENTIRE trimmed user text. A marker quoted inside a longer
+// message is ordinary prose and must never change mode or be rewritten.
+const MODE_COMMAND_RE = /^<opencode-mode-router\s+action="([^"]*)"\s*\/>$/i
 const RAW_MODE_COMMAND_RE = /^\/mode(?:[ \t]+([^\r\n]*))?$/
+
+function isModeCommandText(text) {
+  if (typeof text !== "string") return false
+  const trimmed = text.trim()
+  return MODE_COMMAND_RE.test(trimmed) || RAW_MODE_COMMAND_RE.test(trimmed)
+}
 
 function latestUserMessage(messages) {
   if (!Array.isArray(messages)) return null
@@ -129,19 +138,13 @@ function replaceTextPayload(value, payload, depth = 0) {
   if (typeof value !== "object") return false
 
   // AI SDK ModelMessage text part / OpenCode text part.
-  if (
-    typeof value.text === "string" &&
-    (MODE_COMMAND_RE.test(value.text) || RAW_MODE_COMMAND_RE.test(value.text.trim()))
-  ) {
+  if (typeof value.text === "string" && isModeCommandText(value.text)) {
     value.text = payload
     return true
   }
 
   // Some provider-ready message shapes use string content directly.
-  if (
-    typeof value.content === "string" &&
-    (MODE_COMMAND_RE.test(value.content) || RAW_MODE_COMMAND_RE.test(value.content.trim()))
-  ) {
+  if (typeof value.content === "string" && isModeCommandText(value.content)) {
     value.content = payload
     return true
   }

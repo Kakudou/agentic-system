@@ -63,8 +63,17 @@ const RETRY_DELAYS_MS = [
   60000,
 ]
 
+// Marker spelling tolerates whitespace and case variants inside the comment,
+// e.g. "<!-- OTSUMI-EPHEMERAL : START -->".
 const EPHEMERAL_APPENDIX =
-  /<!--\s*otsumi-ephemeral:start\s*-->[\s\S]*?<!--\s*otsumi-ephemeral:end\s*-->/gi
+  /<!--\s*otsumi-ephemeral\s*:\s*start\s*-->[\s\S]*?<!--\s*otsumi-ephemeral\s*:\s*end\s*-->/gi
+
+// A start marker with no matching end hides everything after it.
+const EPHEMERAL_UNTERMINATED =
+  /<!--\s*otsumi-ephemeral\s*:\s*start\s*-->[\s\S]*$/i
+
+const EPHEMERAL_STRAY_END =
+  /<!--\s*otsumi-ephemeral\s*:\s*end\s*-->/gi
 
 function stripEphemeralAppendices(
   value: string,
@@ -74,7 +83,107 @@ function stripEphemeralAppendices(
       EPHEMERAL_APPENDIX,
       "",
     )
+    .replace(
+      EPHEMERAL_UNTERMINATED,
+      "",
+    )
+    .replace(
+      EPHEMERAL_STRAY_END,
+      "",
+    )
     .trim()
+}
+
+const REDACTED =
+  "[REDACTED]"
+
+/*
+ * Secret-looking values must never become durable memory. Order matters:
+ * NAME=value assignments run first so the variable name survives while its
+ * value (often itself an sk-/ghp_ token) is replaced once.
+ */
+const SECRET_PATTERNS: ReadonlyArray<{
+  pattern: RegExp
+  keepPrefix: boolean
+}> = [
+  {
+    pattern:
+      /\b([A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD)[A-Z0-9_]*\s*=\s*)\S+/g,
+    keepPrefix:
+      true,
+  },
+  {
+    pattern:
+      /\bsk-[A-Za-z0-9_-]{16,}/g,
+    keepPrefix:
+      false,
+  },
+  {
+    pattern:
+      /\bgh[pousr]_[A-Za-z0-9]{20,}/g,
+    keepPrefix:
+      false,
+  },
+  {
+    pattern:
+      /\bAKIA[0-9A-Z]{16}\b/g,
+    keepPrefix:
+      false,
+  },
+  {
+    pattern:
+      /bearer\s+[A-Za-z0-9._~+/=-]{16,}/gi,
+    keepPrefix:
+      false,
+  },
+  {
+    // A UUID within ~20 characters after a credential keyword.
+    pattern:
+      /((?<![A-Za-z])(?:api[\s_-]?keys?|keys?|tokens?|secrets?|passwords?)(?![A-Za-z])[^\n]{0,20}?)\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+    keepPrefix:
+      true,
+  },
+]
+
+function redactSecrets(
+  value: string,
+): {
+  text: string
+  redactions: number
+} {
+  let text =
+    value
+
+  let redactions =
+    0
+
+  for (const {
+    pattern,
+    keepPrefix,
+  } of SECRET_PATTERNS) {
+    text =
+      text.replace(
+        pattern,
+        (
+          _match: string,
+          prefix: unknown,
+        ) => {
+          redactions += 1
+
+          return (
+            keepPrefix &&
+            typeof prefix === "string"
+          )
+            ? `${prefix}${REDACTED}`
+            : REDACTED
+        },
+      )
+  }
+
+  return {
+    text,
+    redactions,
+  }
 }
 
 const PROCESS_REGISTRY_KEY =
@@ -398,6 +507,48 @@ export class CaptureService {
 
           capturedAssistantChars:
             turn.assistantText.length,
+        },
+      )
+    }
+
+    // Redact secret-looking values from both sides of the turn after
+    // ephemeral stripping and before anything is submitted for capture.
+    const redactedUser =
+      redactSecrets(
+        turn.userText,
+      )
+
+    const redactedAssistant =
+      redactSecrets(
+        turn.assistantText,
+      )
+
+    if (
+      redactedUser.redactions > 0 ||
+      redactedAssistant.redactions > 0
+    ) {
+      turn = {
+        ...turn,
+        userText:
+          redactedUser.text,
+        assistantText:
+          redactedAssistant.text,
+      }
+
+      this.trace.write(
+        "CAPTURE_SECRETS_REDACTED",
+        {
+          sessionID:
+            turn.sessionID,
+
+          generation:
+            turn.generation,
+
+          userRedactions:
+            redactedUser.redactions,
+
+          assistantRedactions:
+            redactedAssistant.redactions,
         },
       )
     }

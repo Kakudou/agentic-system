@@ -1,3 +1,6 @@
+skills/synced/
 manual_plugins/tencentdb-agent-memory/data/
 manual_plugins/tencentdb-agent-memory/.admin-key
 .opencode/.session-continuity.md
+manual_plugins/tencentdb-agent-memory/source_env
+**/.admin-key*

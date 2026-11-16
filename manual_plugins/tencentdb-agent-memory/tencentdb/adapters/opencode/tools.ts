@@ -220,7 +220,7 @@ function degradedBlock(
       `${s.consecutiveFailures} consecutive failures on TDAI source '${s.id}' (last: ${s.lastError ?? "unknown error"})`,
 
     guidance:
-      "Do not retry this TDAI source for the remainder of this turn. Continue the main task with an alternate retrieval path (local file tools, web search, or the direct backend endpoint). The source will be re-probed automatically after a cooldown.",
+      "Do not retry this TDAI source for the remainder of this turn. Continue the main task from evidence already available or with local file tools. The source will be re-probed automatically after a cooldown.",
 
     recovery:
       "automatic half-open probe after cooldown or on success",

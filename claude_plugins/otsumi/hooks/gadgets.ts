@@ -38,7 +38,9 @@ const PERSON_ORIGINS = new Set(['composer', 'bridge'])
 
 // Claude Code has no Ōtsumi mode-router yet, so every session runs the
 // general development policy: gadgets enabled, gadget skills allowed. A
-// Claude Code port of the mode-router replaces this seam.
+// Claude Code port of the mode-router replaces this seam. Until then,
+// OTSUMI_GADGETS_MODE switches ambient selection off for a session (see
+// ambientEnabled below).
 const POLICY = {
   mode: 'dev',
   skillAllowed: async (_skill: string) => true,
@@ -82,6 +84,15 @@ async function storeFor($: EngineInterface): Promise<ConfigStore> {
   return loaded
 }
 
+// OTSUMI_GADGETS_MODE, read when each prompt is submitted: unset, empty, or
+// `dev` (trimmed, any case) keeps ambient selection on, the default. Any
+// other value (`off`, `chatbot`, `gamemaster`, or unknown) turns ambient
+// selection and its directive off. /gadget and otsumi_rng never read it.
+async function ambientEnabled($: EngineInterface): Promise<boolean> {
+  const mode = ((await $.env.get('OTSUMI_GADGETS_MODE')) ?? '').trim().toLowerCase()
+  return mode === '' || mode === 'dev'
+}
+
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
@@ -121,6 +132,12 @@ export function registerGadgets(on: On): void {
 
     let state: TurnState
     try {
+      if (!(await ambientEnabled($))) {
+        // No selection this turn: drop any earlier turn's selection so its
+        // at-most-once guard cannot reach into this one.
+        turns.delete(await $.session.id())
+        return next(e)
+      }
       const current = await storeFor($)
       await current.refresh()
       const chosen = await selectGadgets(current.current, {

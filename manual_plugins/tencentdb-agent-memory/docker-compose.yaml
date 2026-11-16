@@ -11,11 +11,11 @@ services:
       TDAI_GATEWAY_HOST: "0.0.0.0"
       TDAI_GATEWAY_PORT: "8420"
 
-      TDAI_GATEWAY_API_KEY: "${TDAI_GATEWAY_API_KEY}"
+      TDAI_GATEWAY_API_KEY: "${TDAI_GATEWAY_API_KEY:?TDAI_GATEWAY_API_KEY is required}"
 
-      TDAI_LLM_BASE_URL: "${TDAI_LLM_BASE_URL}"
-      TDAI_LLM_API_KEY: "${TDAI_LLM_API_KEY}"
-      TDAI_LLM_MODEL: "${TDAI_LLM_MODEL}"
+      TDAI_LLM_BASE_URL: "${TDAI_LLM_BASE_URL:?TDAI_LLM_BASE_URL is required}"
+      TDAI_LLM_API_KEY: "${TDAI_LLM_API_KEY:?TDAI_LLM_API_KEY is required}"
+      TDAI_LLM_MODEL: "${TDAI_LLM_MODEL:?TDAI_LLM_MODEL is required}"
 
       TDAI_DATA_DIR: "/data"
 
@@ -37,14 +37,14 @@ services:
 
     environment:
       REMOTE_INSTANCE_URL: "http://tdai-memory-core:8420"
-      REMOTE_INSTANCE_KEY: "${TDAI_GATEWAY_API_KEY}"
+      REMOTE_INSTANCE_KEY: "${TDAI_GATEWAY_API_KEY:?TDAI_GATEWAY_API_KEY is required}"
 
       KNOWLEDGE_PUBLIC_BASE_URL: "http://127.0.0.1:8424/v3"
 
       LLM_MODE: "custom"
-      LLM_BASE_URL: "${TDAI_LLM_BASE_URL}"
-      LLM_API_KEY: "${TDAI_LLM_API_KEY}"
-      LLM_MODEL: "${TDAI_LLM_MODEL}"
+      LLM_BASE_URL: "${TDAI_LLM_BASE_URL:?TDAI_LLM_BASE_URL is required}"
+      LLM_API_KEY: "${TDAI_LLM_API_KEY:?TDAI_LLM_API_KEY is required}"
+      LLM_MODEL: "${TDAI_LLM_MODEL:?TDAI_LLM_MODEL is required}"
 
     volumes:
       - /home/kakudou/Arcology/tencentdb/data/panel-data:/data/knowledge

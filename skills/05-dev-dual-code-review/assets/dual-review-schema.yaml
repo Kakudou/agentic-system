@@ -28,5 +28,5 @@ residual_risks: []
 
 review_provenance:
   arm_a: "05-dev-code-review"
-  arm_b: "kakugyo-independent-review"
+  arm_b: "independent-review"
   independence_preserved: true

@@ -216,6 +216,16 @@ function blockYaml(config) {
   ].join("\n")
 }
 
+// The leading block of complete comment or blank lines, returned byte for
+// byte so a probability write keeps a file's header documentation. Only a
+// block that holds at least one comment counts as a header.
+const HEADER_RE = /^(?:[ \t]*(?:#[^\r\n]*)?\r?\n)*/
+
+function leadingHeader(text) {
+  const header = HEADER_RE.exec(text)?.[0] ?? ""
+  return header.includes("#") ? header : ""
+}
+
 function parseConfigText(text, path, yaml) {
   const parse = yaml?.parse
   if (typeof parse === "function") return parse(text)
@@ -226,12 +236,12 @@ function parseConfigText(text, path, yaml) {
 // the subset parser above both read. A host stringify is deliberately not
 // used (Bun.YAML.stringify writes single-line flow style, which a host
 // without a full YAML parser could not read back).
-function serializeConfig(config, path) {
+function serializeConfig(config, path, header = "") {
   const plain = plainConfig(config)
   if (isJsonPath(path)) {
     return JSON.stringify(plain, null, 2) + "\n"
   }
-  return blockYaml(plain)
+  return header + blockYaml(plain)
 }
 
 async function withMutationLock(path, operation) {
@@ -309,7 +319,7 @@ export class ConfigStore {
 
           const updated = normalizeConfig(plainConfig(latest.config))
           updated.gadgetByName.get(name).probability = probability
-          const text = serializeConfig(updated, this.path)
+          const text = serializeConfig(updated, this.path, leadingHeader(latest.text))
           await this.fs.write(this.path, text)
           const result = await this.#readAndValidate()
           this.#adopt(result)
@@ -338,6 +348,7 @@ export class ConfigStore {
     const config = normalizeConfig(parseConfigText(text, this.path, this.yaml()))
     return {
       config,
+      text,
       revision: await revisionOf(text),
       signature: precomputedSignature ?? `${info.mtimeMs}:${info.size}`,
     }

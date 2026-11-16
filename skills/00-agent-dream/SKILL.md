@@ -1,6 +1,7 @@
 ---
 name: 00-agent-dream
 description: Run one stochastic offline dream cycle for every callable custom archetype subagent using its own TencentDB memory.
+compatibility: "Requires the TencentDB memory plugin dream tools (tdai_dream_begin, tdai_dream_roll, tdai_dream_sample, tdai_dream_commit; tdai_dream_*) and a host capability that can spawn subagents."
 metadata:
   version: "1.0"
   opencode/slash: "true"
@@ -22,6 +23,7 @@ Never mix the two execution roles.
 
 - The configured TencentDB memory plugin remains the authority for identity and memory isolation.
 - Every dream execution MUST first call `tdai_dream_begin` with protocol `TDAI_DREAM_SKILL_V1`. This suppresses normal conversation capture for that execution.
+- If `tdai_dream_begin` is unavailable, report BLOCKED and stop.
 - The 60/30/10 outcome is decided only by `tdai_dream_roll`, never by the model.
 - A `nothing` outcome performs no TencentDB retrieval and no memory mutation.
 - A `dream` or `nightmare` calls `tdai_dream_sample` exactly once and `tdai_dream_commit` at most once.

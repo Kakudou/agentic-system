@@ -1,4 +1,4 @@
-// Host-free core tests, run under Node: node --test claude_plugins/otsumi/core/test/
+// Host-free core tests, run under Node: node --test claude_plugins/otsumi/core/test/*.js
 import assert from "node:assert/strict"
 import { createHash } from "node:crypto"
 import { readFile } from "node:fs/promises"
@@ -97,6 +97,44 @@ test("a write is block YAML even when the host YAML has a flow-style stringify",
     normalizeConfig(parseSimpleYaml(written)).gadgetByName.get("random-srs").probability,
     0.3,
   )
+})
+
+test("a probability write keeps the leading header comment block byte-identical", async () => {
+  const path = "/virtual/config.yml"
+  const header = [
+    "# Shared response-gadget configuration.",
+    "#",
+    "#   indented note: keep this exactly, trailing spaces too   ",
+    "",
+  ].join("\n") + "\n"
+  const body = [
+    "version: 1",
+    "primary_agent: osho",
+    "",
+    "gadgets:",
+    "  - name: random-srs",
+    "    skill: 97-gadget-random-srs",
+    "    probability: 0.15",
+    "",
+  ].join("\n")
+  const fs = memoryFs(new Map([[path, header + body]]))
+  const store = new ConfigStore(path, { fs })
+  await store.initialize()
+
+  assert.deepEqual(await store.setProbability("random-srs", 0.7), { changed: true, ok: true })
+  const written = fs.files.get(path)
+  assert.equal(written.slice(0, header.length), header, "header lines must be byte-identical at the top")
+  assert.equal(
+    normalizeConfig(parseSimpleYaml(written)).gadgetByName.get("random-srs").probability,
+    0.7,
+  )
+  assert.equal(store.current.gadgetByName.get("random-srs").probability, 0.7)
+
+  // A second write keeps the same header once, not twice.
+  await store.setProbability("random-srs", 0.2)
+  const rewritten = fs.files.get(path)
+  assert.equal(rewritten.slice(0, header.length), header)
+  assert.equal(rewritten.indexOf(header, 1), -1, "header must not be duplicated")
 })
 
 test("the revision is the same sha256 prefix Node computes", async () => {

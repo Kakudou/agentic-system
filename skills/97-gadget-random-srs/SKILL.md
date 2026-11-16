@@ -41,13 +41,16 @@ If the host RNG tool is unavailable, append nothing. Never simulate the draw, ne
 - Section 3 retains at most 3 vocabulary/phrase items and 1 grammar point.
 - Do not claim a card was persisted unless the write actually succeeded and was verified.
 - Visible delivery does not depend on persistence succeeding.
+- When a card was written inside a configured submodule or a configured root flagged `disclose_submodule_mutation`, the appendix must disclose that write and name the affected root or deck.
 - Enclose the visible gadget appendix in the generic ephemeral markers shown below. Persistent SRS cards, when explicitly written, remain normal knowledge artifacts and are not part of those markers.
 
 ## Workflow
 
 ### 1. Fit Check
 
-Append nothing when the main response is trivial, contains too little useful material, is already written in the target language, or is contextually inappropriate for a language-learning appendage. A long substantive response is prime material, not a reason to suppress.
+Append nothing when the main response is trivial, contains too little useful material, is already written in the target language, is a sensitive or secret-bearing response, or is contextually inappropriate for a language-learning appendage. A long substantive response is prime material, not a reason to suppress.
+
+For a sensitive or secret-bearing response, card persistence is skipped as well: no card is created or updated from it.
 
 ### 2. Select Language
 
@@ -78,7 +81,8 @@ This is ordinary working data, not a versioned handoff schema.
 Obtain the descriptor by calling the centralized vault overview capability — in this installation, the `03-kb-obsidian-vault-overview` skill — and request:
 
 - `named_roots.srs_japanese_root` for Japanese, or `named_roots.srs_german_root` for German;
-- `templates.srscard_template`.
+- `templates.srscard_template`;
+- `safety.configured_submodules` and `safety.disclose_submodule_mutation`, when configured, for the disclosure rule.
 
 This skill carries no vault paths and no registry copy; vault topology knowledge stays in the overview skill. When this skill is shared standalone, an equivalent caller-supplied descriptor may be used instead of the call.
 
@@ -107,6 +111,8 @@ The appendix has exactly three sections, separated by `---` lines:
 ### 🗂 Retained SRS cards
 
 - <target-language item> — <short English meaning> → <persisted: <deck-relative path> | skipped: <reason>>
+
+<When disclosure applies: ⚠ Wrote to <root or deck> inside configured submodule <submodule>.>
 <!-- otsumi-ephemeral:end -->
 ```
 
@@ -116,5 +122,6 @@ Rules for the sections:
 - Section 2 explains selected parts, not every word; it may cite readings and the one retained grammar point.
 - Section 3 lists every retained card with its actual persistence outcome (verified path or skip reason). Do not claim a path that was not written and verified.
 - Omit a retained grammar entry when no useful grammar point fits.
+- Include the disclosure line only when a verified write landed inside a configured submodule or a root flagged `disclose_submodule_mutation`; name the actual root or deck written.
 
 If the main response cannot be usefully translated into the selected language, append nothing.

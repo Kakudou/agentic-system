@@ -17,10 +17,13 @@ skills/*/SKILL.md
     portable capability procedures
 
 plugins/
-    host-enforced runtime behavior such as skill-mode routing and ambient response gadgets
+    host-enforced runtime behavior such as skill-mode routing, ambient response gadgets, and progression
 
 manual_plugins/
     optional host integrations such as TencentDB Agent Memory
+
+claude_plugins/
+    Claude Code host adapters
 ```
 
 The layers are intentionally separate. A reusable skill should not need to know the Shogi board, internal agent names, or runtime mode policy.
@@ -95,7 +98,6 @@ Availability and execution of configured mode-managed JohnnyDecimal skills belon
 | 09 | `09-rp-` | Roleplay chatbot |
 | 10 | `10-rpg-` | Reserved for general pen-and-paper RPG capabilities |
 | 11 | `11-shadowrun-` | Reserved for Shadowrun RPG capabilities |
-| 12 | `12-bbounty-` | Bug bounty and authorized security testing |
 | 97 | `97-gadget-` | Optional response gadgets |
 | 98 | `98-external-` | Imported/external helper capabilities |
 | 99 | `99-tool-` | General tools and utilities |
@@ -110,6 +112,20 @@ Edit `plugins/mode-router-v2/modes.yml` when the runtime skill families change.
 
 The router targets the OpenCode V2 pre-model `context` hook and enforces configured managed JohnnyDecimal skill policy before every model dispatch, not merely when a `/mode` command is issued. It filters those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board subagents remain untouched by the router. Child subagent sessions inherit their parent session's mode.
 
+The gadget skills (`97-gadget-*`) are not mode-managed: they pass through to normal host permissions.
+
+### Per-session plugin policy
+
+The router is also the per-session authority for the runtime plugins listed under `managed_plugins` in `modes.yml`: `kakudou.response-gadgets`, `kakudou.otsumi-progression`, and `kakudou.tencentdb-memory`. A managed plugin is enabled in a session only when the active mode lists it under `plugins:` (a mode that `extends` another inherits its parent's list).
+
+| Mode | Response gadgets | Progression | TencentDB memory |
+| --- | --- | --- | --- |
+| `dev`, `dev-python` | enabled | enabled | enabled |
+| `chatbot` | disabled | disabled | disabled |
+| `gamemaster` | disabled | disabled | disabled |
+
+Each plugin re-checks this policy before its own effects (selection, XP awards, memory capture, plugin tools) and fails closed when the policy cannot be resolved.
+
 ## Ambient response gadgets
 
 `plugins/response-gadgets-v2` owns the occasional Fun Fact, News, and SRS selections. The three gadget skills remain ordinary portable capabilities; they do not contain their own probability gates or know which agent selected them.
@@ -117,6 +133,12 @@ The router targets the OpenCode V2 pre-model `context` hook and enforces configu
 Selection is evaluated once per eligible user turn, survives tool-continuation requests without rerolling, and never creates a second synthetic assistant turn. Gadget appendices use generic `otsumi-ephemeral` markers so TencentDB capture can exclude ambient display-only material from durable memory.
 
 The default ambient policy is enabled for ordinary work modes and suppressed for locked chatbot/gamemaster modes so a random out-of-character appendix cannot violate persona or narration format. The plugin accepts an explicit mode override when a deployment wants different ambient behavior; manual gadget invocation remains independent of the random selector.
+
+## Progression
+
+`plugins/otsumi-progression-v2` (`kakudou.otsumi-progression`) runs Ōtsumi's RPG-like progression loop on OpenCode V2. It owns only durable game state: XP, level, activity counters, a per-input award ledger (stable IDs or privacy-safe hashes, never user text), one pending evolution slot, the current evolution proposal, rejected proposals, and completed evolution history. It does not implement evolutions, grant permissions, replace TencentDB memory, or write Obsidian knowledge.
+
+Each eligible primary-agent user input earns at most `+1` interaction, `+1` completion, and `+3` effective-work XP; gadget-only work, skill loading, `otsumi_rng`, and TencentDB tools earn no effective-work bonus. A pending level-up is announced through a pre-model directive and resolved with the `00-agent-evolution` capability. The plugin exposes `otsumi_progression_status`, `_propose`, `_reject`, and `_complete` tools plus a read-only `/otsumi` character sheet. State defaults to `$XDG_STATE_HOME/opencode/otsumi-progression-v2/otsumi.json` (or `~/.local/state/...` when unset). See [its README](plugins/otsumi-progression-v2/README.md).
 
 ## Obsidian
 
@@ -132,11 +154,14 @@ Durable memory is provided by [TencentDB-Agent-Memory](https://github.com/Tencen
 
 Obsidian knowledge and TencentDB memory are separate systems.
 
+Memory capture and memory tools follow the router's per-session plugin policy, so they are off in modes that do not list `kakudou.tencentdb-memory`.
+
 ## Repository layout
 
 - [system.md](system.md) — global system law and routing invariants.
 - [agents/](agents/) — the eight role contracts.
 - [skills/](skills/) — reusable capabilities at `skills/<name>/SKILL.md`.
+- `skills/synced/` — a synced bucket directory (one ID-named folder) holding externally sourced skills (`docs`, `docx`, `google-workspace`, `import-memory`, `morning`, `pdf`, `pptx`, `skill-creator`, `xlsx`), listed with their `source` (`anthropic` / `anthropic-example`) in its `manifest.json`. These are not JohnnyDecimal skills of this repository.
 - [plugins/](plugins/) — automatically loaded OpenCode plugins / hard guardrails.
 - [manual_plugins/](manual_plugins/) — optional integrations that must be configured explicitly.
 - [claude_plugins/otsumi/](claude_plugins/otsumi/) — the Claude Code mod and the host-free cores it shares with the OpenCode plugins (response gadgets so far).
@@ -164,9 +189,35 @@ The `plugins/` symlink provides the hard runtime plugins. Configure manual integ
 
 Set OpenCode V2's `default_agent` to `osho` (as in the sample configuration) so ordinary sessions enter through the repository's sole user-facing controller rather than the host's built-in primary agent.
 
-Set `experimental.subagent_depth` to `2`. OpenCode V2 defaults to depth `1`, which lets a primary agent launch a subagent but would prevent Kakugyō from delegating bounded specialist work from its child session. Depth `2` permits exactly the Ōshō → Kakugyō → specialist shape used by this board; ordered per-agent `subagent` permission rules allow only the required Shōgi board IDs, so built-in/general agents are not a bypass around Fuhyō or the other ownership boundaries.
+Keep OpenCode V2's default `experimental.subagent_depth` of `1`. Delegation is single-level: Kakugyō returns a dispatch plan and Ōshō performs every spawn, so no subagent ever launches another (the same shape Claude Code enforces). Ordered per-agent `subagent` permission rules let only Ōshō spawn, and only the Shōgi board IDs, so built-in/general agents are not a bypass around Fuhyō or the other ownership boundaries.
 
 For TencentDB memory, map each Shogi agent to its own Tencent `agent_id`. Leave an agent unmapped rather than using a shared fallback unless shared memory identity is explicitly intended.
+
+TencentDB setup:
+
+```bash
+cd ~/.agentic-system/manual_plugins/tencentdb-agent-memory
+cp source_env.example source_env   # then replace every placeholder value
+```
+
+`source_env` holds real secrets; it is untracked and git-ignored. Keys previously committed in `source_env` remain in git history; rotate them. History scrubbing is a separate owner step.
+
+### Claude Code
+
+`system.md` is the global contract; point `~/.claude/CLAUDE.md` at it and the agent files at `~/.claude/agents` as you would for the other hosts.
+
+The Ōtsumi Claude Code mod lives at [`claude_plugins/otsumi`](claude_plugins/otsumi/). Load it for one session with `claude --plugin-dir claude_plugins/otsumi`, or for every session by naming the folder in `CLAUDE_CODE_PLUGIN_DIRS`. It currently ports the response gadgets only; the mode router and progression are not yet ported.
+
+Ambient gadgets are controlled by `OTSUMI_GADGETS_MODE`:
+
+- unset, empty, or `dev` → ambient gadgets on (default);
+- any other value, such as `off`, `chatbot`, or `gamemaster` → ambient gadgets suppressed.
+
+Manual `/gadget` and `otsumi_rng` are unaffected by this switch.
+
+Claude Code's main thread is not `osho`: it runs the host's default agent with `system.md` as instructions. The board's controller only runs as the main thread if you start Claude Code with `osho` as the main agent.
+
+The read-only agents' `disallowedTools` denylist covers the built-in mutation, messaging, scheduling, and publishing tools; MCP-connector write tools are not covered by it.
 
 ### Copilot
 

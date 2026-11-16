@@ -20,15 +20,26 @@ This folder sits outside `plugins/` on purpose: OpenCode auto-loads every direct
 | `execute.before` on the `skill` tool | `tool.call` on `Skill`, failing closed for gadget skills |
 | `otsumi_rng` tool | `mcp__otsumi__otsumi_rng`, registered with its schema in the prompt |
 | `/gadget` rewrites the prompt and asks the model to echo the result | `/gadget` answers at once, with no model turn |
-| mode-router bridge decides enablement and skill policy | no mode router yet: every session uses the `dev` policy |
+| mode-router bridge decides enablement and skill policy | no mode router yet: every session uses the `dev` policy, unless `OTSUMI_GADGETS_MODE` turns ambient selection off |
 
 Both harnesses read and write the same [`config.yml`](../../plugins/response-gadgets-v2/config.yml), so a `/gadget <name> <p>` in one applies to the other. Writes always use plain block YAML, which both Bun's YAML and the core's subset parser read. OpenCode writes through an atomic rename; Claude Code's `$.fs.write` is a plain write.
+
+### `OTSUMI_GADGETS_MODE`
+
+Claude Code has no Ōtsumi mode router yet, so this environment variable is the per-session switch for ambient gadgets. The hook reads it each time a prompt is submitted, trimmed and lowercased.
+
+| Value | Ambient selection |
+| --- | --- |
+| unset, empty, or `dev` (the default) | **on**: one selection per person-typed prompt, as described above |
+| `off`, `chatbot`, `gamemaster`, or any other value | **off**: no selection and no injected gadget directive |
+
+Set `chatbot`, `gamemaster`, or `off` for roleplay and tabletop sessions, where an out-of-character appendix would break the persona or the narration, for example `OTSUMI_GADGETS_MODE=chatbot claude --plugin-dir claude_plugins/otsumi`. The manual `/gadget` command and the `otsumi_rng` tool are unaffected by this variable and keep working in every value.
 
 ## Develop and test
 
 ```sh
 # from the repository root
-node --test claude_plugins/otsumi/core/test/          # host-free core
+node --test claude_plugins/otsumi/core/test/*.js     # host-free core
 claude plugin validate claude_plugins/otsumi          # manifest and hooks module
 claude plugin test claude_plugins/otsumi              # Claude Code adapter
 (cd plugins/response-gadgets-v2 && npm test)          # OpenCode V2 adapter

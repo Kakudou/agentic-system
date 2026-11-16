@@ -5,7 +5,10 @@ import { homedir } from "node:os"
 
 const PLUGIN_ID = "kakudou.otsumi-progression"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
-const OTSUMI_COMMAND_RE = /<otsumi-progression-command\s+action="([^"]*)"\s*\/>/i
+// Anchored: a control marker counts only as the ENTIRE trimmed user text. A
+// marker quoted inside a longer message is ordinary prose and is never run or
+// rewritten.
+const OTSUMI_COMMAND_RE = /^<otsumi-progression-command\s+action="([^"]*)"\s*\/>$/i
 const RAW_OTSUMI_COMMAND_RE = /^\/otsumi(?:[ \t]+([^\r\n]*))?$/i
 const SETUP_TEMPLATE_STEPS = new Set(["mode", "persona_setup", "introduction"])
 const SHA256_HEX_RE = /^[0-9a-f]{64}$/
@@ -310,8 +313,11 @@ class ProgressionStore {
     if (disk) this.state = this.#merge(disk, this.state)
     const result = await mutator(this.state)
     this.state.updatedAt = new Date().toISOString()
-    this.writeChain = this.writeChain.then(() => this.#flush())
-    await this.writeChain
+    // A failed flush rejects for its own caller only; the chain itself stays
+    // healthy so later writes still run.
+    const write = this.writeChain.then(() => this.#flush())
+    this.writeChain = write.catch(() => {})
+    await write
     return result
   }
 
@@ -584,8 +590,8 @@ function inputTextsConsistent(providerText, admittedText) {
   if (!providerText || !admittedText) return false
   if (providerText === admittedText) return true
 
-  const markerMatch = OTSUMI_COMMAND_RE.exec(providerText)
-  const rawMatch = RAW_OTSUMI_COMMAND_RE.exec(admittedText)
+  const markerMatch = OTSUMI_COMMAND_RE.exec(providerText.trim())
+  const rawMatch = RAW_OTSUMI_COMMAND_RE.exec(admittedText.trim())
   return Boolean(
     markerMatch &&
     rawMatch &&
@@ -777,10 +783,11 @@ function renderSheet(state, options, diagnostics = {}, historyLimit = options.hi
 function requestedOtsumiAction(event, admittedInputText) {
   const providerUser = latestProviderUser(event?.messages)
   if (providerUser) {
-    const markerMatch = OTSUMI_COMMAND_RE.exec(providerUser.text)
+    const providerText = providerUser.text.trim()
+    const markerMatch = OTSUMI_COMMAND_RE.exec(providerText)
     if (markerMatch) return markerMatch[1].trim()
 
-    const currentRawMatch = RAW_OTSUMI_COMMAND_RE.exec(providerUser.text)
+    const currentRawMatch = RAW_OTSUMI_COMMAND_RE.exec(providerText)
     return currentRawMatch ? (currentRawMatch[1] ?? "").trim() : null
   }
 
@@ -807,17 +814,11 @@ function replaceCommandText(value, payload, depth = 0) {
   }
   if (typeof value !== "object") return false
 
-  if (
-    typeof value.text === "string" &&
-    (OTSUMI_COMMAND_RE.test(value.text) || RAW_OTSUMI_COMMAND_RE.test(value.text.trim()))
-  ) {
+  if (typeof value.text === "string" && isOtsumiControlText(value.text)) {
     value.text = payload
     return true
   }
-  if (
-    typeof value.content === "string" &&
-    (OTSUMI_COMMAND_RE.test(value.content) || RAW_OTSUMI_COMMAND_RE.test(value.content.trim()))
-  ) {
+  if (typeof value.content === "string" && isOtsumiControlText(value.content)) {
     value.content = payload
     return true
   }

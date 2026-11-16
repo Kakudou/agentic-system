@@ -27,7 +27,7 @@ Parenthesize boolean combinations when needed.
 - Never silently drop exclusions.
 - `reset-search` is exactly empty string.
 - Preserve raw user Obsidian search syntax unless invalid.
-- Convert semantic roots only through `references/vault-overview-integration.md`.
+- Convert semantic roots only through `references/vault-configuration.md`.
 
 ## Examples
 

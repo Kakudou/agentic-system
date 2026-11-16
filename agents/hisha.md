@@ -1,20 +1,13 @@
 ---
+name: hisha
 description: "Presentation specialist. Turns accepted material and evidence into clear user-ready writing."
 mode: subagent
-subtask: true
-permissions:
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: execute
-    resource: "*"
-    effect: deny
-  - action: subagent
-    resource: "*"
-    effect: deny
+permission:
+  edit: deny
+  shell: deny
+  execute: deny
+  subagent: deny
+disallowedTools: Edit, Write, NotebookEdit, Bash, Agent, Artifact, ArtifactData, ArtifactComments, CronCreate, CronDelete, RemoteTrigger, SendMessage, PushNotification, EnterWorktree, ExitWorktree, DesignSync, PublishPlugin
 ---
 
 # Hisha — Rook

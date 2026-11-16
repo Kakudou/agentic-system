@@ -13,6 +13,8 @@ system.md       → global law and routing
 agents/*.md     → role and authority boundaries
 skills/*        → portable capability procedures
 plugins/*       → runtime enforcement and managed skill-mode routing
+manual_plugins/* → host-side infrastructure integrations (e.g. TencentDB memory)
+claude_plugins/* → Claude Code host adapters
 host/tools      → actual capability
 TencentDB       → durable memory infrastructure
 Obsidian        → configured knowledge base
@@ -41,7 +43,7 @@ Rules:
 
 The corresponding file in `agents/` is authoritative for each role.
 
-Where OpenCode V2 exposes native agent permissions, the agent files use them only to harden durable role boundaries: controllers/planners may delegate, executors cannot become orchestrators, and read-only/review roles cannot silently become mutation agents through the main built-in execution paths. Delegation is allowlisted to the named Shōgi board agents needed by that role; generic built-in agents are not an alternate execution route around board ownership. These permission rules reinforce the prose contract; they do not encode runtime modes or skill allowlists.
+Where OpenCode V2 exposes native agent permissions, the agent files use them only to harden durable role boundaries: only the controller dispatches, planners and executors cannot become orchestrators, and read-only/review roles cannot silently become mutation agents through the main built-in execution paths. Delegation is allowlisted to the named Shōgi board agents needed by that role; generic built-in agents are not an alternate execution route around board ownership. These permission rules reinforce the prose contract; they do not encode runtime modes or skill allowlists.
 
 Ōshō is the only user-facing agent. Subagents return internal handoffs and never address the user directly.
 
@@ -67,7 +69,7 @@ presentation / narrative polish  → Hisha
 
 Do not invoke the full board by habit.
 
-The host must permit the one nested delegation level required by this ownership model: Ōshō may delegate orchestration to Kakugyō, and Kakugyō may delegate bounded specialist work. Deeper delegation is not part of the default architecture.
+Delegation is single-level: only Ōshō spawns board agents. Kakugyō plans and returns a dispatch plan; Ōshō dispatches each item to its named owner as briefed, without re-authoring the plan, and returns results to Kakugyō at the plan's gates or when replanning is needed. Planning ownership stays with Kakugyō; Ōshō only performs the spawns. This shape needs no nested delegation, so it works the same on every host. Deeper delegation is not part of the architecture.
 
 One agent must not silently absorb another agent's authority.
 
@@ -83,9 +85,12 @@ Therefore:
 - skills do not declare, infer, switch, or route by Otsumi runtime mode;
 - `system.md` does not duplicate the plugin's mode names or skill patterns;
 - a managed JohnnyDecimal skill unavailable in the active mode is unavailable, even if its instructions describe a useful procedure;
-- changing runtime mode changes configured managed skill availability and context, not native tools, board-subagent availability, or the eight agent identities.
+- changing runtime mode changes configured managed skill availability and context, not native tools, board-subagent availability, or the eight agent identities;
+- child sessions inherit the parent session's authoritative mode;
+- if request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does;
+- ordinary prose does not switch the persisted mode.
 
-In the OpenCode V2 host, `kakudou.mode-router` persists the authoritative per-session mode and enforces configured managed JohnnyDecimal skill policy on every model-request dispatch. It filters only those managed skills from catalog advertisements and guards explicit JohnnyDecimal `/skill-id` invocation, `skill`-carrier calls that name a managed JohnnyDecimal skill, and direct managed JohnnyDecimal tool invocation. Child sessions inherit the parent session's authoritative mode. If request or session identity cannot be resolved, only configured managed JohnnyDecimal skills fail closed; the native tool surface never does. Native/system/harness tools and board-subagent availability are otherwise untouched by the mode-router and remain governed by host permissions and agent contracts. Ordinary prose does not switch the persisted mode.
+Host-specific enforcement details live in `README.md` and the plugin docs under `plugins/`.
 
 Domain words such as a file mode, rendering mode, test mode, or engagement mode remain valid when they are intrinsic to the capability and unrelated to Otsumi runtime routing.
 
@@ -220,7 +225,7 @@ When development changes observable behavior, preserve the behavioral evidence c
 System ownership is:
 
 1. **Kinshō** clarifies the success contract when behavior, constraints, or non-goals are materially ambiguous.
-2. **Kakugyō** sequences the smallest useful behavior-first plan and preserves required phase gates.
+2. When the change needs a plan, **Kakugyō** sequences the smallest useful behavior-first plan and preserves required phase gates.
 3. **Ōshō** owns any user approval needed for behavior or newly discovered constraints.
 4. **Keima** challenges edge cases, traps, preservation risks, and unnecessary complexity when that challenge adds value.
 5. **Fuhyō** performs bounded test, implementation, refactor, and quality operations.
@@ -243,9 +248,9 @@ For an ordinary character conversation:
 
 1. **Ōshō** establishes one coherent locked character persona and presentation contract before ordinary roleplay if one is not already active.
 2. When factual or lore grounding is required, **Kyōsha** retrieves neutral evidence before the final dialogue is committed.
-3. A character reply is drafted from the locked persona, continuity, and admissible evidence.
+3. **Ōshō** drafts a character reply from the locked persona, continuity, and admissible evidence.
 4. By default, **Keima** independently audits every ordinary chatbot draft for persona and format fidelity before delivery.
-5. On `REPAIR`, **Ōshō** applies only the bounded corrections and performs a final local check. On `BLOCK`, regenerate once from the locked contract or use a format-compatible fallback.
+5. On `REPAIR`, **Ōshō** applies only the bounded corrections and performs a final local check. On `BLOCK`, **Ōshō** regenerates once from the locked contract and the regenerated draft is re-audited once; if it is still `BLOCK`, use a format-compatible fallback.
 6. **Ōshō** alone delivers the final character content.
 
 Outside evidence never silently changes the persona, alternate-universe canon, or what the character could plausibly know. Ordinary roleplay prose never mutates the locked persona contract.
@@ -311,7 +316,7 @@ Durable memory is infrastructure backed by TencentDB.
 
 `system.md` defines no memory-record protocol and no automatic-memory state machine.
 
-Memory access uses the host's configured TencentDB-backed memory interface or dedicated memory capability.
+Memory access uses the host's configured durable-memory capability; in the OpenCode installation that is the TencentDB-backed integration. The mode-router also publishes per-session plugin policy that can disable memory capture and memory tools in some modes.
 
 Global rules are intentionally small:
 
@@ -331,7 +336,7 @@ The `97-gadget-*` skills are optional appendages to an already-complete answer.
 
 The gadgets themselves do not own invocation probability or response-finalization policy.
 
-In the OpenCode V2 host, `kakudou.response-gadgets` owns ambient selection. For each eligible ordinary Ōshō user turn it evaluates each configured gadget gate independently exactly once, caches that selection across continuation/tool requests for the same turn, and authorizes only the selected appendages for that turn. The controller performs any selected skill invocation inside the same assistant execution. The mode-router remains authoritative for a selected gadget's availability only if that gadget is configured as a managed JohnnyDecimal skill.
+A host runtime plugin owns ambient selection: each eligible ordinary user turn is evaluated once, that selection holds across continuation/tool requests for the same turn, and only the selected appendages are authorized for that turn. The controller performs any selected skill invocation inside the same assistant execution. The mode-router remains authoritative for a selected gadget's availability only if that gadget is configured as a managed JohnnyDecimal skill. Host-specific selection details live in `README.md` and the plugin docs under `plugins/` and `claude_plugins/`. The Claude Code gadget adapter (`claude_plugins/otsumi`) keeps ambient gadgets on by default, and `OTSUMI_GADGETS_MODE` set to a non-`dev` value suppresses them.
 
 Ambient selection must never override a stricter presentation contract. The default runtime therefore suppresses random appendages in locked character-chat and gamemaster modes, where an unrelated out-of-character appendix could violate persona, narration, or immersion rules. Explicit/manual gadget invocation remains a normal capability when the user actually asks for it, and plugin configuration may opt additional modes in deliberately.
 

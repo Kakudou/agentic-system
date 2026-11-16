@@ -95,6 +95,24 @@ function conflictBridge(value) {
   }
 }
 
+// Session.Info.parentID marks a delegated child session. A user-facing fork
+// (Session.Info.fork) is not a child: it inherits mode lineage but remains a
+// top-level conversation.
+function delegatedParentID(session) {
+  const parentID =
+    session?.parentID ??
+    session?.parentId ??
+    session?.parent?.id ??
+    null
+  return typeof parentID === "string" && parentID ? parentID : null
+}
+
+function lineageParentID(session) {
+  const forkID = session?.fork?.sessionID
+  return delegatedParentID(session) ??
+    (typeof forkID === "string" && forkID ? forkID : null)
+}
+
 async function createRuntime(key, configPath, store) {
   const configManager = new ConfigManager(configPath)
   await configManager.initialize()
@@ -145,14 +163,9 @@ async function createRuntime(key, configPath, store) {
         )
         return null
       }
-      const parentID =
-        session?.parentID ??
-        session?.parentId ??
-        session?.parent?.id ??
-        session?.fork?.sessionID ??
-        null
+      const parentID = lineageParentID(session)
 
-      if (typeof parentID === "string" && parentID) {
+      if (parentID) {
         const inherited = await modeForSession(parentID, config, seen, depth + 1)
         if (!inherited) return null
         await store.set(sessionID, inherited)
@@ -167,6 +180,32 @@ async function createRuntime(key, configPath, store) {
         error,
       )
       return null
+    }
+  }
+
+  // Classify a session as top-level or delegated child through the same host
+  // session lookup used for mode inheritance. Any lookup failure or missing
+  // record is "unknown" so callers can fail closed.
+  runtime.sessionKind = async function sessionKind(sessionID) {
+    if (!sessionID) return { kind: "unknown", reason: "missing session ID" }
+    const authority = runtime.bindings.values().next().value?.ctx
+    if (typeof authority?.session?.get !== "function") {
+      return { kind: "unknown", reason: "host session lookup unavailable" }
+    }
+
+    try {
+      const response = await authority.session.get({ sessionID })
+      const session = response?.data ?? response
+      if (!session || typeof session !== "object") {
+        return { kind: "unknown", reason: "session lookup returned no record" }
+      }
+      const parentID = delegatedParentID(session)
+      return parentID ? { kind: "child", parentID } : { kind: "top-level" }
+    } catch (error) {
+      return {
+        kind: "unknown",
+        reason: error instanceof Error ? error.message : String(error),
+      }
     }
   }
 

@@ -27,6 +27,7 @@ Given `root-group:<name>`:
 2. fail if the group is unknown;
 3. resolve each member through the named-root rule;
 4. if any required member is unconfigured, report the exact member rather than guessing.
+5. De-duplicate resolved paths; two named roots may alias one folder.
 
 ## Template
 

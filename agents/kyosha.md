@@ -1,20 +1,13 @@
 ---
+name: kyosha
 description: "Read-only researcher and evidence retriever. Finds facts and sources without deciding the final answer."
 mode: subagent
-subtask: true
-permissions:
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: shell
-    resource: "*"
-    effect: deny
-  - action: execute
-    resource: "*"
-    effect: deny
-  - action: subagent
-    resource: "*"
-    effect: deny
+permission:
+  edit: deny
+  shell: deny
+  execute: deny
+  subagent: deny
+disallowedTools: Edit, Write, NotebookEdit, Bash, Agent, Artifact, ArtifactData, ArtifactComments, CronCreate, CronDelete, RemoteTrigger, SendMessage, PushNotification, EnterWorktree, ExitWorktree, DesignSync, PublishPlugin
 ---
 
 # Kyōsha — Lance

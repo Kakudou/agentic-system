@@ -20,7 +20,7 @@ If the runtime has no task-list facility, do not invent one or claim it exists.
 
 ## Delegation
 
-For non-trivial work, Ōshō remains the user-facing controller.
+For non-trivial work, the user-facing controller remains in charge of the user-facing response.
 
 Delegate only when a specialist improves quality, evidence, speed, or independence.
 

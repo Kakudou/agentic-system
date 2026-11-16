@@ -134,8 +134,17 @@ export default {
           : null
 
         const advertisedBeforeMode = collectAdvertisedFromContext(event)
-        const rawAction = requestedModeAction(event, identity.inputText)
+        let rawAction = requestedModeAction(event, identity.inputText)
         let commandResult = null
+
+        // Mode commands are user controls for top-level sessions only. In a
+        // delegated child session the text is ordinary content: no mode change
+        // and no prompt rewrite. Child-mode inheritance is unaffected.
+        let lineage = null
+        if (rawAction !== null && sessionID) {
+          lineage = await runtime.sessionKind(sessionID)
+          if (lineage.kind === "child") rawAction = null
+        }
 
         if (rawAction !== null) {
           const action = rawAction.trim()
@@ -143,6 +152,12 @@ export default {
           if (!sessionID) {
             commandResult =
               "Mode Router ERROR: the V2 model request could not be correlated to a session; no mode change was performed."
+          } else if (lineage?.kind !== "top-level") {
+            commandResult =
+              "Mode Router ERROR: the session could not be verified as a top-level session; no mode change was performed."
+            console.warn(
+              `[kakudou.mode-router] mode command refused for session '${sessionID}': ${lineage?.reason ?? "unknown lineage"}`,
+            )
           } else if (!action || action === "status") {
             commandResult = buildStatus({
               mode,
@@ -248,6 +263,13 @@ export default {
           }
         }
       } catch (error) {
+        // Fail closed: strip every mode-managed skill from the advertisement
+        // using the last-known-good config, exactly like an unresolved request.
+        try {
+          filterContext(event, "__unresolved__", configManager.current)
+        } catch (filterError) {
+          console.error("[kakudou.mode-router] fail-closed catalog filter failed:", filterError)
+        }
         appendSystem(
           event,
           [

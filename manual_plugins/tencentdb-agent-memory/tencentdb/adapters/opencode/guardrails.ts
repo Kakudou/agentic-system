@@ -36,8 +36,13 @@ import {
   hasTrustedSetupMarker,
 } from "./setup-suppression.ts"
 
+import {
+  eventData,
+} from "./event-codec.ts"
+
 function agentPolicy(
   config: AppConfig,
+  captureMapped: boolean,
 ): string {
   const outputLanguage =
     config.guardrails
@@ -78,10 +83,14 @@ function agentPolicy(
     "",
     "TERMINAL RULE:",
     "If a Tencent tool returns terminal=true or terminal_code beginning with TDAI_TERMINAL, STOP retrieval. Answer from the available evidence or state that TencentDB has no matching private memory. Never search the public web for the user's private preferences/history.",
-    "",
-    "PERSISTENCE:",
-    "Completed conversation turns are captured automatically. Never create AGENTS.md, preference files, notes, shell snippets, or local files merely to remember user facts.",
-    "Do not ask whether a normal preference/fact should be saved merely because no write-memory tool is visible.",
+    ...(captureMapped
+      ? [
+          "",
+          "PERSISTENCE:",
+          "Turns are submitted for capture; never claim a fact is remembered unless a memory tool confirms it. Never create AGENTS.md, preference files, notes, shell snippets, or local files merely to remember user facts.",
+          "Do not ask whether a normal preference/fact should be saved merely because no write-memory tool is visible.",
+        ]
+      : []),
     "",
     "DREAM PROTOCOL:",
     "- tdai_dream_begin / tdai_dream_roll / tdai_dream_sample / tdai_dream_commit are ONLY for the explicitly loaded /dream skill. Never invoke them during ordinary work or ordinary memory recall.",
@@ -90,7 +99,26 @@ function agentPolicy(
     "TOOL CALLING:",
     "Call tdai_* tools directly. Do not route TencentDB tools through execute/CodeMode.",
     "</tencentdb-agent-memory-policy>",
-  ].join("\\n")
+  ].join("\n")
+}
+
+/*
+ * Capture only persists turns whose OpenCode agent resolves to a memory
+ * scope (see CaptureService). The persistence wording is injected only for
+ * those agents so unmapped agents are never told their turns are captured.
+ */
+function contextAgent(
+  event: any,
+): string | undefined {
+  const agent =
+    eventData(event)?.agent
+
+  return (
+    typeof agent === "string" &&
+    agent.trim()
+  )
+    ? agent.trim()
+    : undefined
 }
 
 function toolName(
@@ -220,9 +248,16 @@ export async function installAgentPolicy(
   }
 
   try {
-    const policy =
+    const mappedPolicy =
       agentPolicy(
         config,
+        true,
+      )
+
+    const unmappedPolicy =
+      agentPolicy(
+        config,
+        false,
       )
 
     await ctx.session.hook(
@@ -253,6 +288,14 @@ export async function installAgentPolicy(
         ) {
           return
         }
+
+        const policy =
+          resolveMemoryScope(
+            config,
+            contextAgent(event),
+          )
+            ? mappedPolicy
+            : unmappedPolicy
 
         appendSystem(
           event,

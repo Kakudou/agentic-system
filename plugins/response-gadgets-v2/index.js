@@ -26,7 +26,9 @@ const PLUGIN_ID = "kakudou.response-gadgets"
 const MODE_BRIDGE = Symbol.for("kakudou.mode-router.v2.bridge")
 const PLUGIN_DIR = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_CONFIG = resolve(PLUGIN_DIR, "config.yml")
-const GADGET_COMMAND_RE = /<opencode-response-gadget\s+action="([^"]*)"\s*\/>/i
+// A marker is a command only when it is the entire (trimmed) user text; a
+// message that merely quotes or contains one is ordinary text.
+const GADGET_COMMAND_RE = /^<opencode-response-gadget\s+action="([^"]*)"\s*\/>$/i
 const RAW_GADGET_COMMAND_RE = /^\/gadget(?:[ \t]+([^\r\n]*))?$/
 const POLICY_DENIAL = "response-gadgets: disabled by authoritative mode-router policy"
 const BOOTSTRAP_DENIAL = "response-gadgets: disabled for trusted setup-template turn"
@@ -273,14 +275,14 @@ function replaceTextPayload(value, payload, depth = 0) {
 
   if (
     typeof value.text === "string" &&
-    (GADGET_COMMAND_RE.test(value.text) || RAW_GADGET_COMMAND_RE.test(value.text.trim()))
+    (GADGET_COMMAND_RE.test(value.text.trim()) || RAW_GADGET_COMMAND_RE.test(value.text.trim()))
   ) {
     value.text = payload
     return true
   }
   if (
     typeof value.content === "string" &&
-    (GADGET_COMMAND_RE.test(value.content) || RAW_GADGET_COMMAND_RE.test(value.content.trim()))
+    (GADGET_COMMAND_RE.test(value.content.trim()) || RAW_GADGET_COMMAND_RE.test(value.content.trim()))
   ) {
     value.content = payload
     return true
@@ -427,6 +429,17 @@ export default {
         // last-known-good value if an external edit is missing or invalid.
         await configManager.refresh()
         const config = configManager.current
+        const sessionID = identity.sessionID
+
+        // Ambient behavior and /gadget control belong only to the primary
+        // user-facing agent. The mode-router correlates the V2 public lifecycle
+        // stream when the context event itself omits identity metadata. Unknown
+        // identity fails safe: no command execution and no gadgets.
+        const activeAgent =
+          identity?.agent ??
+          bridge?.agentFor?.(sessionID) ??
+          agentOf(event)
+        if (activeAgent !== config.primaryAgent) return
 
         if (commandAction !== null) {
           const commandResult = await executeGadgetCommand(
@@ -453,18 +466,6 @@ export default {
           // In particular, leave event.tools structurally and deeply untouched.
           return
         }
-
-        const sessionID = identity.sessionID
-
-        // Ambient behavior belongs only to the primary user-facing agent.
-        // The mode-router correlates the V2 public lifecycle stream when the
-        // context event itself omits identity metadata. Unknown identity fails
-        // safe by suppressing gadgets.
-        const activeAgent =
-          identity?.agent ??
-          bridge?.agentFor?.(sessionID) ??
-          agentOf(event)
-        if (activeAgent !== config.primaryAgent) return
 
         const user = providerUser
         const rawUserText =
