@@ -81,6 +81,16 @@ function contextEvent(sessionID, content) {
   }
 }
 
+function typedHostUserContextEvent(sessionID, text) {
+  return {
+    sessionID,
+    agent: "osho",
+    system: [{ text: "base" }],
+    messages: [{ type: "user", text }],
+    tools: {},
+  }
+}
+
 test("requestedModeAction matches the marker only as the entire trimmed user text", () => {
   const event = (content) => ({ messages: [{ role: "user", content }] })
 
@@ -118,6 +128,25 @@ test("an exact marker surrounded by whitespace switches the session mode", async
 
   assert.match(event.system[0].text, /Mode switched to: dev/)
   assert.equal(await bridge.modeFor("whitespace-session"), "dev")
+})
+
+async function assertTypedHostRootCommand(t, action, expectedResult) {
+  const { contextHook } = await setupHarness(t)
+  const event = typedHostUserContextEvent(`typed-host-${action}`, `/mode ${action}`)
+
+  await contextHook(event)
+
+  assert.match(event.system[0].text, /<mode-router-command>/)
+  assert.match(event.messages[0].text, /The mode-router runtime already executed this control command\./)
+  assert.match(event.messages[0].text, expectedResult)
+}
+
+test("a typed host user /mode status command is rewritten after type-based user recognition", async (t) => {
+  await assertTypedHostRootCommand(t, "status", /Mode Router: HEALTHY/)
+})
+
+test("a typed host user /mode list command is rewritten after type-based user recognition", async (t) => {
+  await assertTypedHostRootCommand(t, "list", /Available modes:/)
 })
 
 test("a marker inside a sentence or quote changes nothing and is not replaced", async (t) => {

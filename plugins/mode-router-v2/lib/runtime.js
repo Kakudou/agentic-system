@@ -63,11 +63,15 @@ function textFrom(value, depth = 0) {
   return ""
 }
 
+function userRole(message) {
+  return message?.role ?? message?.info?.role ?? message?.type
+}
+
 export function lastUserText(messages) {
   if (!Array.isArray(messages)) return ""
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i]
-    const role = message?.role ?? message?.info?.role
+    const role = userRole(message)
     if (role === "user") return textFrom(message)
   }
   return messages.length ? textFrom(messages[messages.length - 1]) : ""
@@ -97,7 +101,7 @@ function latestUserMessage(messages) {
   if (!Array.isArray(messages)) return null
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i]
-    const role = message?.role ?? message?.info?.role
+    const role = userRole(message)
     if (role === "user") return message
   }
   return null

@@ -96,8 +96,9 @@ Availability and execution of configured mode-managed JohnnyDecimal skills belon
 | 07 | `07-opencti-` | Reserved for OpenCTI capabilities |
 | 08 | `08-openaev-` | Reserved for OpenAEV capabilities |
 | 09 | `09-rp-` | Roleplay chatbot |
-| 10 | `10-rpg-` | Reserved for general pen-and-paper RPG capabilities |
-| 11 | `11-shadowrun-` | Reserved for Shadowrun RPG capabilities |
+| 10 | `10-rpg-` | Portable tabletop session, scene, character, journal, and resolution capabilities |
+| 11 | `11-shadowrun-` | Shadowrun Sixth World (6E) lore, rules, and runs |
+| 12 | `12-cyphersystem-` | Cypher System SRD rules, characters, and adventures |
 | 97 | `97-gadget-` | Optional response gadgets |
 | 98 | `98-external-` | Imported/external helper capabilities |
 | 99 | `99-tool-` | General tools and utilities |
@@ -238,3 +239,16 @@ Host-specific delegation adapters remain the host's responsibility.
 - **Runtime policy in runtime code.** Hard enforcement such as skill modes belongs to plugins, not prose duplicated across skills.
 - **Configuration has an owner.** Obsidian topology belongs to the vault-overview skill; durable memory belongs to TencentDB.
 - **Plain contracts.** Keep the repository inspectable and understandable without hidden workflow schemas.
+
+## Fiction-first tabletop RPG (gamemaster mode)
+
+Use `/mode gamemaster` to activate the 3 RPG skill families. Start with `/10-rpg-session start` or `/11-shadowrun-run` for a solo job; the player may import an existing Markdown sheet. The eight-agent board supports solo runs and campaigns through `10-rpg-*` (shared), `11-shadowrun-*` (6E) and `12-cyphersystem-*` (Cypher). All RPG rules, session state, and journals remain Agent Skills and Markdown; the separately authorized native dice plugin is the only RPG executable component. Shadowrun rules/lore include 41 Markdown parts transformed from the user-supplied 2019 core rulebook; Cypher includes all 36 Markdown chapters and full catalogs from the supplied 2025 SRD repository ZIP.
+
+Persistent RPG state uses `events.md`, `mechanics.md`, `state.md`, `chronicle.md`, `recap.md` and character sheets in a chosen session directory, written through ordinary authorized host file tools. Random rolls must be backed by actual player die faces or a genuine pre-existing native host RNG; no assistant-generated pseudo-result masquerades as dice. Existing unrelated repository plugins and scripts are not prerequisites for RPG rules or journals.
+
+### RPG dice plugin (OpenCode V2 + Claude Code)
+
+`plugins/rpg-dice-v2` is a **native OpenCode 2 local plugin** that exposes `rpg_dice` only in the `gamemaster` mode via the existing `mode-router-v2` policy. Claude Code uses the same host-free core through `claude_plugins/otsumi/hooks/rpg-dice.ts` in the existing Claude plugin; no MCP server runs. All game decisions and persistent state remain agent-driven and Markdown-only. See [plugin documentation](plugins/rpg-dice-v2/README.md).
+
+For Shadowrun tables consult the [layout-verified extraction and audit](skills/11-shadowrun-rules/references/table-audit.md). The 2025 Cypher SRD's **entire supplied upstream Markdown corpus is embedded**; use the [local catalog index](skills/12-cyphersystem-rules/references/csrd-2025/CONTENT-INDEX.md) to retrieve any source option offline.
+

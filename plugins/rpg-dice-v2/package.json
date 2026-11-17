@@ -1,0 +1,12 @@
+{
+  "name": "opencode2-rpg-dice-v2-local",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.js",
+  "scripts": {
+    "generate:core": "node scripts/sync-rpg-dice-core.mjs --write",
+    "check:core": "node scripts/sync-rpg-dice-core.mjs --check",
+    "test": "npm run check:core && node --test test/*.test.js"
+  }
+}

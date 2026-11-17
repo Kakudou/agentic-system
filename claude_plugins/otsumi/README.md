@@ -6,6 +6,7 @@ A Claude Code mod (in-process hooks module) that brings the Ōtsumi runtime plug
 | --- | --- | --- | --- |
 | Response gadgets | [`core/gadgets.js`](core/gadgets.js), [`core/gadgets-config.js`](core/gadgets-config.js) | [`hooks/gadgets.ts`](hooks/gadgets.ts) | [`plugins/response-gadgets-v2`](../../plugins/response-gadgets-v2/) |
 | Mode router | not yet ported | — | [`plugins/mode-router-v2`](../../plugins/mode-router-v2/) |
+| RPG dice | [`core/rpg-dice.js`](core/rpg-dice.js) | [`hooks/rpg-dice.ts`](hooks/rpg-dice.ts) | [`plugins/rpg-dice-v2`](../../plugins/rpg-dice-v2/) |
 | Progression | not yet ported | — | [`plugins/otsumi-progression-v2`](../../plugins/otsumi-progression-v2/) |
 
 The core lives inside this plugin folder because a Claude Code hooks module may only import files of its own plugin; the OpenCode plugin imports it from here. Keep `core/` free of Node and host APIs: a hooks module has neither, so hosts inject randomness, policy, and file access.
@@ -46,3 +47,7 @@ claude plugin test claude_plugins/otsumi              # Claude Code adapter
 ```
 
 Run it for one session with `claude --plugin-dir claude_plugins/otsumi`, or for every session by naming the folder in `CLAUDE_CODE_PLUGIN_DIRS` (the `env` block of `~/.claude/settings.json`). Both watch the folder and reload on save.
+
+## RPG dice without an MCP server
+
+The in-process tool `rpg_dice` is registered by `hooks/rpg-dice.ts` and shares the host-free implementation with OpenCode V2. Claude labels it `mcp__otsumi__rpg_dice` internally, but no MCP server or transport exists. Use only in RPG sessions. See [RPG dice integration](../../plugins/rpg-dice-v2/README.md).

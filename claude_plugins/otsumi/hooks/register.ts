@@ -3,7 +3,9 @@
 import type { Register } from 'claude-code'
 
 import { registerGadgets } from './gadgets'
+import { registerRpgDice } from './rpg-dice'
 
 export const register: Register = on => {
   registerGadgets(on)
+  registerRpgDice(on)
 }

@@ -279,12 +279,36 @@ Use board ownership rather than mode-specific agent variants:
 2. **Kakugyō** plans consequential scenes only when sequencing, pressures, branches, or mechanics genuinely benefit from preparation.
 3. **Kyōsha** retrieves read-only rules/lore evidence and keeps source authority and uncertainty visible.
 4. **Keima** challenges continuity, NPC knowledge, fairness, available approaches, retreat/failure routes, and hidden-information leaks.
-5. **Fuhyō** performs only bounded mechanical/state operations that are actually authorized and supported by real capability/evidence.
+5. **Fuhyō** performs bounded Markdown reads/writes and mathematical evaluation from actual player-reported dice or host-native verified RNG; no RPG script, plugin or invented roll.
 6. **Ginshō** independently checks consequential rules interpretation, reward/canon claims, or mechanical evidence when validation matters.
 7. **Hisha** shapes accepted player-visible facts and outcomes into clear narration without exposing hidden material.
 8. **Ōshō** remains the sole user-facing controller and never converts planning or narration alone into durable campaign fact.
 
 System-specific RPG skills may refine mechanics or presentation, but they do not weaken these invariants.
+
+### Tabletop Board — persistent responsibilities, selective invocation
+
+The eight existing Shōgi agents remain unchanged in identity, authority, spawn permissions and tool permissions. During tabletop work, use the following ownership mapping **within their normal global roles**:
+
+| Agent | Tabletop concern | Boundary |
+| --- | --- | --- |
+| Ōshō | Only game-master voice, player dialogue, scene framing and user-facing narration | Does not counterfeit rules, dice, persistent writes or player choices |
+| Kakugyō | World/situation architecture, scenario pacing, scene transitions, dependency routing | Plans branches and pressures, never determines the player's chosen path or performs writes |
+| Kinshō | Player intent, requested experience, tone, scope, action stakes, fairness contract | Defines success/boundaries, not mechanical results or the player's inner life |
+| Kyōsha | Edition-specific lore, rules/source retrieval, world consistency evidence | Finds facts and provenance, does not decree campaign canon or invent NPC knowledge |
+| Keima | Independent NPC motives, reactions, opposition pressure and continuity blind spots | Challenges proposed NPC behavior, does not act as a second GM or force a rail |
+| Fuhyō | Markdown-only event and character writes; arithmetic from supplied dice; state reconciliation | Has existing file-write authority; no code, RPG plugin, or fabricated randomness |
+| Ginshō | Independent rules/continuity/state audit, resource reconciliation and verdict | Validates evidence, does not author the log or retcon bad luck |
+| Hisha | Literary style of *confirmed* player-visible events; coherent novel-style chronicle | Does not add canon, resource changes, player action or secret revelations |
+
+Responsibilities are continuous; invocation is **proportional**. Quick NPC conversations need not dispatch seven subagents. For major crossroads, new NPC stakes, rules disputes, significant mechanical change, and session checkpoints, Ōshō can route the narrow needed tasks through Kakugyō's plan. Only Ōshō spawns; subagents never spawn one another. For a full campaign setup or end-of-run reconciliation, all eight may contribute in their proper scopes without making eight calls mandatory on every player sentence.
+
+The **shared RPG layer is agent and Markdown only**: it owns session lifecycle, scene and narrative contracts, player/character continuity, event/chronicle separation and evidence policy. No RPG Python script, runtime service, plugin, network call or external rulebook is required; agents read skill-local `.md` content and use only their pre-existing host file capabilities. **One selected rules layer** owns mechanics and lore: Shadowrun Sixth World 6E or the Cypher System SRD. Neither layer silently imports the other's statistics, Edge semantics, or advancement. The distinct `09-rp-*` chatbot capabilities are not prerequisites for a gamemaster session.
+
+For durable play Fuhyō performs ordinary host Markdown writes to `events.md` as the append-only committed history, `state.md` and `recap.md` as recoverable projections, and `chronicle.md` as fiction derived from committed history. GM-only secrets remain separated. A persisted ledger is needed because managed TencentDB memory may be disabled by the mode router in gamemaster mode; never assume it is enabled. If filesystem writes are impossible, transparently provide a copyable checkpoint and label it unsaved. A character imported from an external game remains untouched unless the player/real GM authorizes writing its source.
+
+**Fiction-first is a presentation contract, not a hidden mechanics rewrite.** Describe the physical challenge and NPC reaction first; do not habitually demand a visible number/skill check. Still obtain actual dice evidence and preserve player-controlled Edge, Effort, Pool and other choices under the selected official rules. Any dice-free narrative resolution that changes those rules requires an explicit table policy and is recorded as a house rule. No invented RNG, no player-controlled expenditures by fiat, and no predetermined ending.
+
 
 ## Research
 

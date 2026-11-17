@@ -1,0 +1,9 @@
+# RPG resolution evidence and fiction-first display
+
+- **Official rules** can be processed by an agent from embedded Markdown and supplied inputs. A language model's statement that it rolled dice is **not** a random receipt.
+- **Manual dice**: player supplies explicit die faces. Record `player-reported, not independently verifiable`. Shadowrun: a pool lists all d6 faces, hits count 5/6, glitches count actual 1s, compare thresholds/opposition per 6E. Cypher: the natural d20 face determines specials, and the declared Pool/Edge/Effort determines difficulty/cost.
+- **Native RPG plugin**: in OpenCode 2 gamemaster mode or inside the existing Claude hooks plugin, use the in-process `rpg_dice` tool. Record the full returned JSON receipt (receipt ID, dice notation, purpose, faces, totals, ones, hits for d6) as actual host-generated evidence. No MCP server or online access is needed. If the tool fails/denies, do not claim a roll occurred.
+- **No dice**: no fake die. Obtain the result later or ask consent for `cinematic-no-rng` house resolution. If approved, record a nonrandom consequence selected openly from established fictional stakes. Uncertainty must be represented honestly: no 'rolled 5 and 6' when none were generated.
+- **Agency**: never spend limited resources or accept an intrusion on the player's behalf; the player must be able to choose an alternative approach or retreat.
+- **Record**: edition, task, pool/difficulty, modifier derivation, decision time, provenance, exact faces, hits or target, actual consequences. Bind to `M-####`, referenced by `E-####`. Only committed actual events affect sheets; unknown stays unknown.
+- **Display**: player describes action; GM describes immediate consequence, sensory change and opening for next action. A roll prompt is secondary and human-language first, e.g., “The guard hears the latch click; your hand is still on the door. Do you risk pushing through?”

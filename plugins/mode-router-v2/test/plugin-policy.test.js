@@ -70,7 +70,7 @@ test("canonical modes.yml declares the exact version 2 managed plugin policy", a
   const text = await readFile(new URL("../modes.yml", import.meta.url), "utf8")
 
   assert.match(text, /^version:\s*2\s*$/m)
-  assert.deepEqual(yamlList(text, "managed_plugins", 2), MANAGED_PLUGIN_IDS)
+  assert.deepEqual(yamlList(text, "managed_plugins", 2), [...MANAGED_PLUGIN_IDS, "kakudou.rpg-dice"])
 
   const dev = yamlModeBlock(text, "dev")
   assert.deepEqual(yamlList(dev, "plugins", 6), MANAGED_PLUGIN_IDS)
@@ -79,13 +79,8 @@ test("canonical modes.yml declares the exact version 2 managed plugin policy", a
   assert.match(devPython, /^    extends:\s*dev\s*$/m)
   assert.equal(yamlList(devPython, "plugins", 6), null)
 
-  for (const name of ["chatbot", "gamemaster"]) {
-    assert.equal(
-      yamlList(yamlModeBlock(text, name), "plugins", 6),
-      null,
-      `${name} must omit the plugin allowlist and therefore disable managed plugins`,
-    )
-  }
+  assert.equal(yamlList(yamlModeBlock(text, "chatbot"), "plugins", 6), null)
+  assert.deepEqual(yamlList(yamlModeBlock(text, "gamemaster"), "plugins", 6), ["kakudou.rpg-dice"])
 })
 
 test("canonical modes.yml leaves optional 97-gadget-* skills unmanaged (pass-through)", async () => {

@@ -13,6 +13,7 @@ managed_plugins:
   - "kakudou.response-gadgets"
   - "kakudou.otsumi-progression"
   - "kakudou.tencentdb-memory"
+  - "kakudou.rpg-dice"
 
 mode:
   - name: dev
@@ -33,7 +34,7 @@ mode:
       - "99-tool-*"
     plugins:
       - "kakudou.response-gadgets"
-      - "kakudou.otsumi-progression"
+        #    - "kakudou.otsumi-progression"
       - "kakudou.tencentdb-memory"
 
   - name: dev-python
@@ -45,10 +46,12 @@ mode:
   - name: gamemaster
     description: Pen-and-paper and campaign workflows
     prefixes_allowed:
-      # Reserved families; the global gamemaster invariants remain usable even
-      # before system-specific RPG skill packages are installed.
+      # Shared tabletop capabilities and two independently selected rulesets.
       - "10-rpg-*"
       - "11-shadowrun-*"
+      - "12-cyphersystem-*"
+    plugins:
+      - "kakudou.rpg-dice"
 
   - name: chatbot
     description: Persona-driven two-person roleplay chatbot workflow
