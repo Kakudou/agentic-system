@@ -1,11 +1,12 @@
 const MODE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const JOHNNY_DECIMAL_PREFIX = /^\d{2}-/
-const LEGACY_MANAGED_PLUGIN_IDS = new Set([
+// These repository-owned plugin effects must still fail closed if their
+// configuration cannot be read. Keep this list aligned with modes.yml.
+const FAIL_CLOSED_MANAGED_PLUGIN_IDS = new Set([
   "kakudou.response-gadgets",
-  "kakudou.otsumi-progression",
   "kakudou.tencentdb-memory",
+  "kakudou.rpg-dice",
 ])
-
 export function isJohnnyDecimalIdentifier(value) {
   return typeof value === "string" && JOHNNY_DECIMAL_PREFIX.test(value)
 }
@@ -308,7 +309,7 @@ export function pluginDecision(pluginID, modeName, config) {
   const configured = Array.isArray(config?.managedPlugins)
     ? config.managedPlugins.includes(id)
     : false
-  const managed = configured || LEGACY_MANAGED_PLUGIN_IDS.has(id)
+  const managed = configured || FAIL_CLOSED_MANAGED_PLUGIN_IDS.has(id)
 
   if (!managed) {
     return { mode: modeName, managed: false, enabled: true, reason: "passthrough" }

@@ -97,7 +97,6 @@ export function isControlTurn(text) {
   if (!value) return true
   if (value.includes("<opencode-mode-router ")) return true
   if (value.includes("<opencode-response-gadget ")) return true
-  if (value.includes("<otsumi-progression-command ")) return true
   // Explicit slash commands already have a primary purpose. Ambient gadgets
   // should never decorate controller/status or explicit-skill command turns.
   if (/^\/[A-Za-z0-9_-]+(?:\s|$)/.test(value)) return true

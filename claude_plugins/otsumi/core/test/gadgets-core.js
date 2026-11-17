@@ -11,6 +11,7 @@ import {
   directive,
   executeGadgetCommand,
   gateSelected,
+  isControlTurn,
   newTurnState,
   selectGadgets,
 } from "../gadgets.js"
@@ -199,6 +200,14 @@ test("a selected gadget is claimed at most once per turn", () => {
   assert.deepEqual(claimGadgetInvocation(state, "97-gadget-random-news"), { ok: true })
   assert.deepEqual(claimGadgetInvocation(undefined, "97-gadget-random-news"), { ok: true })
   assert.match(directive("dev", state), /Already invoked this turn/)
+})
+
+test("only current generic control markers suppress ambient gadgets", () => {
+  assert.equal(isControlTurn("<opencode-mode-router action=\"status\" />"), true)
+  assert.equal(isControlTurn("<opencode-response-gadget action=\"status\" />"), true)
+  assert.equal(isControlTurn("/gadget status"), true)
+  assert.equal(isControlTurn("<otsumi-progression-command action=\"status\" />"), false)
+  assert.equal(isControlTurn("ordinary user request"), false)
 })
 
 test("crypto randomness stays inside its bound", () => {

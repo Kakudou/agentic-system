@@ -18,7 +18,6 @@ function pluginConfig(defaultMode = "dev") {
     default_mode: defaultMode,
     managed_plugins: [
       "kakudou.response-gadgets",
-      "kakudou.otsumi-progression",
       "kakudou.tencentdb-memory",
     ],
     mode: [
@@ -27,7 +26,6 @@ function pluginConfig(defaultMode = "dev") {
         prefixes_allowed: ["05-dev-*"],
         plugins: [
           "kakudou.response-gadgets",
-          "kakudou.otsumi-progression",
           "kakudou.tencentdb-memory",
         ],
       },
@@ -229,6 +227,15 @@ test("bridge disables managed plugins in chatbot and gamemaster", async (t) => {
       )
     })
   }
+})
+
+test("bridge passes the removed progression plugin ID through", async (t) => {
+  const { bridge } = await setupBridge(t)
+  assert.equal(typeof bridge?.pluginDecisionFor, "function")
+  assertPluginDecision(
+    await bridge.pluginDecisionFor("dev-session", "kakudou.otsumi-progression"),
+    { mode: "dev", managed: false, enabled: true },
+  )
 })
 
 test("plugin config reload keeps last-known-good policy and unchanged skill decisions", async (t) => {

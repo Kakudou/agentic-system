@@ -6,7 +6,6 @@ import * as matcher from "../lib/matcher.js"
 
 const MANAGED_PLUGIN_IDS = [
   "kakudou.response-gadgets",
-  "kakudou.otsumi-progression",
   "kakudou.tencentdb-memory",
 ]
 
@@ -173,6 +172,15 @@ test("managed plugins fail closed for unknown mode or unavailable config while u
       reason: passthrough.reason,
     },
     { mode: null, managed: false, enabled: true, reason: "passthrough" },
+  )
+})
+
+test("the removed progression plugin ID is no longer recognized by the router", () => {
+  const config = matcher.normalizeConfig(versionTwoConfig())
+
+  assert.deepEqual(
+    matcher.pluginDecision("kakudou.otsumi-progression", "dev", config),
+    { mode: "dev", managed: false, enabled: true, reason: "passthrough" },
   )
 })
 

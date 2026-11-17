@@ -17,7 +17,7 @@ skills/*/SKILL.md
     portable capability procedures
 
 plugins/
-    host-enforced runtime behavior such as skill-mode routing, ambient response gadgets, and progression
+    host-enforced runtime behavior such as skill-mode routing, ambient response gadgets, and RPG dice
 
 manual_plugins/
     optional host integrations such as TencentDB Agent Memory
@@ -117,15 +117,15 @@ The gadget skills (`97-gadget-*`) are not mode-managed: they pass through to nor
 
 ### Per-session plugin policy
 
-The router is also the per-session authority for the runtime plugins listed under `managed_plugins` in `modes.yml`: `kakudou.response-gadgets`, `kakudou.otsumi-progression`, and `kakudou.tencentdb-memory`. A managed plugin is enabled in a session only when the active mode lists it under `plugins:` (a mode that `extends` another inherits its parent's list).
+The router is also the per-session authority for the runtime plugins listed under `managed_plugins` in `modes.yml`: `kakudou.response-gadgets`, `kakudou.tencentdb-memory`, and `kakudou.rpg-dice`. A managed plugin is enabled in a session only when the active mode lists it under `plugins:` (a mode that `extends` another inherits its parent's list).
 
-| Mode | Response gadgets | Progression | TencentDB memory |
+| Mode | Response gadgets | TencentDB memory | RPG dice |
 | --- | --- | --- | --- |
-| `dev`, `dev-python` | enabled | enabled | enabled |
+| `dev`, `dev-python` | enabled | enabled | disabled |
 | `chatbot` | disabled | disabled | disabled |
-| `gamemaster` | disabled | disabled | disabled |
+| `gamemaster` | disabled | disabled | enabled |
 
-Each plugin re-checks this policy before its own effects (selection, XP awards, memory capture, plugin tools) and fails closed when the policy cannot be resolved.
+Each plugin re-checks this policy before its own effects (selection, memory capture, dice rolls) and fails closed when the policy cannot be resolved.
 
 ## Ambient response gadgets
 
@@ -134,12 +134,6 @@ Each plugin re-checks this policy before its own effects (selection, XP awards, 
 Selection is evaluated once per eligible user turn, survives tool-continuation requests without rerolling, and never creates a second synthetic assistant turn. Gadget appendices use generic `otsumi-ephemeral` markers so TencentDB capture can exclude ambient display-only material from durable memory.
 
 The default ambient policy is enabled for ordinary work modes and suppressed for locked chatbot/gamemaster modes so a random out-of-character appendix cannot violate persona or narration format. The plugin accepts an explicit mode override when a deployment wants different ambient behavior; manual gadget invocation remains independent of the random selector.
-
-## Progression
-
-`plugins/otsumi-progression-v2` (`kakudou.otsumi-progression`) runs Ōtsumi's RPG-like progression loop on OpenCode V2. It owns only durable game state: XP, level, activity counters, a per-input award ledger (stable IDs or privacy-safe hashes, never user text), one pending evolution slot, the current evolution proposal, rejected proposals, and completed evolution history. It does not implement evolutions, grant permissions, replace TencentDB memory, or write Obsidian knowledge.
-
-Each eligible primary-agent user input earns at most `+1` interaction, `+1` completion, and `+3` effective-work XP; gadget-only work, skill loading, `otsumi_rng`, and TencentDB tools earn no effective-work bonus. A pending level-up is announced through a pre-model directive and resolved with the `00-agent-evolution` capability. The plugin exposes `otsumi_progression_status`, `_propose`, `_reject`, and `_complete` tools plus a read-only `/otsumi` character sheet. State defaults to `$XDG_STATE_HOME/opencode/otsumi-progression-v2/otsumi.json` (or `~/.local/state/...` when unset). See [its README](plugins/otsumi-progression-v2/README.md).
 
 ## Obsidian
 
@@ -207,7 +201,7 @@ cp source_env.example source_env   # then replace every placeholder value
 
 `system.md` is the global contract; point `~/.claude/CLAUDE.md` at it and the agent files at `~/.claude/agents` as you would for the other hosts.
 
-The Ōtsumi Claude Code mod lives at [`claude_plugins/otsumi`](claude_plugins/otsumi/). Load it for one session with `claude --plugin-dir claude_plugins/otsumi`, or for every session by naming the folder in `CLAUDE_CODE_PLUGIN_DIRS`. It currently ports the response gadgets only; the mode router and progression are not yet ported.
+The Ōtsumi Claude Code mod lives at [`claude_plugins/otsumi`](claude_plugins/otsumi/). Load it for one session with `claude --plugin-dir claude_plugins/otsumi`, or for every session by naming the folder in `CLAUDE_CODE_PLUGIN_DIRS`. It currently ports response gadgets and RPG dice; the mode router is not yet ported.
 
 Ambient gadgets are controlled by `OTSUMI_GADGETS_MODE`:
 
@@ -251,4 +245,3 @@ Persistent RPG state uses `events.md`, `mechanics.md`, `state.md`, `chronicle.md
 `plugins/rpg-dice-v2` is a **native OpenCode 2 local plugin** that exposes `rpg_dice` only in the `gamemaster` mode via the existing `mode-router-v2` policy. Claude Code uses the same host-free core through `claude_plugins/otsumi/hooks/rpg-dice.ts` in the existing Claude plugin; no MCP server runs. All game decisions and persistent state remain agent-driven and Markdown-only. See [plugin documentation](plugins/rpg-dice-v2/README.md).
 
 For Shadowrun tables consult the [layout-verified extraction and audit](skills/11-shadowrun-rules/references/table-audit.md). The 2025 Cypher SRD's **entire supplied upstream Markdown corpus is embedded**; use the [local catalog index](skills/12-cyphersystem-rules/references/csrd-2025/CONTENT-INDEX.md) to retrieve any source option offline.
-

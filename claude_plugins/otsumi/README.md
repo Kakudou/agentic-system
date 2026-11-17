@@ -7,7 +7,6 @@ A Claude Code mod (in-process hooks module) that brings the Ōtsumi runtime plug
 | Response gadgets | [`core/gadgets.js`](core/gadgets.js), [`core/gadgets-config.js`](core/gadgets-config.js) | [`hooks/gadgets.ts`](hooks/gadgets.ts) | [`plugins/response-gadgets-v2`](../../plugins/response-gadgets-v2/) |
 | Mode router | not yet ported | — | [`plugins/mode-router-v2`](../../plugins/mode-router-v2/) |
 | RPG dice | [`core/rpg-dice.js`](core/rpg-dice.js) | [`hooks/rpg-dice.ts`](hooks/rpg-dice.ts) | [`plugins/rpg-dice-v2`](../../plugins/rpg-dice-v2/) |
-| Progression | not yet ported | — | [`plugins/otsumi-progression-v2`](../../plugins/otsumi-progression-v2/) |
 
 The core lives inside this plugin folder because a Claude Code hooks module may only import files of its own plugin; the OpenCode plugin imports it from here. Keep `core/` free of Node and host APIs: a hooks module has neither, so hosts inject randomness, policy, and file access.
 

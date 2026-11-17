@@ -11,7 +11,6 @@ default_mode: dev
 
 managed_plugins:
   - "kakudou.response-gadgets"
-  - "kakudou.otsumi-progression"
   - "kakudou.tencentdb-memory"
   - "kakudou.rpg-dice"
 
@@ -34,7 +33,6 @@ mode:
       - "99-tool-*"
     plugins:
       - "kakudou.response-gadgets"
-        #    - "kakudou.otsumi-progression"
       - "kakudou.tencentdb-memory"
 
   - name: dev-python
