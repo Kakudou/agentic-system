@@ -4,7 +4,7 @@ All files are plain `.md`. Required session folder:
 
 ```text
 my-run/
-  session.md           # one selected system, narrative / dice / house-rule contract
+  session.md           # one selected system, narrative / dice / house-rule contract (incl. the explain_rules per-run toggle)
   events.md            # append-only transcript + events; primary truth
   mechanics.md         # only actual dice faces and verified calculations
   state.md             # current scene, time, resources, NPC clocks, public facts
@@ -49,3 +49,7 @@ Writer procedure: (1) read latest committed event ID and relevant existing files
 ## Import
 
 Read the player's existing `.md`; never mutate that source. Copy its content into `characters/player.md` or transcribe fields with `Origin: <path or user-provided sheet>` and an explicit `Imported copy on <date or unspecified>`. Unknown values remain unknown. Separate the session record from rewards/changes accepted into the original campaign.
+
+## Cross-run progression
+
+A character's canonical record lives outside the run folder (default `../CharacterProgression/<character>/`). The run imports from it at start and records the version (`@ P-####`). In-run changes stay in `characters/player.md` and `events.md`. At the end of the run, the progression debrief proposes the permanent changes with event IDs; only player-approved changes are applied to the record, as changes on top of its current state, and the applied `P-####` is logged as a run event. See `10-rpg-progression`.

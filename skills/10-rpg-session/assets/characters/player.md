@@ -1,6 +1,7 @@
 # Player character
 
 - Source: {{UPLOADED_MARKDOWN_OR_EXTERNAL_REFERENCE}}
+- Progression record: {{RECORD_PATH_AT_P_ID_OR_NONE}}
 - Ruleset/edition: {{RULESET}}
 - Name: {{NAME}}
 - Appearance, identity, history, motivations: import without change
